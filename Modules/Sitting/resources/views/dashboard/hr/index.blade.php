@@ -1,4 +1,4 @@
-@extends('hr::master')
+@extends('sitting::master')
 
 @section('title')
     لوحة التحكم

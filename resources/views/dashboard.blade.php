@@ -189,7 +189,7 @@ body {
         </a>
 
         {{-- إدارة المخزون والمشتريات --}}
-        <a href="{{ url('/inventory') }}" class="card-link">
+        <a href="{{route('stock.department.dashboard')}}" class="card-link">
             <div class="card">
                 <div class="card-content">
                     <div>
@@ -206,7 +206,7 @@ body {
         </a>
 
         {{-- المالية والحسابات العامة --}}
-        <a href="{{ url('/finance') }}" class="card-link">
+        <a href="{{ route('account.department.dashboard') }}" class="card-link">
             <div class="card">
                 <div class="card-content">
                     <div>
@@ -223,7 +223,7 @@ body {
         </a>
 
         {{-- إدارة المهام --}}
-        <a href="{{ url('/tasks') }}" class="card-link">
+        <a href="{{ route('task.department.dashboard') }}" class="card-link">
             <div class="card">
                 <div class="card-content">
                     <div>
@@ -240,7 +240,7 @@ body {
         </a>
 
         {{-- إدارة الموارد البشرية --}}
-        <a href="{{ url('/hr') }}" class="card-link">
+        <a href="{{  route('hr.department.dashboard') }} " class="card-link">
             <div class="card">
                 <div class="card-content">
                     <div>
@@ -257,7 +257,7 @@ body {
         </a>
 
         {{-- الإعدادات العامة --}}
-        <a href="{{ url('/settings') }}" class="card-link">
+        <a href="{{ route('settings.department.dashboard') }}" class="card-link">
             <div class="card">
                 <div class="card-content">
                     <div>

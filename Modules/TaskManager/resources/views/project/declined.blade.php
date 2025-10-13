@@ -1,4 +1,4 @@
-@extends('master')
+@extends('taskmanager::master')
 
 @section('title', 'رابط غير صحيح')
 

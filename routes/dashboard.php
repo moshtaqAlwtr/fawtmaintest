@@ -394,21 +394,47 @@ $averageBranchCollection = $branchesPerformance->avg('total_collected');
 
         Route::prefix('dashboard')->middleware(['auth'])->group(function () {
             #questions routes
-            
+
              Route::get('/sales/department', function () {
-                  
+
                   return view('sales::master');
                })->name('sales.department.dashboard');
-               
-               
+   Route::get('/stock/department', function () {
+
+                  return view('stock::master');
+               })->name('stock.department.dashboard');
+
+
+   Route::get('/hr/department', function () {
+
+                  return view('hr::master');
+               })->name('hr.department.dashboard');
+
+
+   Route::get('/account/department', function () {
+
+                  return view('account::master');
+               })->name('account.department.dashboard');
+   Route::get('/task/department', function () {
+
+                  return view('taskmanager::master');
+               })->name('task.department.dashboard');
+
+
+ Route::get('/setting/department', function () {
+
+                  return view('sitting::master');
+               })->name('sittings.department.dashboard');
+
+
                 Route::get('/main', function () {
                   return view('dashboard');
                });
             Route::prefix('sales')->group(function () {
                 Route::get('/index', [DashboardSalesController::class, 'index'])->name('dashboard_sales.index');
-                
-               
-               
+
+
+
                 Route::get('/dashboard/employee-invoices/{userId}/{type}', [DashboardController::class, 'getEmployeeInvoices']);
             });
         });

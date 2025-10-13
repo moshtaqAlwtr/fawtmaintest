@@ -1,4 +1,4 @@
-@extends('master')
+@extends('taskmanager::master')
 
 @section('title', 'تحليلات مفصلة - ' . $workspace->title)
 

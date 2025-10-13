@@ -1,4 +1,4 @@
-@extends('master')
+@extends('taskmanager::master')
 
 @section('title')
     تقويم المهام
@@ -15,18 +15,18 @@
         box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         margin-bottom: 20px;
     }
-    
+
     .fc {
         direction: rtl;
         font-family: 'Cairo', sans-serif;
     }
-    
+
     .fc-toolbar-title {
         font-size: 1.6rem !important;
         font-weight: bold;
         color: #2c3e50;
     }
-    
+
     .fc-button {
         background: #3498db !important;
         border: none !important;
@@ -34,17 +34,17 @@
         padding: 8px 15px !important;
         font-weight: 600 !important;
     }
-    
+
     .fc-button:hover {
         background: #2980b9 !important;
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
     }
-    
+
     .fc-button-active {
         background: #2c3e50 !important;
     }
-    
+
     .fc-event {
         border-radius: 8px !important;
         padding: 4px 8px !important;
@@ -55,68 +55,68 @@
         border: none !important;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    
+
     .fc-event:hover {
         transform: scale(1.02);
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         z-index: 999;
     }
-    
+
     .fc-event-title {
         font-weight: 600 !important;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    
+
     .fc-daygrid-event {
         margin: 1px 2px !important;
         border-radius: 6px !important;
     }
-    
+
     /* ألوان الحالات */
-    .status-pending { 
-        background: linear-gradient(135deg, #f39c12, #f1c40f) !important; 
-        color: #fff !important; 
+    .status-pending {
+        background: linear-gradient(135deg, #f39c12, #f1c40f) !important;
+        color: #fff !important;
     }
-    .status-in_progress { 
-        background: linear-gradient(135deg, #3498db, #2980b9) !important; 
-        color: #fff !important; 
+    .status-in_progress {
+        background: linear-gradient(135deg, #3498db, #2980b9) !important;
+        color: #fff !important;
     }
-    .status-completed { 
-        background: linear-gradient(135deg, #27ae60, #2ecc71) !important; 
-        color: #fff !important; 
+    .status-completed {
+        background: linear-gradient(135deg, #27ae60, #2ecc71) !important;
+        color: #fff !important;
     }
-    .status-cancelled { 
-        background: linear-gradient(135deg, #e74c3c, #c0392b) !important; 
-        color: #fff !important; 
+    .status-cancelled {
+        background: linear-gradient(135deg, #e74c3c, #c0392b) !important;
+        color: #fff !important;
     }
     .status-overdue {
         background: linear-gradient(135deg, #8e44ad, #9b59b6) !important;
         color: #fff !important;
         animation: pulse 2s infinite;
     }
-    
+
     @keyframes pulse {
         0% { opacity: 1; }
         50% { opacity: 0.7; }
         100% { opacity: 1; }
     }
-    
+
     /* مؤشرات الأولوية */
-    .priority-high { 
-        border-right: 5px solid #e74c3c !important; 
+    .priority-high {
+        border-right: 5px solid #e74c3c !important;
         box-shadow: inset 5px 0 0 #e74c3c, 0 2px 8px rgba(0,0,0,0.1) !important;
     }
-    .priority-medium { 
-        border-right: 5px solid #f39c12 !important; 
+    .priority-medium {
+        border-right: 5px solid #f39c12 !important;
         box-shadow: inset 5px 0 0 #f39c12, 0 2px 8px rgba(0,0,0,0.1) !important;
     }
-    .priority-low { 
-        border-right: 5px solid #27ae60 !important; 
+    .priority-low {
+        border-right: 5px solid #27ae60 !important;
         box-shadow: inset 5px 0 0 #27ae60, 0 2px 8px rgba(0,0,0,0.1) !important;
     }
-    
+
     .filter-section {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 25px;
@@ -124,14 +124,14 @@
         margin-bottom: 25px;
         color: white;
     }
-    
+
     .filter-section label {
         font-weight: 600;
         margin-bottom: 8px;
         color: white;
         font-size: 14px;
     }
-    
+
     .filter-section .form-control {
         border-radius: 8px;
         border: none;
@@ -140,12 +140,12 @@
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         transition: all 0.3s ease;
     }
-    
+
     .filter-section .form-control:focus {
         box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
         transform: translateY(-1px);
     }
-    
+
     .legend {
         display: flex;
         gap: 20px;
@@ -154,7 +154,7 @@
         padding-top: 20px;
         border-top: 1px solid rgba(255,255,255,0.3);
     }
-    
+
     .legend-item {
         display: flex;
         align-items: center;
@@ -165,21 +165,21 @@
         font-size: 13px;
         font-weight: 500;
     }
-    
+
     .legend-color {
         width: 16px;
         height: 16px;
         border-radius: 50%;
         box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
-    
+
     .stats-cards {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 20px;
         margin-bottom: 25px;
     }
-    
+
     .stat-card {
         background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
         padding: 25px 20px;
@@ -190,12 +190,12 @@
         overflow: hidden;
         transition: all 0.3s ease;
     }
-    
+
     .stat-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 8px 30px rgba(0,0,0,0.15);
     }
-    
+
     .stat-card::before {
         content: '';
         position: absolute;
@@ -205,14 +205,14 @@
         height: 4px;
         background: linear-gradient(90deg, #667eea, #764ba2);
     }
-    
+
     .stat-card h4 {
         margin: 0 0 8px 0;
         font-size: 2.5rem;
         font-weight: 700;
         color: #2c3e50;
     }
-    
+
     .stat-card p {
         margin: 0;
         color: #7f8c8d;
@@ -221,44 +221,44 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
-    
+
     /* تحسينات المودال */
     .modal-content {
         border-radius: 12px;
         border: none;
         box-shadow: 0 10px 40px rgba(0,0,0,0.2);
     }
-    
+
     .modal-header {
         background: linear-gradient(135deg, #667eea, #764ba2);
         color: white;
         border-radius: 12px 12px 0 0;
         padding: 20px 25px;
     }
-    
+
     .modal-title {
         font-weight: 600;
         font-size: 1.2rem;
     }
-    
+
     .task-details {
         padding: 10px 0;
     }
-    
+
     .task-details p {
         margin-bottom: 12px;
         padding: 8px 0;
         border-bottom: 1px solid #f8f9fa;
         font-size: 14px;
     }
-    
+
     .task-details strong {
         color: #2c3e50;
         font-weight: 600;
         display: inline-block;
         min-width: 120px;
     }
-    
+
     .status-badge {
         display: inline-block;
         padding: 4px 12px;
@@ -268,7 +268,7 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
-    
+
     .progress-bar {
         width: 100%;
         height: 8px;
@@ -277,24 +277,24 @@
         overflow: hidden;
         margin-top: 5px;
     }
-    
+
     .progress-fill {
         height: 100%;
         background: linear-gradient(90deg, #27ae60, #2ecc71);
         transition: width 0.3s ease;
     }
-    
+
     /* Loading spinner */
     .loading-spinner {
         display: none;
         text-align: center;
         padding: 50px;
     }
-    
+
     .loading-spinner.show {
         display: block;
     }
-    
+
     .spinner {
         width: 40px;
         height: 40px;
@@ -304,28 +304,28 @@
         animation: spin 1s linear infinite;
         margin: 0 auto 15px;
     }
-    
+
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
-    
+
     /* Responsive */
     @media (max-width: 768px) {
         .fc-toolbar {
             flex-direction: column !important;
             gap: 10px;
         }
-        
+
         .fc-toolbar-chunk {
             display: flex;
             justify-content: center;
         }
-        
+
         .stats-cards {
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         }
-        
+
         .filter-section .row > div {
             margin-bottom: 15px;
         }
@@ -448,7 +448,7 @@
         <div class="calendar-container">
             <div class="loading-spinner" id="loadingSpinner">
                 <div class="spinner"></div>
-             
+
             </div>
             <div id='calendar'></div>
         </div>
@@ -484,7 +484,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('calendar');
     var loadingSpinner = document.getElementById('loadingSpinner');
-    
+
     var calendar = new FullCalendar.Calendar(calendarEl, {
         locale: 'ar',
         direction: 'rtl',
@@ -506,7 +506,7 @@ document.addEventListener('DOMContentLoaded', function() {
         events: function(info, successCallback, failureCallback) {
             // إظهار مؤشر التحميل
             loadingSpinner.classList.add('show');
-            
+
             $.ajax({
                 url: '{{ route("tasks.calendar.events") }}',
                 type: 'GET',
@@ -520,16 +520,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 success: function(data) {
                     console.log('✅ تم تحميل المهام بنجاح:', data.length, 'مهمة');
-                    
+
                     // إخفاء مؤشر التحميل
                     loadingSpinner.classList.remove('show');
-                    
+
                     // معالجة البيانات
                     const processedEvents = data.map(event => {
                         // تحديد إذا كانت المهمة متأخرة
                         const isOverdue = event.extendedProps.is_overdue;
                         const status = isOverdue ? 'overdue' : event.extendedProps.status;
-                        
+
                         return {
                             ...event,
                             extendedProps: {
@@ -538,16 +538,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                         };
                     });
-                    
+
                     successCallback(processedEvents);
                 },
                 error: function(xhr, status, error) {
                     console.error('❌ خطأ في تحميل المهام:', error);
                     console.error('Response:', xhr.responseText);
-                    
+
                     // إخفاء مؤشر التحميل
                     loadingSpinner.classList.remove('show');
-                    
+
                     // إظهار رسالة خطأ
                     alert('حدث خطأ أثناء تحميل المهام. يرجى المحاولة مرة أخرى.');
                     failureCallback();
@@ -560,15 +560,15 @@ document.addEventListener('DOMContentLoaded', function() {
         eventDidMount: function(info) {
             const event = info.event;
             const el = info.el;
-            
+
             // إضافة classes للحالات والأولويات
             const displayStatus = event.extendedProps.display_status || event.extendedProps.status;
             el.classList.add('status-' + displayStatus);
-            
+
             if (event.extendedProps.priority) {
                 el.classList.add('priority-' + event.extendedProps.priority);
             }
-            
+
             // إضافة tooltip
             el.setAttribute('title', `
 المشروع: ${event.extendedProps.project_name || 'غير محدد'}
@@ -610,16 +610,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const statusText = getStatusText(displayStatus);
         const statusClass = 'status-' + displayStatus;
         const priorityText = getPriorityText(event.extendedProps.priority);
-        
+
         $('#taskModalTitle').text(event.title);
-        
+
         // تنسيق التواريخ
         const startDate = event.start ? event.start.toLocaleDateString('ar-SA') : 'غير محدد';
         const endDate = event.end ? event.end.toLocaleDateString('ar-SA') : 'غير محدد';
-        
+
         // حساب نسبة الإنجاز
         const completionPercentage = event.extendedProps.completion_percentage || 0;
-        
+
         let html = `
             <div class="task-details">
                 <p><strong>المشروع:</strong> ${event.extendedProps.project_name || 'غير محدد'}</p>
@@ -643,7 +643,7 @@ document.addEventListener('DOMContentLoaded', function() {
         $('#viewTaskBtn').attr('href', `/tasks/${event.id}`);
         $('#taskModal').modal('show');
     }
-    
+
     // دوال مساعدة لترجمة النصوص
     function getStatusText(status) {
         const statusTexts = {
@@ -655,7 +655,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         return statusTexts[status] || status;
     }
-    
+
     function getPriorityText(priority) {
         const priorityTexts = {
             'high': 'عالية',
@@ -671,37 +671,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // تحسينات إضافية للتقويم
 $(document).ready(function() {
-    
+
     // إضافة وظيفة السحب والإفلات لتغيير تاريخ المهام
     calendar.setOption('editable', true);
     calendar.setOption('eventDrop', function(info) {
         updateTaskDate(info.event, info.delta);
     });
-    
+
     // إضافة وظيفة تغيير حجم الأحداث
     calendar.setOption('eventResize', function(info) {
         updateTaskDuration(info.event, info.endDelta);
     });
-    
+
     // تحديث إحصائيات الفلاتر عند التغيير
     $('#projectFilter, #statusFilter, #priorityFilter, #userFilter').on('change', function() {
         updateFilterStats();
     });
-    
+
     // إضافة اختصارات لوحة المفاتيح
     $(document).keydown(function(e) {
         // الضغط على مفتاح ESC لإغلاق المودال
         if (e.key === 'Escape' && $('#taskModal').hasClass('show')) {
             $('#taskModal').modal('hide');
         }
-        
+
         // الضغط على مفتاح R لتحديث التقويم
         if (e.ctrlKey && e.key === 'r') {
             e.preventDefault();
             refreshCalendar();
         }
     });
-    
+
     // إضافة زر تحديث سريع
     $('.calendar-container').prepend(`
         <div class="calendar-actions" style="margin-bottom: 15px; text-align: right;">
@@ -716,15 +716,15 @@ $(document).ready(function() {
             </button>
         </div>
     `);
-    
+
     // وظائف الأزرار الجديدة
     $('#refreshBtn').click(refreshCalendar);
     $('#todayBtn').click(() => calendar.today());
     $('#exportBtn').click(exportCalendarData);
-    
+
     // إضافة مؤشر للمهام المتأخرة في العنوان
     updateOverdueCounter();
-    
+
     // تحديث العداد كل دقيقة
     setInterval(updateOverdueCounter, 60000);
 });
@@ -736,10 +736,10 @@ function updateTaskDate(event, delta) {
     const taskId = event.id;
     const newStartDate = event.start;
     const newEndDate = event.end;
-    
+
     // إظهار مؤشر التحميل
     showLoadingSpinner(true);
-    
+
     $.ajax({
         url: `/tasks/calendar/${taskId}/status`,
         type: 'PATCH',
@@ -772,7 +772,7 @@ function updateTaskDate(event, delta) {
 function updateTaskDuration(event, endDelta) {
     const taskId = event.id;
     const newEndDate = event.end;
-    
+
     $.ajax({
         url: `/tasks/calendar/${taskId}/status`,
         type: 'PATCH',
@@ -803,13 +803,13 @@ function updateFilterStats() {
         priority: $('#priorityFilter').val(),
         user: $('#userFilter').val()
     };
-    
+
     // عد الفلاتر النشطة
     const activeFilterCount = Object.values(activeFilters).filter(v => v !== '').length;
-    
+
     // إضافة مؤشر للفلاتر النشطة
     $('.filter-section').attr('data-active-filters', activeFilterCount);
-    
+
     if (activeFilterCount > 0) {
         $('.filter-section').addClass('has-active-filters');
     } else {
@@ -821,10 +821,10 @@ function updateFilterStats() {
  * تحديث عداد المهام المتأخرة
  */
 function updateOverdueCounter() {
-    const overdueEvents = calendar.getEvents().filter(event => 
+    const overdueEvents = calendar.getEvents().filter(event =>
         event.extendedProps.is_overdue
     ).length;
-    
+
     if (overdueEvents > 0) {
         if (!$('#overdueCounter').length) {
             $('.content-header-title').append(`
@@ -855,7 +855,7 @@ function exportCalendarData() {
         'نسبة الإنجاز': (event.extendedProps.completion_percentage || 0) + '%',
         'المكلفون': event.extendedProps.assigned_users || ''
     }));
-    
+
     // تحويل إلى CSV
     const csv = convertToCSV(exportData);
     downloadCSV(csv, 'tasks_calendar.csv');
@@ -866,13 +866,13 @@ function exportCalendarData() {
  */
 function convertToCSV(data) {
     if (!data.length) return '';
-    
+
     const headers = Object.keys(data[0]);
     const csvContent = [
         headers.join(','),
         ...data.map(row => headers.map(header => `"${row[header] || ''}"`).join(','))
     ].join('\n');
-    
+
     return csvContent;
 }
 
@@ -882,7 +882,7 @@ function convertToCSV(data) {
 function downloadCSV(csv, filename) {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    
+
     if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
@@ -911,9 +911,9 @@ function showLoadingSpinner(show) {
 function showNotification(message, type = 'info') {
     // إزالة الإشعارات السابقة
     $('.notification-toast').remove();
-    
+
     const toast = $(`
-        <div class="notification-toast alert alert-${type === 'error' ? 'danger' : type}" 
+        <div class="notification-toast alert alert-${type === 'error' ? 'danger' : type}"
              style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
             ${message}
             <button type="button" class="close" onclick="$(this).parent().remove()">
@@ -921,9 +921,9 @@ function showNotification(message, type = 'info') {
             </button>
         </div>
     `);
-    
+
     $('body').append(toast);
-    
+
     // إخفاء تلقائي بعد 5 ثوان
     setTimeout(() => {
         toast.fadeOut(() => toast.remove());
@@ -954,26 +954,26 @@ $('<style>').text(`
         border: 2px solid #3498db !important;
         box-shadow: 0 0 15px rgba(52, 152, 219, 0.3) !important;
     }
-    
+
     .calendar-actions {
         display: flex;
         gap: 10px;
         justify-content: flex-end;
         flex-wrap: wrap;
     }
-    
+
     .calendar-actions .btn {
         display: flex;
         align-items: center;
         gap: 5px;
     }
-    
+
     .notification-toast {
         animation: slideIn 0.3s ease;
         border-radius: 8px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     }
-    
+
     @keyframes slideIn {
         from {
             transform: translateX(100%);
@@ -984,15 +984,15 @@ $('<style>').text(`
             opacity: 1;
         }
     }
-    
+
     #overdueCounter {
         animation: pulse 2s infinite;
     }
-    
+
     .fc-event.overdue-task {
         animation: blink 1.5s infinite;
     }
-    
+
     @keyframes blink {
         50% { opacity: 0.7; }
     }
