@@ -52,5 +52,7 @@ class AccountController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id) {}
+    public function dashboardaccount() {
+        return view('account::dashboard.account.index');
+    }
 }

@@ -340,3 +340,4 @@ Route::middleware(['auth'])->group(function () {
         return view('errors.404');
     });
 });
+   Route::get('/dashbordStock', [TemplateUnitController::class, 'dashbordStock'])->name('dashbordStock.index');

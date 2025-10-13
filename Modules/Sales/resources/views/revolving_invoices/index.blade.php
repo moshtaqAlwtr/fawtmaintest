@@ -1,4 +1,4 @@
-@extends('master')
+@extends('sales::master')
 
 @section('title')
 الفواتير

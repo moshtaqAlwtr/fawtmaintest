@@ -522,4 +522,5 @@ Route::middleware(['auth'])->group(function () {
     );
 });
 
+ Route::get('/dashboardhr', [EmployeeController::class, 'dashboardhr'])->name('dashboardhr');
 

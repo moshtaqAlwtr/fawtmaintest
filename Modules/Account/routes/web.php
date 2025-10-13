@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Modules\Account\Http\Controllers\AccountController;
 use Modules\Account\Http\Controllers\AccountsChartController;
 use Modules\Account\Http\Controllers\AccountsSettingsController;
 use Modules\Account\Http\Controllers\AssetsController;
@@ -89,16 +90,16 @@ Route::group(
                     Route::get('Assets/pdf/{id}', [AssetsController::class, 'generatePdf'])->name('assets.generatePdf');
                 });
 
-               
+
                   Route::prefix('accounts_settings')->group(function () {
                     Route::get('/index', [AccountsSettingsController::class, 'index'])->name('accounts_settings.index');
                     Route::get('/financial_years', [AccountsSettingsController::class, 'financial_years'])->name('accounts_settings.financial_years');
                     Route::get('/closed_periods', [AccountsSettingsController::class, 'closed_periods'])->name('accounts_settings.closed_periods');
                     Route::get('/accounts_routing', [AccountsSettingsController::class, 'accounts_routing'])->name('accounts_settings.accounts_routing');
                     Route::get('/accounting_general', [AccountsSettingsController::class, 'accounting_general'])->name('accounts_settings.accounting_general');
-                    
-                    
-                    
+
+
+
                     //AccountsChartController::class,
                 });
 
@@ -218,3 +219,4 @@ Route::group(
 );
 
 });
+  Route::get('/dashboardaccount',[AccountController::class,'index'])->name('dashboardaccount');

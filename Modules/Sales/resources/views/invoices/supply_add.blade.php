@@ -1,4 +1,5 @@
-@extends('master')
+@extends('sales::master')
+)
 
 @section('title')
     إضافة فاتورة إلى أمر شغل
@@ -34,7 +35,7 @@
                                 <i class="fas fa-clipboard-check me-2"></i>
                                 اختر أمر التوريد
                             </label>
-                            <select id="supply_order" name="supply_order_id" 
+                            <select id="supply_order" name="supply_order_id"
                                     class="form-select form-select-lg border-primary @error('supply_order_id') is-invalid @enderror"
                                     style="padding: 0.75rem 1rem; font-size: 1.05rem;">
                                 <option value="" selected disabled>-- اختر أمر التوريد --</option>

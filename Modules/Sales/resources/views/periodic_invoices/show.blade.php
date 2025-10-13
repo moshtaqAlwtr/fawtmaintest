@@ -1,4 +1,5 @@
-@extends('master')
+@extends('sales::master')
+
 @section('css')
 @endsection
 

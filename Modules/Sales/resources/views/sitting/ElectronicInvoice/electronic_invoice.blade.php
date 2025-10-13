@@ -1,4 +1,4 @@
-@extends('master')
+@extends('sales::master')
 
 @section('title')
     إعدادات الفاتورة الإلكترونية
@@ -63,12 +63,12 @@
             <div class="card-electronic">
                 <div class="title">منصة فوترة التجريبية</div>
                 <div class="desc mb-3">يمكنك اختبار التكامل من خلال محاكاة فوترة</div>
-               
-                    
+
+
                     <a href="{{route('settings_send_fawtra')}}" class="btn btn-activate">
                         <span class="icon-check">&#10003;</span> تفعيل
                     </a>
-               
+
             </div>
         </div>
         <!-- منصة فاتورة الحقيقية -->

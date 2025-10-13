@@ -94,5 +94,9 @@ class TemplateUnitController extends Controller
         $templateUnit->update(['status' => !$templateUnit->status]);
         return redirect()->route('template_unit.show',$id)->with(['success' => 'تم تحديث حالة قالب الوحدة بنجاح!']);
     }
+public function dashbordStock()
+{
 
+    return view('stock::dashboard.stock.index');
+}
 }

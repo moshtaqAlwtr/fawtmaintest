@@ -1,4 +1,4 @@
-@extends('sales::master')
+@extends('stock::master')
 
 @section('title')
     لوحة التحكم

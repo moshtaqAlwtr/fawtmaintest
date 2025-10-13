@@ -455,4 +455,9 @@ if ($user && $jobRole) {
             ->route('employee.show', $id)
             ->with(['success' => 'تم تحديث حالة الموضف  بنجاح!']);
     }
+
+    public function dashboardhr()
+    {
+        return view('hr::dashboard.hr.index');
+    }
 }
