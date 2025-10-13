@@ -1,280 +1,317 @@
 <?php
 
-namespace Modules\Client\Http\Controllers;
-use App\Models\Client;
-use GuzzleHttp\Psr7\Request;
+use App\Http\Controllers\Client\ClientController;
 use Illuminate\Support\Facades\Route;
-use Modules\Client\Http\Controllers\AppointmentController;
-use Modules\Client\Http\Controllers\AppointmentNoteController;
-
-use Modules\Client\Http\Controllers\CatagroiyClientController;
-use Modules\Client\Http\Controllers\ClientController;
-use Modules\Client\Http\Controllers\ClientSettingController;
-use Modules\Client\Http\Controllers\GroupsController;
-use Modules\Client\Http\Controllers\ItineraryController;
-use Modules\Client\Http\Controllers\LoyaltyPoints\LoyaltyPointsController;
-use Modules\Client\Http\Controllers\LoyaltyPoints\LoyaltyPointsSittingController;
-
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Accounts\AssetsController;
+use App\Http\Controllers\Accounts\AccountsChartController;
+use App\Http\Controllers\Commission\CommissionController;
+use App\Http\Controllers\EmployeeTargetController;
+use App\Http\Controllers\Logs\LogController;
+use App\Http\Controllers\StatisticsController;
+use App\Models\Client;
+use App\Models\ClientRelation;
+use App\Models\Invoice;
+use App\Models\Offer;
+use Illuminate\Support\Facades\Http;
+use Modules\Client\Http\Controllers\ClientSettingController;
+use Modules\Client\Http\Controllers\VisitController;
+use App\Http\Controllers\TestNotificationController;
 
-// =============================================
-// Routes الرئيسية للعملاء تحت الترجمة + ميدلوير
-// =============================================
+// ==================== Debug Routes ====================
+// Debug route to check client relations data
+Route::get('/debug-client-relations', function () {
+    $client = Client::with([
+        'clientRelations' => function ($query) {
+            $query->with(['employee', 'location'])
+                  ->orderBy('created_at', 'desc');
+        },
+    ])->first();
+
+    if (!$client) {
+        return response()->json(['error' => 'No clients found']);
+    }
+
+    $clientRelations = $client->clientRelations->map(function ($relation) {
+        // معالجة نوع الموقع لعرضه بالعربية
+        $siteTypeText = '';
+        switch ($relation->site_type) {
+            case 'independent_booth':
+                $siteTypeText = 'بسطة مستقلة';
+                break;
+            case 'grocery':
+                $siteTypeText = 'بقالة';
+                break;
+            case 'supplies':
+                $siteTypeText = 'تموينات';
+                break;
+            case 'markets':
+                $siteTypeText = 'أسواق';
+                break;
+            case 'station':
+                $siteTypeText = 'محطة';
+                break;
+            default:
+                $siteTypeText = $relation->site_type;
+        }
+
+        // معالجة المرفقات
+        $attachmentsArray = [];
+        if ($relation->attachments) {
+            if (is_string($relation->attachments)) {
+                $decoded = json_decode($relation->attachments, true);
+                if (is_array($decoded)) {
+                    $attachmentsArray = $decoded;
+                } else {
+                    $attachmentsArray = [$relation->attachments];
+                }
+            } elseif (is_array($relation->attachments)) {
+                $attachmentsArray = $relation->attachments;
+            }
+        }
+
+        return [
+            'id' => $relation->id,
+            'client_id' => $relation->client_id,
+            'status' => $relation->status,
+            'quotation_id' => $relation->quotation_id,
+            'invoice_id' => $relation->invoice_id,
+            'description' => $relation->description,
+            'process' => $relation->process,
+            'type' => $relation->type,
+            'date' => $relation->date,
+            'time' => $relation->time,
+            'employee_id' => $relation->employee_id,
+            'employee' => $relation->employee->name ?? 'غير محدد',
+            'employee_email' => $relation->employee->email ?? null,
+            'location_id' => $relation->location_id,
+            'location' => $relation->location ? [
+                'id' => $relation->location->id,
+                'latitude' => $relation->location->latitude,
+                'longitude' => $relation->location->longitude,
+                'address' => $relation->location->address,
+            ] : null,
+            'deposit_count' => $relation->deposit_count,
+            'employee_view_status' => $relation->employee_view_status,
+            'site_type' => $relation->site_type,
+            'site_type_text' => $siteTypeText,
+            'competitor_documents' => $relation->competitor_documents,
+            'additional_data' => $relation->additional_data,
+            'attachments' => $relation->attachments,
+            'attachments_array' => $attachmentsArray,
+            'created_at' => $relation->created_at,
+            'updated_at' => $relation->updated_at,
+        ];
+    });
+
+    return response()->json([
+        'client_id' => $client->id,
+        'client_name' => $client->trade_name,
+        'relations_count' => $clientRelations->count(),
+        'relations' => $clientRelations
+    ]);
+});
+
+// Test route for checking incomplete visits
+Route::get('/test-incomplete-visits', function () {
+    if (!\Illuminate\Support\Facades\Auth::check()) {
+        return response()->json(['message' => 'Not authenticated']);
+    }
+
+    $user = \Illuminate\Support\Facades\Auth::user();
+
+    if ($user->role !== 'employee') {
+        return response()->json(['message' => 'Not an employee']);
+    }
+
+    $incompleteVisits = \App\Models\EmployeeClientVisit::where('employee_id', $user->id)
+        ->needsJustification()
+        ->get();
+
+    return response()->json([
+        'user' => $user->name,
+        'incomplete_visits_count' => $incompleteVisits->count(),
+        'incomplete_visits' => $incompleteVisits
+    ]);
+})->middleware('auth');
+
+// ==================== Test & Reports Routes ====================
+Route::get('/test-send', [ClientSettingController::class, 'test'])->name('clients.test_send');
+Route::get('/test/send', [ClientSettingController::class, 'test'])->name('clients.test_send');
+
+Route::get('/send-daily-report', [VisitController::class, 'sendDailyReport']);
+Route::get('/send-weekly-report', [VisitController::class, 'sendWeeklyReport']);
+Route::get('/send-monthly-report', [VisitController::class, 'sendMonthlyReport']);
+
+// ==================== Client Data Route ====================
+Route::get('/client-data/{clientId}', function ($clientId) {
+    $client = Client::with(['latestStatus'])->findOrFail($clientId);
+
+    $invoices = Invoice::where('client_id', $clientId)
+        ->with(['items', 'payments_process'])
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    $notes = ClientRelation::with(['employee', 'location'])
+        ->where('client_id', $clientId)
+        ->latest()
+        ->get();
+
+    return response()->json([
+        'client' => $client,
+        'invoices' => $invoices,
+        'notes' => $notes,
+    ]);
+})->name('client.data');
+
+// ==================== Incomplete Visits Justification Routes ====================
+// Employee routes for incomplete visits justification
+Route::middleware(['auth', 'check.incomplete.visits'])->group(function () {
+    Route::get('/incomplete-visits-justification', [\App\Http\Controllers\IncompleteVisitsController::class, 'showJustificationForm'])
+        ->name('incomplete.visits.justification');
+
+    Route::post('/incomplete-visits-justification', [\App\Http\Controllers\IncompleteVisitsController::class, 'submitJustification'])
+        ->name('incomplete.visits.submit');
+
+    // Employee viewing their own justifications
+    Route::get('/my-visit-justifications', [\App\Http\Controllers\IncompleteVisitsController::class, 'showMyJustifications'])
+        ->name('employee.visit-justifications.index');
+
+    Route::get('/my-visit-justifications/{id}', [\App\Http\Controllers\IncompleteVisitsController::class, 'showJustificationDetails'])
+        ->name('employee.visit-justifications.show');
+
+    Route::get('/my-visit-justifications/{id}/edit', [\App\Http\Controllers\IncompleteVisitsController::class, 'editJustification'])
+        ->name('employee.visit-justifications.edit');
+
+    Route::put('/my-visit-justifications/{id}', [\App\Http\Controllers\IncompleteVisitsController::class, 'updateJustification'])
+        ->name('employee.visit-justifications.update');
+});
+
+// Admin routes for managing visit justifications
+Route::middleware(['auth', 'role:admin|manager'])->group(function () {
+    Route::get('/admin/visit-justifications', [\App\Http\Controllers\Admin\VisitJustificationController::class, 'index'])
+        ->name('admin.visit-justifications.index');
+
+    Route::post('/admin/visit-justifications/{id}/approve', [\App\Http\Controllers\Admin\VisitJustificationController::class, 'approve'])
+        ->name('admin.visit-justifications.approve');
+
+    Route::post('/admin/visit-justifications/{id}/reject', [\App\Http\Controllers\Admin\VisitJustificationController::class, 'reject'])
+        ->name('admin.visit-justifications.reject');
+});
+
+// ==================== Auth Routes ====================
+require __DIR__ . '/auth.php';
+
+// ==================== Text Editor Route ====================
+Route::get('/text/editor', function () {
+    return view('text_editor');
+});
+
+// ==================== Localized Routes ====================
 Route::group(
     [
         'prefix' => LaravelLocalization::setLocale(),
-        'middleware' => [
-            'localeSessionRedirect',
-            'localizationRedirect',
-            'localeViewPath',
-            'check.branch',
-            'auth',
-            'notification'
-        ]
+        'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath', 'check.branch'],
     ],
     function () {
-
-        // =============================================
-        // إعدادات العميل
-        // =============================================
-        Route::prefix('client-settings')->group(function () {
+        // Client Access Routes
+        Route::middleware(['auth', 'client.access'])->group(function () {
             Route::get('/personal', [ClientSettingController::class, 'personal'])->name('clients.personal');
-            Route::get('/edit/profile', [ClientSettingController::class, 'profile'])->name('clients.profile');
-
             Route::get('/invoice/client', [ClientSettingController::class, 'invoice_client'])->name('clients.invoice_client');
             Route::get('/appointments/client', [ClientSettingController::class, 'appointments_client'])->name('clients.appointments_client');
             Route::get('/SupplyOrders/client', [ClientSettingController::class, 'SupplyOrders_client'])->name('clients.SupplyOrders_client');
             Route::get('/questions/client', [ClientSettingController::class, 'questions_client'])->name('clients.questions_client');
+            Route::get('/edit/profile', [ClientSettingController::class, 'profile'])->name('clients.profile');
 
-            Route::get('/employee-targets', [ClientSettingController::class, 'employee_targets'])->name('employee_targets.index');
-            Route::get('/sittingsIndex', [ClientSettingController::class, 'index'])->name('clients.setting');
-            Route::post('/employee-targets', [ClientSettingController::class, 'storeOrUpdate'])->name('employee_targets.store');
+            // Employee Targets
+            Route::get('/employee-targets', [EmployeeTargetController::class, 'index'])->name('employee_targets.index');
+            Route::post('/employee-targets', [EmployeeTargetController::class, 'storeOrUpdate'])->name('employee_targets.store');
+            Route::get('/general-target', [EmployeeTargetController::class, 'showGeneralTarget'])->name('target.show');
+            Route::post('/general-target', [EmployeeTargetController::class, 'updateGeneralTarget'])->name('target.update');
+            Route::get('/client-target', [EmployeeTargetController::class, 'client_target'])->name('target.client');
 
-            Route::get('/general-target', [ClientSettingController::class, 'showGeneralTarget'])->name('target.show');
-            Route::post('/general-target', [ClientSettingController::class, 'updateGeneralTarget'])->name('target.update');
+            // التحصيل اليومي
+            Route::get('/daily_closing_entry', [EmployeeTargetController::class, 'daily_closing_entry'])->name('daily_closing_entry');
 
-            Route::get('/client-target', [ClientSettingController::class, 'client_target'])->name('target.client');
-            Route::get('/client-target-create', [ClientSettingController::class, 'client_target_create'])->name('target.client.create');
-            Route::post('/client-target-create', [ClientSettingController::class, 'client_target_store'])->name('target.client.update');
+            // احصائيات الزيارات
+            Route::get('/visitTarget', [EmployeeTargetController::class, 'visitTarget'])->name('visitTarget');
+            Route::post('/visitTarget', [EmployeeTargetController::class, 'updatevisitTarget'])->name('target.visitTarget');
 
-            Route::put('/Client/store', [ClientSettingController::class, 'Client_store'])->name('clients.Client_store');
+            // احصائيات الفروع
+            Route::get('/statistics_branch', [StatisticsController::class, 'StatisticsGroup'])->name('statistics.group');
+
+            // احصائيات المجموعات
+            Route::get('/statistics_group', [StatisticsController::class, 'Group'])->name('statistics.groupall');
+
+            // احصائيات الاحياء
+            Route::get('/statistics_neighborhood', [StatisticsController::class, 'neighborhood'])->name('statistics.neighborhood');
         });
 
-        // =============================================
-        // API Routes for AJAX calls
-        // =============================================
-        Route::prefix('api/clients')->group(function() {
-            Route::get('/data', [ClientApiController::class, 'getClients'])->name('api.clients.data');
-            Route::get('/map-data', [ClientApiController::class, 'getMapData'])->name('api.clients.map-data');
-            Route::get('/financial-data', [ClientApiController::class, 'getClientFinancialData'])->name('api.clients.financial-data');
-            Route::get('/filter-options', [ClientApiController::class, 'getFilterOptions'])->name('api.clients.filter-options');
-        });
-
-        // =============================================
-        // المجموعات والفئات
-        // =============================================
-        Route::prefix('group')->group(function () {
-            Route::get('/group', [GroupsController::class, 'group_client'])->name('groups.group_client');
-            Route::get('/group/create', [GroupsController::class, 'group_client_create'])->name('groups.group_client_create');
-            Route::post('/group/store', [GroupsController::class, 'group_client_store'])->name('groups.group_client_store');
-            Route::get('/group/edit/{id}', [GroupsController::class, 'group_client_edit'])->name('groups.group_client_edit');
-            Route::put('/group/update/{id}', [GroupsController::class, 'group_client_update'])->name('groups.group_client_update');
-            Route::delete('/group/{id}', [GroupsController::class, 'destroy'])->name('groups.group_client_destroy');
-        });
-
-        Route::prefix('categoriesClient')->group(function () {
-            Route::get('/categories', [CatagroiyClientController::class, 'index'])->name('categoriesClient.index');
-            Route::get('/categories/create', [CatagroiyClientController::class, 'create'])->name('categoriesClient.create');
-            Route::post('/categories/store', [CatagroiyClientController::class, 'store'])->name('categoriesClient.store');
-            Route::get('/categories/edit/{id}', [CatagroiyClientController::class, 'edit'])->name('categoriesClient.edit');
-            Route::put('/categories/update/{id}', [CatagroiyClientController::class, 'update'])->name('categoriesClient.update');
-            Route::delete('/categories/delete/{id}', [CatagroiyClientController::class, 'destroy'])->name('categoriesClient.destroy');
-        });
-
-        // =============================================
-        // المواعيد والملاحظات
-        // =============================================
-        Route::prefix('appointments')->group(function () {
-            Route::resource('appointments', AppointmentController::class)->except(['show']);
-            Route::get('/show/{id}', [AppointmentController::class, 'show'])->name('appointments.show');
-            Route::post('/update-status', [AppointmentController::class, 'updateStatus'])->name('appointments.update.status');
-            Route::patch('/appointments/{id}/status', [AppointmentController::class, 'updateStatus'])->name('appointments.update-status');
-            Route::get('/filter', [AppointmentController::class, 'filterAppointments'])->name('appointments.filter');
-            Route::get('/appointments/calendar', [AppointmentController::class, 'calendar'])->name('appointments.calendar');
-            Route::get('/appointments/{id}/full-details', [AppointmentController::class, 'getFullAppointmentDetails'])->name('appointments.full-details');
-        });
-
-        Route::prefix('appointment-notes')->group(function () {
-            Route::get('/', [AppointmentNoteController::class, 'index'])->name('appointment.notes.index');
-            Route::get('/create/{id}', [AppointmentNoteController::class, 'create'])->name('appointment.notes.create');
-            Route::post('/', [AppointmentNoteController::class, 'store'])->name('appointment.notes.store');
-            Route::get('/{note}', [AppointmentNoteController::class, 'show'])->name('appointment.notes.show');
-            Route::get('/{note}', [AppointmentNoteController::class, 'edit'])->name('appointment.notes.edit');
-            Route::put('/{note}', [AppointmentNoteController::class, 'update'])->name('appointment.notes.update');
-            Route::delete('/{note}', [AppointmentNoteController::class, 'destroy'])->name('appointment.notes.destroy');
-            Route::get('/{note}/download/{index}', [AppointmentNoteController::class, 'downloadAttachment'])->name('appointment.notes.download');
-        });
-
-        // =============================================
-        // الجدول الزمني (Itinerary)
-        // =============================================
-        Route::prefix('itinerary')->group(function () {
-            Route::get('/', [ItineraryController::class, 'create'])->name('itinerary.create');
-            Route::post('/', [ItineraryController::class, 'store'])->name('itinerary.store');
-            Route::get('/edit/{id}', [ItineraryController::class, 'edit'])->name('itinerary.edit');
-            Route::put('/update/{id}', [ItineraryController::class, 'update'])->name('itinerary.update');
-            Route::get('/list', [ItineraryController::class, 'listAll'])->name('itinerary.list');
-            Route::delete('/visits/{visit}', [ItineraryController::class, 'destroyVisit'])->name('itinerary.visits.destroy');
-        });
-
-        // =============================================
-        // العملاء (Clients Management + Loyalty + CRM)
-        // =============================================
-        Route::prefix('clients')->group(function () {
-            // Itinerary Visits
-            Route::delete('/itinerary/visits/{visit}', [ItineraryController::class, 'destroyVisit'])->name('itinerary.visits.destroy');
-
-            // Clients Management
-            Route::prefix('clients_management')->group(function () {
-                Route::get('/index', [ClientController::class, 'index'])->name('clients.index');
-                Route::get('/map', [ClientController::class, 'getMapDataWithBranch'])->name('clients.getMapDataWithBranch');
-                Route::get('/search', [ClientController::class, 'search'])->name('clients.search');
-                Route::get('/clients/data', [ClientController::class, 'getClientsData'])->name('clients.data');
-                Route::get('/clients/ajax/map-data', [ClientController::class, 'getMapData'])->name('clients.getMapData');
-                Route::get('/clients/{client}/update-opening-balance', [ClientController::class, 'updateOpeningBalance'])->name('clients.updateOpeningBalance');
-
-                Route::post('/{client}/hide-from-map', [ClientController::class, 'hideFromMap'])->name('clients.hideFromMap');
-                Route::post('/{client}/show-in-map', [ClientController::class, 'showInMap'])->name('clients.showInMap');
-                Route::get('/hidden-clients', [ClientController::class, 'getHiddenClients'])->name('clients.getHiddenClients');
-
-                Route::get('/{client}/details', [ClientController::class, 'getClientDetails'])->name('clients.details');
-                Route::get('/{client}/invoices', [ClientController::class, 'getClientInvoices'])->name('clients.invoices');
-                Route::get('/{client}/notes', [ClientController::class, 'getClientNotes'])->name('clients.notes');
-
-                Route::get('/clients/select', [ClientController::class, 'getClientsForSelect'])->name('clients.getForSelect');
-                Route::get('/clients/ajax', [ClientController::class, 'ajaxIndex'])->name('clients.ajax');
-                Route::post('/clients/update-credit-limit', [ClientController::class, 'updateCreditLimit'])->name('clients.update_credit_limit');
-
-                Route::get('/{id}/invoices', [ClientController::class, 'clientInvoices'])->name('clients.invoices');
-                Route::get('/{id}/notes', [ClientController::class, 'clientNotes'])->name('clients.notes');
-                Route::post('/{id}/notes', [ClientController::class, 'storeNote'])->name('clients.notes.store');
-                Route::delete('/{id}/notes/{noteId}', [ClientController::class, 'deleteNote'])->name('clients.notes.delete');
-
-                Route::get('/testcient', [ClientController::class, 'testcient'])->name('clients.testcient');
-                Route::get('/notes/clients', [ClientController::class, 'notes'])->name('clients.notes');
-                Route::post('/clients/{id}/update-status', [ClientController::class, 'updateStatus']);
-
-                Route::get('/send_info/{id}', [ClientController::class, 'send_email'])->name('clients.send_info');
-
-                // إعدادات العميل
-                Route::get('/setting', [ClientSettingController::class, 'setting'])->name('clients.setting');
-                Route::get('/general/settings', [ClientSettingController::class, 'general'])->name('clients.general');
-                Route::post('/general/settings', [ClientSettingController::class, 'store'])->name('clients.store_general');
-                Route::get('/status/clients', [ClientSettingController::class, 'status'])->name('clients.status');
-                Route::post('/status/store', [ClientSettingController::class, 'storeStatus'])->name('clients.status.store');
-                Route::post('/update-client-status', [ClientController::class, 'updateStatusClient'])->name('clients.updateStatusClient');
-                Route::delete('/status/delete/{id}', [ClientSettingController::class, 'deleteStatus'])->name('clients.status.delete');
-
-                // صلاحيات العميل
-                Route::get('/permission/settings', [ClientSettingController::class, 'permission'])->name('clients.permission');
-                Route::post('/permission/settings', [ClientSettingController::class, 'permission_store'])->name('clients.store_permission');
-
-                // CRUD العملاء
-                Route::get('/create', [ClientController::class, 'create'])->name('clients.create');
-                Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');
-                Route::post('/addnotes', [ClientController::class, 'addnotes'])->name('clients.addnotes');
-                Route::post('/store', [ClientController::class, 'store'])->name('clients.store');
-                Route::get('/clients/{client_id}/notes', [ClientController::class, 'getClientNotes']);
-                Route::get('/edit/{id}', [ClientController::class, 'edit_question'])->name('clients.edit');
-                Route::get('/show/client/{id}', [ClientController::class, 'show'])->name('clients.show');
-                Route::get('/show/client/{id}/notes/pdf', [ClientController::class, 'generateNotesPdf'])->name('clients.notes.pdf');
-                Route::get('/test-pdf', function () {
-                    // Test PDF generation
-                    $html = '<h1>Test PDF</h1><p>This is a test PDF generation.</p>';
-
-                    $options = new \Dompdf\Options();
-                    $options->set('defaultFont', 'Arial');
-                    $options->set('isRemoteEnabled', true);
-                    $options->set('isHtml5ParserEnabled', true);
-
-                    $dompdf = new \Dompdf\Dompdf($options);
-                    $dompdf->loadHtml($html);
-                    $dompdf->setPaper('A4', 'portrait');
-                    $dompdf->render();
-
-                    return $dompdf->stream("test.pdf");
-                })->name('clients.test.pdf');
-                Route::get('/register-visit/{id}', [ClientController::class, 'registerVisit'])->name('clients.registerVisit');
-                Route::post('/register-visit/{id}', [ClientController::class, 'storeVisit'])->name('clients.storeVisit');
-                Route::get('/statement/{id}', [ClientController::class, 'statement'])->name('clients.statement');
-                Route::put('/update/{id}', [ClientController::class, 'update'])->name('clients.update');
-                Route::delete('/{id}', [ClientController::class, 'destroy'])->name('clients.destroy');
-                Route::post('/delete-multiple', [ClientController::class, 'deleteMultiple'])->name('clients.deleteMultiple');
-                Route::get('/contacts', [ClientController::class, 'contacts'])->name('clients.contacts');
-                Route::get('/first', [ClientController::class, 'getFirstClient'])->name('clients.first');
-                Route::get('/next', [ClientController::class, 'getNextClient'])->name('clients.next');
-                Route::get('/previous', [ClientController::class, 'getPreviousClient'])->name('clients.previous');
-                Route::post('/{id}/update-opening-balance', [ClientController::class, 'updateOpeningBalance']);
-                Route::post('/clients/{client}/force-show', [ClientController::class, 'forceShow'])->name('clients.force-show');
-                Route::post('/clients/{client}/assign-employees', [ClientController::class, 'assignEmployees'])->name('clients.assign-employees');
-                Route::post('/clients/{client}/remove-employee', [ClientController::class, 'removeEmployee'])->name('clients.remove-employee');
-                Route::get('/clients/{client}/assigned-employees', [ClientController::class, 'getAssignedEmployees'])->name('clients.get-assigned-employees');
-                Route::get('/clients_management/clients/all', [ClientController::class, 'getAllClients'])->name('clients.all');
-                Route::get('/show-contant/{id}', [ClientController::class, 'show_contant'])->name('clients.show_contant');
-                Route::get('/export', [ClientController::class, 'export'])->name('clients.export');
-
-                // بحث Ajax
-                Route::get('/clients/search', function (Request $request) {
-                    $query = $request->query('query');
-                    $clients = Client::with('latestStatus')
-                        ->where('trade_name', 'LIKE', "%{$query}%")
-                        ->orWhere('first_name', 'LIKE', "%{$query}%")
-                        ->orWhere('last_name', 'LIKE', "%{$query}%")
-                        ->orWhere('phone', 'LIKE', "%{$query}%")
-                        ->orWhere('mobile', 'LIKE', "%{$query}%")
-                        ->orWhere('city', 'LIKE', "%{$query}%")
-                        ->orWhere('region', 'LIKE', "%{$query}%")
-                        ->orWhere('email', 'LIKE', "%{$query}%")
-                        ->limit(10)
-                        ->get();
-
-                    return response()->json($clients);
-                });
-
-                // Loyalty Points
-                Route::prefix('Loyalty_Points')->group(function () {
-                    Route::get('/index', [LoyaltyPointsController::class, 'index'])->name('loyalty_points.index');
-                    Route::get('/create', [LoyaltyPointsController::class, 'create'])->name('loyalty_points.create');
-                    Route::get('/show/{id}', [LoyaltyPointsController::class, 'show'])->name('loyalty_points.show');
-                    Route::post('/store', [LoyaltyPointsController::class, 'store'])->name('loyalty_points.store');
-                    Route::get('/edit/{id}', [LoyaltyPointsController::class, 'edit'])->name('loyalty_points.edit');
-                    Route::put('/update/{id}', [LoyaltyPointsController::class, 'update'])->name('loyalty_points.update');
-                    Route::delete('/destroy/{id}', [LoyaltyPointsController::class, 'destroy'])->name('loyalty_points.destroy');
-                    Route::get('/updateStatus/{id}', [LoyaltyPointsController::class, 'updateStatus'])->name('loyalty_points.updateStatus');
-                });
-
-                // CRM
-                Route::prefix('CRM')->group(function () {
- Route::get('/clients/{clientId}/invoices', [CRMController::class, 'getClientDetails'])->name('clients.invoices');
-
-    // AJAX: جلب ملاحظات العميل
-    Route::get('/clients/{clientId}/notes', [CRMController::class, 'getClientNotes'])->name('clients.notes');
-
-                    Route::get('/mang_client', [CRMController::class, 'mang_client'])->name('clients.mang_client');
-                });
-
-                // Loyalty Sitting
-                Route::prefix('sittingLoyalty')->group(function () {
-                    Route::get('/create', [LoyaltyPointsSittingController::class, 'create'])->name('sittingLoyalty.sitting');
-                    Route::post('/store', [LoyaltyPointsSittingController::class, 'store'])->name('sittingLoyalty.store');
-                });
-
-                // CourseOfWork
-                Route::prefix('CourseOfWork')->group(function () {
-                    Route::get('/create', [LoyaltyPointsSittingController::class, 'create'])->name('CourseOfWork.sitting');
-                    Route::post('/store', [LoyaltyPointsSittingController::class, 'store'])->name('CourseOfWork.store');
-                });
+        // Sales & Accounts Routes
+        Route::prefix('sales')
+            ->middleware(['auth', 'check.branch'])
+            ->group(function () {
+                Route::prefix('account')
+                    ->middleware(['auth'])
+                    ->group(function () {
+                        Route::resource('Assets', AssetsController::class);
+                        Route::get('Assets/{id}/pdf', [AssetsController::class, 'generatePdf'])->name('Assets.generatePdf');
+                        Route::get('Assets/{id}/sell', [AssetsController::class, 'showSellForm'])->name('Assets.showSell');
+                        Route::post('Assets/{id}/sell', [AssetsController::class, 'sell'])->name('Assets.sell');
+                        Route::get('/chart/details/{accountId}', [AccountsChartController::class, 'getAccountDetails'])->name('account.details');
+                        Route::post('/set-error', function (Illuminate\Http\Request $request) {
+                            session()->flash('error', $request->message);
+                            return response()->json(['success' => true]);
+                        });
+                    });
             });
+
+        // Accounts Routes
+        Route::prefix('accounts')
+            ->middleware(['auth'])
+            ->group(function () {
+                Route::get('/tree', [AccountsChartController::class, 'getTree'])->name('accounts.tree');
+                Route::get('/showDetails/{id}', [AccountsChartController::class, 'showDetails'])->name('account.showDetails');
+                Route::get('/chart/details/{accountId}', [AccountsChartController::class, 'getAccountDetails'])->name('accounts.details');
+                Route::get('/{id}/children', [AccountsChartController::class, 'getChildren'])->name('accounts.children');
+            });
+
+        // Visits Routes
+        Route::prefix('visits')->group(function () {
+            Route::post('/visits', [VisitController::class, 'storeEmployeeLocation'])->name('visits.storeEmployeeLocation');
+            Route::get('/visits/today', [VisitController::class, 'getTodayVisits'])
+                ->middleware('auth')
+                ->name('visits.today');
+
+            Route::get('/traffic-analysis', [VisitController::class, 'tracktaff'])->name('traffic.analysis');
+            Route::post('/get-weeks-data', [VisitController::class, 'getWeeksData'])->name('get.weeks.data');
+            Route::post('/get-traffic-data', [VisitController::class, 'getTrafficData'])->name('get.traffic.data');
+
+            Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])->name('visits.storeLocationEnhanced');
+
+            Route::get('/tracktaff', [VisitController::class, 'tracktaff'])->name('visits.tracktaff');
+
+            // الانصراف التلقائي
+            Route::get('/process-auto-departures', [VisitController::class, 'checkAndProcessAutoDepartures'])->name('visits.processAutoDepartures');
+            Route::get('/send-daily-report', [VisitController::class, 'sendDailyReport']);
+
+            // الانصراف اليدوي
+            Route::post('/manual-departure/{visitId}', [VisitController::class, 'manualDeparture'])->name('visits.manualDeparture');
+
+            // Routes للتحسين
+            Route::post('/clear-visits-data', [VisitController::class, 'clearVisitsData'])->name('visits.clearData');
+            Route::post('/clear-cache', function() {
+                cache()->forget('traffic_analytics_' . date('Y-m-d-H'));
+                return response()->json(['success' => true]);
+            })->name('visits.clearCache');
         });
+
+        // Logs Routes
+        Route::prefix('logs')
+            ->middleware(['auth'])
+            ->group(function () {
+                Route::get('/index', [LogController::class, 'index'])->name('logs.index');
+            });
     }
 );

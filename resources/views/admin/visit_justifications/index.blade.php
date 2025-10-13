@@ -138,13 +138,13 @@
                                                     <td class="text-center">
                                                         <div class="btn-group" role="group" aria-label="إجراءات التبرير">
                                                             <!-- Approve -->
-                                                            <form action="{{ route('admin.visit-justifications.approve', $visit->id) }}" 
-                                                                  method="POST" 
+                                                            <form action="{{ route('admin.visit-justifications.approve', $visit->id) }}"
+                                                                  method="POST"
                                                                   class="d-inline"
                                                                   onsubmit="return confirm('هل أنت متأكد من الموافقة على هذا التبرير؟');">
                                                                 @csrf
-                                                                <button type="submit" 
-                                                                        class="btn btn-success btn-sm" 
+                                                                <button type="submit"
+                                                                        class="btn btn-success btn-sm"
                                                                         title="موافقة"
                                                                         data-bs-toggle="tooltip">
                                                                     <i class="fas fa-check"></i>
@@ -153,13 +153,13 @@
                                                             </form>
 
                                                             <!-- Reject -->
-                                                            <form action="{{ route('admin.visit-justifications.reject', $visit->id) }}" 
-                                                                  method="POST" 
+                                                            <form action="{{ route('admin.visit-justifications.reject', $visit->id) }}"
+                                                                  method="POST"
                                                                   class="d-inline"
                                                                   onsubmit="return confirm('هل أنت متأكد من رفض هذا التبرير؟');">
                                                                 @csrf
-                                                                <button type="submit" 
-                                                                        class="btn btn-danger btn-sm" 
+                                                                <button type="submit"
+                                                                        class="btn btn-danger btn-sm"
                                                                         title="رفض"
                                                                         data-bs-toggle="tooltip">
                                                                     <i class="fas fa-times"></i>
@@ -183,7 +183,7 @@
 </div>
 @endsection
 
-@push('scripts')
+@section('scripts')
 <script>
 $(document).ready(function() {
     // Initialize DataTable
@@ -202,4 +202,4 @@ $(document).ready(function() {
     });
 });
 </script>
-@endpush
+@endsection

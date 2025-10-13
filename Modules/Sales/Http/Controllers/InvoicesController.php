@@ -3029,95 +3029,195 @@ if ($client) {
             ->header('Content-Type', 'application/pdf');
     }
 
-    public function storeSignatures(Request $request, $invoiceId)
-    {
-        $validated = $request->validate([
-            'signer_name' => 'required|string|max:255',
-            'signer_role' => 'nullable|string|max:255',
-            'signature_data' => 'required|string',
-            'amount_paid' => 'nullable|numeric|min:0',
-        ]);
+   public function storeSignatures(Request $request, $invoiceId)
+{
+    $validated = $request->validate([
+        'signer_name' => 'required|string|max:255',
+        'signer_role' => 'nullable|string|max:255',
+        'signature_data' => 'required|string',
+        'amount_paid' => 'nullable|numeric|min:0',
+    ]);
 
-        // حفظ التوقيع فقط (بدون amount_paid)
-        $signature = Signature::create([
-            'invoice_id' => $invoiceId,
-            'signer_name' => $validated['signer_name'],
-            'signer_role' => $validated['signer_role'],
-            'signature_data' => $validated['signature_data'],
-            'amount_paid' => $validated['amount_paid'],
+    // حفظ التوقيع
+    $signature = Signature::create([
+        'invoice_id' => $invoiceId,
+        'signer_name' => $validated['signer_name'],
+        'signer_role' => $validated['signer_role'],
+        'signature_data' => $validated['signature_data'],
+        'amount_paid' => $validated['amount_paid'],
+        'signed_at' => now(),
+    ]);
 
-            'signed_at' => now(),
-        ]);
+    // إذا كان هناك مبلغ مدفوع، نقوم بمعالجة الدفع مباشرة
+    if (!empty($validated['amount_paid']) && $validated['amount_paid'] > 0) {
+        try {
+            DB::beginTransaction();
 
-        // إذا كان هناك مبلغ مدفوع، ننشئ سند القبض
-        if (!empty($validated['amount_paid']) && $validated['amount_paid'] > 0) {
-            $invoiceaccount = invoice::find($invoiceId);
-            $account = Account::where('client_id', $invoiceaccount->client_id)->first();
-
-            $income = new Receipt();
-            $income->code = $request->input('code');
-            $income->amount = $validated['amount_paid'];
-            $income->description = "مدفوعات لفاتورة رقم " . $invoiceId;
-            $income->date = now();
-            $income->incomes_category_id = 1;
-            $income->seller = 1;
-            $income->account_id = $account->id;
-            $income->is_recurring = $request->has('is_recurring') ? 1 : 0;
-            $income->recurring_frequency = $request->input('recurring_frequency');
-            $income->end_date = $request->input('end_date');
-            $income->tax1 = 1;
-            $income->tax2 = 1;
-            $income->created_by = auth()->id();
-            $income->tax1_amount = 0;
-            $income->tax2_amount = 0;
-            $income->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
-
-            $MainTreasury = $this->determineTreasury();
-            $income->treasury_id = $MainTreasury->id;
-            $income->save();
-
-            // باقي العمليات المتعلقة بسند القبض
-            $income_account_name = Account::find($income->account_id);
+            $invoice = Invoice::findOrFail($invoiceId);
+            $paymentAmount = $validated['amount_paid'];
             $user = Auth::user();
 
-            notifications::create([
-                'user_id' => $user->id,
-                'type' => 'Receipt',
-                'title' => $user->name . ' أنشأ سند قبض',
-                'description' => 'سند قبض رقم ' . $income->code . ' لـ ' . $income_account_name->name . ' بقيمة ' . number_format($income->amount, 2) . ' ر.س',
+            // الحصول على حساب العميل
+            $clientAccount = Account::where('client_id', $invoice->client_id)->first();
+            if (!$clientAccount) {
+                throw new \Exception('لم يتم العثور على حساب العميل');
+            }
+
+            // الحصول على الخزينة الرئيسية
+            $mainTreasury = $this->determineTreasury();
+            if (!$mainTreasury) {
+                throw new \Exception('لم يتم العثور على الخزينة الرئيسية');
+            }
+
+            // التحقق من المبلغ المدفوع سابقاً
+            $previousPayments = PaymentsProcess::where('invoice_id', $invoice->id)
+                ->where('payment_status', '!=', 5)
+                ->sum('amount');
+
+            $totalPaid = $previousPayments + $paymentAmount;
+
+            // التحقق من عدم تجاوز المبلغ
+            if ($totalPaid > $invoice->grand_total) {
+                $excessAmount = $totalPaid - $invoice->grand_total;
+                throw new \Exception("المبلغ يتجاوز إجمالي الفاتورة بمقدار " . number_format($excessAmount, 2) . ' ر.س');
+            }
+
+            // تحديد حالة الدفع
+            $isFullPayment = ($totalPaid >= $invoice->grand_total);
+            $remainingAmount = $invoice->grand_total - $totalPaid;
+
+            // 1. تحديث رصيد الخزينة (إضافة المبلغ)
+            $mainTreasury->balance += $paymentAmount;
+            $mainTreasury->save();
+
+            // 2. تحديث رصيد العميل (تقليل المديونية)
+            $clientAccount->balance -= $paymentAmount;
+            $clientAccount->save();
+
+            // 3. إنشاء سجل عملية الدفع
+            $paymentProcess = PaymentsProcess::create([
+                'invoice_id' => $invoice->id,
+                'amount' => $paymentAmount,
+                'payment_date' => now(),
+                'Payment_method' => 'cash',
+                'reference_number' => 'PAY-' . $invoice->code . '-' . time(),
+                'type' => 'client payments',
+                'payment_status' => $isFullPayment ? 1 : 2,
+                'employee_id' => $user->id,
+                'notes' => 'دفع مباشر عند التوقيع على الفاتورة رقم ' . $invoice->code,
             ]);
 
+            // 4. تحديث حالة الفاتورة
+            $invoice->update([
+                'advance_payment' => $totalPaid,
+                'is_paid' => $isFullPayment,
+                'payment_status' => $isFullPayment ? 1 : 2,
+                'due_value' => $remainingAmount
+            ]);
+
+            // 5. إنشاء القيد المحاسبي
+            $journalEntry = JournalEntry::create([
+                'reference_number' => 'JE-' . $invoice->code . '-' . time(),
+                'date' => now(),
+                'description' => 'دفعة مباشرة للفاتورة رقم ' . $invoice->code,
+                'status' => 1,
+                'currency' => 'SAR',
+                'client_id' => $invoice->client_id,
+                'created_by_employee' => $user->id,
+            ]);
+
+            // قيد مدين: الخزينة (استلام نقد)
+            JournalEntryDetail::create([
+                'journal_entry_id' => $journalEntry->id,
+                'account_id' => $mainTreasury->id,
+                'description' => 'استلام مبلغ نقدي من العميل - فاتورة ' . $invoice->code,
+                'debit' => $paymentAmount,
+                'credit' => 0,
+                'is_debit' => true,
+            ]);
+
+            // قيد دائن: حساب العميل (تقليل المديونية)
+            JournalEntryDetail::create([
+                'journal_entry_id' => $journalEntry->id,
+                'account_id' => $clientAccount->id,
+                'description' => 'سداد من العميل - فاتورة ' . $invoice->code,
+                'debit' => 0,
+                'credit' => $paymentAmount,
+                'is_debit' => false,
+            ]);
+
+            // 6. إنشاء إشعار
+            notifications::create([
+                'user_id' => $user->id,
+                'type' => 'Payment',
+                'title' => 'دفعة جديدة للفاتورة #' . $invoice->code,
+                'description' => sprintf(
+                    'تم استلام مبلغ %s ر.س من العميل %s - المبلغ المدفوع الكلي: %s ر.س - المتبقي: %s ر.س',
+                    number_format($paymentAmount, 2),
+                    $clientAccount->name,
+                    number_format($totalPaid, 2),
+                    number_format($remainingAmount, 2)
+                ),
+            ]);
+
+            // 7. إنشاء سجل في اللوج
             ModelsLog::create([
-                'type' => 'finance_log',
-                'type_id' => $income->id,
+                'type' => 'payment_log',
+                'type_id' => $paymentProcess->id,
                 'type_log' => 'log',
-                'description' => sprintf('تم انشاء سند قبض رقم **%s** بقيمة **%d**', $income->code, $income->amount),
+                'description' => sprintf(
+                    'تم استلام دفعة بمبلغ **%s ر.س** للفاتورة **%s** - الحالة: **%s**',
+                    number_format($paymentAmount, 2),
+                    $invoice->code,
+                    $isFullPayment ? 'مسددة بالكامل' : 'مسددة جزئياً'
+                ),
                 'created_by' => auth()->id(),
             ]);
 
-            $MainTreasury->balance += $income->amount;
-            $MainTreasury->save();
+            DB::commit();
 
-            $clientAccount = Account::find($income->account_id);
-            if ($clientAccount) {
-                $clientAccount->balance -= $income->amount;
-                $clientAccount->save();
-            }
+            return response()->json([
+                'success' => true,
+                'message' => 'تم حفظ التوقيع ومعالجة الدفع بنجاح',
+                'signature' => [
+                    'signer_name' => $signature->signer_name,
+                    'signer_role' => $signature->signer_role,
+                    'signature_data' => $signature->signature_data,
+                ],
+                'payment' => [
+                    'amount_paid' => number_format($paymentAmount, 2),
+                    'total_paid' => number_format($totalPaid, 2),
+                    'remaining' => number_format($remainingAmount, 2),
+                    'is_fully_paid' => $isFullPayment,
+                    'payment_status' => $isFullPayment ? 'مسددة بالكامل' : 'مسددة جزئياً',
+                ],
+                'balances' => [
+                    'treasury_balance' => number_format($mainTreasury->balance, 2),
+                    'client_balance' => number_format($clientAccount->balance, 2),
+                ]
+            ]);
 
-            $this->applyPaymentToInvoices($income, $user, $invoiceId);
-            $this->createJournalEntry($income, $user, $clientAccount, $MainTreasury);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء معالجة الدفع: ' . $e->getMessage()
+            ], 422);
         }
-
-        // إرجاع بيانات التوقيع فقط
-        return response()->json([
-            'success' => true,
-            'signature' => [
-                'signer_name' => $signature->signer_name,
-                'signer_role' => $signature->signer_role,
-                'signature_data' => $signature->signature_data,
-            ]
-        ]);
     }
+
+    // إرجاع بيانات التوقيع فقط إذا لم يكن هناك دفع
+    return response()->json([
+        'success' => true,
+        'message' => 'تم حفظ التوقيع بنجاح',
+        'signature' => [
+            'signer_name' => $signature->signer_name,
+            'signer_role' => $signature->signer_role,
+            'signature_data' => $signature->signature_data,
+        ]
+    ]);
+}
 
     private function determineTreasury()
     {
