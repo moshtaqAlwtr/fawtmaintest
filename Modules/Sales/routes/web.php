@@ -282,3 +282,4 @@ Route::prefix('notifications')
         });
     },
 );
+  Route::get('/dashbordtest', [SittingInvoiceController::class, 'dashbordtest'])->name('SupplySittings.dashbordtest');

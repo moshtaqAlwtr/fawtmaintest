@@ -330,8 +330,8 @@
         <i class="fas fa-map-marker-alt"></i> <span id="tracking-status-text">جاري التتبع</span>
     </div>
 
-    @include('sales::layouts.header')
-    @include('sales::layouts.sidebar')
+    @include('stock::layouts.header')
+    @include('stock::layouts.sidebar')
 
     <div class="app-content content">
         <div class="content-overlay"></div>

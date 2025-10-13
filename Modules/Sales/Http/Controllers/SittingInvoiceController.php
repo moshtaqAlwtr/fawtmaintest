@@ -361,5 +361,8 @@ public function reset(Template $template)
 
     return back()->with('success', 'تم استعادة القالب الافتراضي');
 }
-
+public function  dashbordtest()
+{
+    return view('sales::dashboard.sales.index');
+}
 }
