@@ -280,29 +280,11 @@
                                     </a>
                                 </li>
                             @endcan
-                            
-                            <!-- رابط تبريرات الزيارات للموظفين -->
-                            @if (auth()->user()->role === 'employee')
-                                <li><a href="{{ route('employee.visit-justifications.index') }}"><i class="feather icon-circle"></i><span
-                                            class="menu-item">تبريراتي</span>
-                                    </a>
-                                </li>
-                            @endif
-                            
-                            <!-- رابط إدارة تبريرات الزيارات للمديرين -->
-                            @if(auth()->user()->hasAnyRole(['admin', 'manager']))
-                                <li><a href="{{ route('admin.visit-justifications.index') }}"><i class="feather icon-circle"></i><span
-                                            class="menu-item">إدارة تبريرات الزيارات</span>
-                                    </a>
-                                </li>
-                            @endif
-                            
                             @can('clients_edit_client_settings')
                                 <li><a href="{{ route('groups.group_client') }}"><i class="feather icon-circle"></i><span
                                             class="menu-item" data-i18n="eCommerce">اعدادات المجموعات</span>
                                     </a>
                                 </li>
-                            @endcan
                     @endif
 
                     @can('clients_edit_client_settings')
@@ -356,15 +338,6 @@
                             <a href="{{ route('daily_closing_entry') }}">
                                 <i class="feather icon-circle"></i>
                                 <span class="menu-item" data-i18n="POS Reports">تقرير التحصيل اليومي</span>
-                            </a>
-                        </li>
-
-                        <!-- رابط إدارة تبريرات الزيارات للمديرين -->
-
-                        <li>
-                            <a href="{{ route('admin.visit-justifications.index') }}">
-                                <i class="feather icon-circle"></i>
-                                <span class="menu-item">إدارة تبريرات الزيارات</span>
                             </a>
                         </li>
 
@@ -703,6 +676,8 @@
                 @endif
             @endif
             <!-- العملاء -->
+
+            @endif
 
             <!-- نقاط الارصدة -->
             @if (auth()->user()->hasAnyPermission([
@@ -1539,7 +1514,7 @@
                     <li><a href=""><i class="feather icon-circle"></i><span class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Units_Tracking_Report') }}</span></a></li>
 
-                    <li><a href=""><i class="feather icon-circle"></i><span class="menu-item"
+                    <li><a href="{{ route('logs.index') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Account_Activity_Log') }}</span></a></li>
 
 
@@ -1792,7 +1767,7 @@
                     } = position.coords;
 
                     try {
-                        const response = await fetch("", {
+                        const response = await fetch("{{ route('visits.storeLocationEnhanced') }}", {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json",

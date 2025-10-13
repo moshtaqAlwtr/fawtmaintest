@@ -399,6 +399,32 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                 @endforeach
                             </div>
+
+                            {{-- ✅ إحصائيات العملاء حسب الفرع --}}
+                            @if ($clientCountByBranch->count() > 0)
+                                <hr class="mb-2 mt-3">
+                                <h6 class="text-muted mb-2">🏢 حسب الفرع</h6>
+                                <div class="row">
+                                    @foreach ($clientCountByBranch as $branch)
+                                        <div class="col-12 mb-2">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar avatar-sm mr-1 bg-rgba-info"
+                                                        style="width: 32px; height: 32px;">
+                                                        <div class="avatar-content">
+                                                            <i class="feather icon-home text-info font-small-3"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <p class="mb-0 text-muted font-small-2">{{ $branch['name'] }}</p>
+                                                    </div>
+                                                </div>
+                                                <h6 class="mb-0 font-weight-bold text-info">{{ $branch['count'] }}</h6>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -452,86 +478,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
 
-            {{-- Widget for pending visit justifications (visible to admins and managers only) --}}
-            @if(auth()->user()->hasAnyRole(['admin', 'manager']))
-            @php
-                $pendingJustificationsCount = \App\Models\EmployeeClientVisit::whereNotNull('justification')
-                    ->where('justification', '!=', '')
-                    ->where('justification_approved', 0)
-                    ->count();
-            @endphp
-            <div class="col-lg-3 col-sm-6 col-12">
-                <div class="card">
-                    <div class="card-header d-flex flex-column align-items-start pb-0">
-                        <div class="avatar bg-rgba-warning p-50 m-0">
-                            <div class="avatar-content">
-                                <i class="feather icon-file-text text-warning font-medium-5"></i>
-                            </div>
-                        </div>
-                        <h2 class="text-bold-700 mt-1">{{ $pendingJustificationsCount }}</h2>
-                        <p class="mb-0">تبريرات بانتظار الموافقة</p>
-                    </div>
-                    <div class="card-content">
-                        <div id="line-area-chart-2"></div>
-                    </div>
-                    <div class="card-body pt-0">
-                        <hr class="mb-2">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <a href="{{ route('admin.visit-justifications.index') }}" class="btn btn-sm btn-warning">
-                                <i class="feather icon-eye"></i> عرض التفاصيل
-                            </a>
-                            @if($pendingJustificationsCount > 0)
-                                <span class="badge badge-pill badge-warning">{{ $pendingJustificationsCount }} جديد</span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-            @endif
 
-            {{-- Widget for employee pending justifications (visible to employees only) --}}
-            @hasrole('employee')
-            @php
-                $employeePendingJustificationsCount = \App\Models\EmployeeClientVisit::where('employee_id', auth()->id())
-                    ->where('status', '!=', 'active')
-                    ->where(function ($query) {
-                        $query->whereNull('justification')
-                              ->orWhere('justification', '=', '')
-                              ->orWhere('justification_approved', 0)
-                              ->orWhereNull('justification_approved');
-                    })
-                    ->count();
-            @endphp
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header d-flex flex-column align-items-start pb-0">
-                            <div class="avatar bg-rgba-danger p-50 m-0">
-                                <div class="avatar-content">
-                                    <i class="feather icon-alert-triangle text-danger font-medium-5"></i>
-                                </div>
-                            </div>
-                            <h2 class="text-bold-700 mt-1">{{ $employeePendingJustificationsCount }}</h2>
-                            <p class="mb-0">زيارات بانتظار التبرير</p>
-                        </div>
-                        <div class="card-content">
-                            <div id="line-area-chart-5"></div>
-                        </div>
-                        <div class="card-body pt-0">
-                            <hr class="mb-2">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <a href="{{ route('incomplete.visits.justification') }}" class="btn btn-sm btn-danger">
-                                    <i class="feather icon-edit"></i> تقديم التبرير
-                                </a>
-                                @if($employeePendingJustificationsCount > 0)
-                                    <span class="badge badge-pill badge-danger">{{ $employeePendingJustificationsCount }} مطلوب</span>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            @endhasrole
+
 
             <div class="row g-3">
                 @if ($branchesPerformance->count() >= 3)
@@ -1173,97 +1121,100 @@ document.addEventListener('DOMContentLoaded', function() {
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    if (!navigator.geolocation) {
-        console.error("❌ المتصفح لا يدعم ميزة تحديد الموقع الجغرافي.");
-        return;
-    }
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!navigator.geolocation) {
+                console.error("❌ المتصفح لا يدعم ميزة تحديد الموقع الجغرافي.");
+                return;
+            }
 
-    // متغيرات لتخزين الإحداثيات السابقة
-    let previousLatitude = null;
-    let previousLongitude = null;
+            // متغيرات لتخزين الإحداثيات السابقة
+            let previousLatitude = null;
+            let previousLongitude = null;
 
-    // طلب الوصول إلى الموقع
-    requestLocationAccess();
+            // طلب الوصول إلى الموقع
+            requestLocationAccess();
 
-    function requestLocationAccess() {
-        navigator.permissions.query({
-            name: 'geolocation'
-        }).then(function(result) {
-            if (result.state === "granted") {
-                watchEmployeeLocation();
-            } else if (result.state === "prompt") {
-                navigator.geolocation.getCurrentPosition(
-                    function() {
+            function requestLocationAccess() {
+                navigator.permissions.query({
+                    name: 'geolocation'
+                }).then(function(result) {
+                    if (result.state === "granted") {
+                        // إذا كان الإذن ممنوحًا مسبقًا، ابدأ بمتابعة الموقع
                         watchEmployeeLocation();
+                    } else if (result.state === "prompt") {
+                        // إذا لم يكن الإذن ممنوحًا، اطلبه من المستخدم
+                        navigator.geolocation.getCurrentPosition(
+                            function() {
+                                watchEmployeeLocation();
+                            },
+                            function(error) {
+                                console.error("❌ خطأ في الحصول على الموقع:", error);
+                            }
+                        );
+                    } else {
+                        console.error("⚠️ الوصول إلى الموقع محظور! يرجى تغييره من إعدادات المتصفح.");
+                    }
+                });
+            }
+
+            // دالة لمتابعة تغييرات الموقع
+            function watchEmployeeLocation() {
+                navigator.geolocation.watchPosition(
+                    function(position) {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+
+                        console.log("📍 الإحداثيات الجديدة:", latitude, longitude);
+
+                        // التحقق من تغيير الموقع
+                        if (latitude !== previousLatitude || longitude !== previousLongitude) {
+                            console.log("🔄 الموقع تغير، يتم التحديث...");
+
+                            // إرسال البيانات إلى السيرفر
+                            fetch("{{ route('visits.storeEmployeeLocation') }}", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                                    },
+                                    body: JSON.stringify({
+                                        latitude,
+                                        longitude
+                                    })
+                                })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error("❌ خطأ في الشبكة");
+                                    }
+                                    return response.json();
+                                })
+                                .then(data => {
+                                    console.log("✅ تم تحديث الموقع بنجاح:", data);
+                                })
+                                .catch(error => {
+                                    console.error("❌ خطأ في تحديث الموقع:", error);
+                                });
+
+                            // تحديث الإحداثيات السابقة
+                            previousLatitude = latitude;
+                            previousLongitude = longitude;
+                        } else {
+                            console.log("⏹️ الموقع لم يتغير.");
+                        }
                     },
                     function(error) {
-                        console.error("❌ خطأ في الحصول على الموقع:", error);
+                        console.error("❌ خطأ في متابعة الموقع:", error);
+                    }, {
+                        enableHighAccuracy: true, // دقة عالية
+                        timeout: 5000, // انتظار 5 ثواني
+                        maximumAge: 0 // لا تستخدم بيانات موقع قديمة
                     }
                 );
-            } else {
-                console.error("⚠️ الوصول إلى الموقع محظور! يرجى تغييره من إعدادات المتصفح.");
             }
         });
-    }
+    </script>
 
-    // دالة لمتابعة تغييرات الموقع
-    function watchEmployeeLocation() {
-        navigator.geolocation.watchPosition(
-            function(position) {
-                const latitude = position.coords.latitude;
-                const longitude = position.coords.longitude;
-
-                console.log("📍 الإحداثيات الجديدة:", latitude, longitude);
-
-                // التحقق من تغيير الموقع
-                if (latitude !== previousLatitude || longitude !== previousLongitude) {
-                    console.log("🔄 الموقع تغير، يتم التحديث...");
-
-                    // إرسال البيانات إلى السيرفر
-                    fetch("{{ route('visits.storeEmployeeLocation') }}", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                            },
-                            body: JSON.stringify({
-                                latitude,
-                                longitude
-                            })
-                        })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error("❌ خطأ في الشبكة");
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            console.log("✅ تم تحديث الموقع بنجاح:", data);
-                        })
-                        .catch(error => {
-                            console.error("❌ خطأ في تحديث الموقع:", error);
-                        });
-
-                    // تحديث الإحداثيات السابقة
-                    previousLatitude = latitude;
-                    previousLongitude = longitude;
-                } else {
-                    console.log("⏹️ الموقع لم يتغير.");
-                }
-            },
-            function(error) {
-                console.error("❌ خطأ في متابعة الموقع:", error);
-            }, {
-                enableHighAccuracy: true,
-                timeout: 5000,
-                maximumAge: 0
-            }
-        );
-    }
-});
-</script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             var options = {

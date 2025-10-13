@@ -1,19 +1,12 @@
-<!DOCTYPE html>
 <html class="loading" dir="{{ App::getLocale() == 'ar' || App::getLocale() == 'ur' ? 'rtl' : 'ltr' }}">
 <!-- BEGIN: Head-->
 
 @if (App::getLocale() == 'ar')
-    <!-- BEGIN: Head-->
     @include('layouts.head_rtl')
-    <!-- END: Head-->
 @elseif (App::getLocale() == 'ur')
-    <!-- END: Head-->
     @include('layouts.head_rtl')
-    <!-- BEGIN: Head-->
 @else
-    <!-- BEGIN: Head-->
     @include('layouts.head_ltr')
-    <!-- END: Head-->
 @endif
 
 <head>
@@ -25,11 +18,13 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.1/spectrum.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/blueimp-file-upload/9.10.1/css/jquery.fileupload.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
     <!-- JavaScript -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-file-upload/9.10.1/js/jquery.fileupload.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
@@ -129,7 +124,6 @@
             opacity: 0;
         }
 
-        /* رسالة التحميل */
         .loading-message {
             position: fixed;
             top: 0;
@@ -198,7 +192,6 @@
             font-size: 14px;
         }
 
-        /* أنماط جديدة لمعالجة WebView */
         .webview-instructions {
             background: #f8f9fa;
             border: 1px solid #dee2e6;
@@ -246,13 +239,7 @@
     </style>
 </head>
 
-<!-- END: Head-->
-
-<!-- BEGIN: Body-->
-
-<body class="vertical-layout vertical-menu-modern 2-columns  navbar-floating footer-static   menu-collapsed" data-open="click" data-menu="vertical-menu-modern" data-col="2-columns">
-
-    <!-- رسالة التحميل -->
+<body class="vertical-layout vertical-menu-modern 2-columns navbar-floating footer-static menu-collapsed" data-open="click" data-menu="vertical-menu-modern" data-col="2-columns">
 
 
     <!-- طبقة حجب التطبيق حتى يتم تفعيل الموقع -->
@@ -260,10 +247,9 @@
         <div id="location-permission-content">
             <h3><i class="fas fa-map-marker-alt"></i> تفعيل خدمة الموقع</h3>
 
-            <!-- إظهار نوع البيئة -->
             <div id="environment-status" class="detection-status"></div>
 
-            <p>يتطلب نظامنا تفعيل خدمة الموقع لتسجيل الزيارات والعملاء القريبين تلقائياً.</p>
+            <p>يتطلب نظامنا تفعيل خدمة الموقع للوصول إلى موقعك.</p>
 
             <ul class="text-start mb-3">
                 <li>سيتم تسجيل موقعك أثناء وقت العمل فقط</li>
@@ -271,7 +257,6 @@
                 <li>يمكنك إيقاف التتبع في أي وقت من الإعدادات</li>
             </ul>
 
-            <!-- تعليمات WebView -->
             <div id="webview-instructions" class="webview-instructions" style="display: none;">
                 <h5><i class="fas fa-mobile-alt"></i> تعليمات للتطبيق</h5>
                 <p>يبدو أنك تستخدم التطبيق. لتفعيل الموقع:</p>
@@ -284,7 +269,6 @@
                 <p class="text-danger"><strong>مهم:</strong> إذا لم تظهر رسالة طلب الإذن، فقد تحتاج لتفعيل الموقع من إعدادات التطبيق مباشرة.</p>
             </div>
 
-            <!-- نموذج الموقع اليدوي -->
             <div id="manual-location-form" class="manual-location-form">
                 <h5><i class="fas fa-map-marker"></i> إدخال الموقع يدوياً</h5>
                 <p>يمكنك إدخال موقعك يدوياً كحل بديل:</p>
@@ -329,7 +313,6 @@
                 </button>
             </div>
 
-            <!-- الخيارات البديلة -->
             <div id="location-alternatives" class="location-alternatives">
                 <div class="alert alert-info">
                     <h6>خيارات بديلة:</h6>
@@ -337,27 +320,20 @@
                         <i class="fas fa-edit"></i> إدخال الموقع يدوياً
                     </button>
                     <button id="skip-location-btn" class="btn btn-sm btn-secondary">
-                        <i class="fas fa-skip-forward"></i> تخطي (بدون تتبع)
+                        <i class="fas fa-skip-forward"></i> تخطي
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- شريط حالة التتبع -->
     <div id="tracking-status" class="tracking-status tracking-inactive" style="display: none;">
         <i class="fas fa-map-marker-alt"></i> <span id="tracking-status-text">جاري التتبع</span>
     </div>
 
-    <!-- BEGIN: Header-->
     @include('layouts.header')
-    <!-- END: Header-->
+    
 
-    <!-- BEGIN: Main Menu-->
-    @include('layouts.sidebar')
-    <!-- END: Main Menu-->
-
-    <!-- BEGIN: Content-->
     <div class="app-content content">
         <div class="content-overlay"></div>
         <div class="header-navbar-shadow"></div>
@@ -365,16 +341,12 @@
             @yield('content')
         </div>
     </div>
-    <!-- END: Content-->
 
     <div class="sidenav-overlay"></div>
     <div class="drag-target"></div>
 
-    <!-- BEGIN: Footer-->
     @include('layouts.footer')
-    <!-- END: Footer-->
 
-    <!-- Scripts هنا -->
     <script src="{{ asset('app-assets/vendors/js/vendors.min.js')}}"></script>
     <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js')}}"></script>
     <script src="{{ asset('app-assets/vendors/js/charts/apexcharts.min.js')}}"></script>
@@ -454,19 +426,12 @@
             const manualLocationForm = document.getElementById('manual-location-form');
             const locationAlternatives = document.getElementById('location-alternatives');
 
-            // متغيرات التتبع
-            let watchId = null;
-            let trackingInterval = null;
-            let isTracking = false;
             let lastLocation = null;
             let permissionDenied = false;
-            let trackingPaused = false;
-            let pageRefreshInterval = null;
             let isWebView = false;
             let permissionAttempts = 0;
             let maxRetries = 3;
 
-            // فحص البيئة (WebView أم متصفح عادي)
             function detectEnvironment() {
                 const userAgent = navigator.userAgent.toLowerCase();
                 const isAndroidWebView = userAgent.includes('wv') ||
@@ -478,7 +443,6 @@
 
                 isWebView = isAndroidWebView || isIOSWebView || isInApp;
 
-                // إظهار حالة البيئة
                 if (isWebView) {
                     environmentStatus.textContent = 'تم اكتشاف: تطبيق WebView';
                     environmentStatus.className = 'detection-status status-webview';
@@ -491,45 +455,8 @@
                 return isWebView;
             }
 
-            // تهيئة حالة التتبع من sessionStorage
-            if (!sessionStorage.getItem('trackingState')) {
-                sessionStorage.setItem('trackingState', JSON.stringify({
-                    isTracking: false,
-                    lastLocation: null,
-                    lastUpdate: null,
-                    permissionAsked: false,
-                    pageAlreadyLoaded: false,
-                    isManualLocation: false
-                }));
-            }
-
-            // فحص حالة التتبع عند التحميل
-            const trackingState = JSON.parse(sessionStorage.getItem('trackingState'));
-            if (trackingState.isTracking) {
-                if (trackingState.isManualLocation) {
-                    updateTrackingStatus('active', 'جاري التتبع - موقع ثابت');
-                } else {
-                    updateTrackingStatus('active', 'جاري التتبع - موقعك يتم تسجيله');
-                }
-            }
-
-            // فحص البيئة عند التحميل
             detectEnvironment();
-
-            // التحقق من إذن الموقع عند تحميل الصفحة
             checkLocationPermission();
-
-            // بدء مؤقت لتحديث الصفحة
-            startPageRefreshTimer();
-
-            function startPageRefreshTimer() {
-                if (pageRefreshInterval) {
-                    clearInterval(pageRefreshInterval);
-                }
-                pageRefreshInterval = setInterval(() => {
-                    location.reload();
-                }, 3600000); // كل ساعة
-            }
 
             function showToastNotification(title, text, type) {
                 const toast = document.createElement('div');
@@ -561,46 +488,33 @@
             }
 
             function checkLocationPermission() {
-                const trackingState = JSON.parse(sessionStorage.getItem('trackingState'));
-
-                // إذا كان المستخدم قد رفض الإذن سابقاً
                 if (localStorage.getItem('locationPermission') === 'denied') {
                     showPermissionDenied();
                     return;
                 }
 
-                // إذا كان المستخدم يستخدم موقعاً يدوياً
                 if (localStorage.getItem('locationPermission') === 'manual') {
                     const manualLocation = JSON.parse(localStorage.getItem('manualLocation'));
                     if (manualLocation) {
-                        startTrackingWithManualLocation(manualLocation);
+                        lastLocation = manualLocation;
+                        updateTrackingStatus('active', 'الموقع محفوظ');
+                        setTimeout(() => fadeOutTrackingStatus(), 3000);
                         return;
                     }
                 }
 
-                // إذا كان المستخدم قد وافق سابقاً
                 if (localStorage.getItem('locationPermission') === 'granted') {
-                    startTrackingSilently();
-
-                    if (trackingState.isTracking) {
-                        updateTrackingStatus('active', 'جاري التتبع - موقعك يتم تسجيله');
-                        if (!trackingState.pageAlreadyLoaded) {
-                            setTimeout(() => {
-                                fadeOutTrackingStatus();
-                            }, 5000);
-                            trackingState.pageAlreadyLoaded = true;
-                            sessionStorage.setItem('trackingState', JSON.stringify(trackingState));
-                        }
-                    }
+                    getLocation();
                     return;
                 }
 
-                // إذا لم يتم طلب الإذن بعد في هذه الجلسة
-                if (!trackingState.permissionAsked) {
-                    showPermissionRequest();
-                    trackingState.permissionAsked = true;
-                    sessionStorage.setItem('trackingState', JSON.stringify(trackingState));
+                if (localStorage.getItem('locationPermission') === 'skipped') {
+                    updateTrackingStatus('inactive', 'تم تخطي الموقع');
+                    setTimeout(() => fadeOutTrackingStatus(), 3000);
+                    return;
                 }
+
+                showPermissionRequest();
             }
 
             function showPermissionRequest() {
@@ -610,7 +524,6 @@
                 statusElement.textContent = 'جاري فحص إمكانية الوصول للموقع...';
                 statusElement.className = 'alert alert-info';
 
-                // إخفاء جميع الأزرار ما عدا التفعيل
                 retryBtn.style.display = 'none';
                 alternativesBtn.style.display = 'none';
                 browserBtn.style.display = 'none';
@@ -625,7 +538,6 @@
                 statusElement.textContent = 'تم رفض إذن الوصول إلى الموقع. يرجى تفعيله في إعدادات المتصفح أو التطبيق.';
                 statusElement.className = 'alert alert-danger';
 
-                // إظهار جميع الخيارات
                 enableBtn.style.display = 'none';
                 retryBtn.style.display = 'block';
                 alternativesBtn.style.display = 'block';
@@ -635,7 +547,7 @@
                 cancelBtn.style.display = 'block';
                 permissionDenied = true;
 
-                updateTrackingStatus('inactive', 'تم إيقاف التتبع - إذن الموقع مرفوض');
+                updateTrackingStatus('inactive', 'إذن الموقع مرفوض');
             }
 
             function requestLocationPermission() {
@@ -650,11 +562,10 @@
                     return;
                 }
 
-                // إعدادات مختلفة للحصول على الموقع حسب البيئة
                 const options = isWebView ? {
-                    enableHighAccuracy: false, // تقليل الدقة في WebView لتحسين التوافق
-                    timeout: 15000, // مهلة أطول
-                    maximumAge: 300000 // قبول مواقع أقدم (5 دقائق)
+                    enableHighAccuracy: false,
+                    timeout: 15000,
+                    maximumAge: 300000
                 } : {
                     enableHighAccuracy: true,
                     timeout: 10000,
@@ -676,12 +587,16 @@
                     localStorage.setItem('locationPermission', 'granted');
                 }
 
-                startTracking(position);
-                showToastNotification('تم تفعيل التتبع', 'سيتم الآن تسجيل موقعك تلقائياً لتسجيل الزيارات', 'success');
+                lastLocation = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude
+                };
 
-                setTimeout(() => {
-                    fadeOutTrackingStatus();
-                }, 5000);
+                console.log('تم الحصول على الموقع:', lastLocation);
+                updateTrackingStatus('active', 'تم الحصول على الموقع');
+                showToastNotification('تم تفعيل الموقع', 'تم الحصول على موقعك بنجاح', 'success');
+
+                setTimeout(() => fadeOutTrackingStatus(), 5000);
             }
 
             function locationPermissionDenied(error) {
@@ -727,171 +642,12 @@
                     retryBtn.style.display = 'block';
                 }
 
-                updateTrackingStatus('inactive', 'تم إيقاف التتبع - خطأ في الموقع');
+                updateTrackingStatus('inactive', 'خطأ في الموقع');
             }
 
-            function startTracking(position) {
-                const trackingState = JSON.parse(sessionStorage.getItem('trackingState'));
-
-                lastLocation = {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude
-                };
-
-                trackingState.isTracking = true;
-                trackingState.lastLocation = lastLocation;
-                trackingState.lastUpdate = new Date().toISOString();
-                trackingState.pageAlreadyLoaded = true;
-                trackingState.isManualLocation = false;
-                sessionStorage.setItem('trackingState', JSON.stringify(trackingState));
-
-                sendLocationToServer(position);
-
-                // إعدادات مختلفة للـ watchPosition حسب البيئة
-                const watchOptions = isWebView ? {
-                    enableHighAccuracy: false,
-                    timeout: 30000, // مهلة أطول للـ WebView
-                    maximumAge: 600000 // قبول مواقع أقدم (10 دقائق)
-                } : {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                };
-
-                watchId = navigator.geolocation.watchPosition(
-                    handlePositionUpdate,
-                    handleTrackingError,
-                    watchOptions
-                );
-
-                // فترة إرسال أطول للـ WebView لتوفير البطارية
-                const intervalDuration = isWebView ? 120000 : 60000; // دقيقتان للـ WebView، دقيقة للمتصفح
-
-                trackingInterval = setInterval(() => {
-                    if (lastLocation) {
-                        sendLocationToServer({
-                            coords: {
-                                latitude: lastLocation.latitude,
-                                longitude: lastLocation.longitude,
-                                accuracy: 20
-                            }
-                        });
-                    }
-                }, intervalDuration);
-
-                isTracking = true;
-                trackingPaused = false;
-
-                updateTrackingStatus('active', 'جاري التتبع - موقعك يتم تسجيله');
-            }
-
-            function startTrackingWithManualLocation(location) {
-                const trackingState = JSON.parse(sessionStorage.getItem('trackingState'));
-
-                lastLocation = location;
-
-                trackingState.isTracking = true;
-                trackingState.lastLocation = lastLocation;
-                trackingState.lastUpdate = new Date().toISOString();
-                trackingState.pageAlreadyLoaded = true;
-                trackingState.isManualLocation = true;
-                sessionStorage.setItem('trackingState', JSON.stringify(trackingState));
-
-                // إرسال الموقع اليدوي للخادم
-                sendLocationToServer({
-                    coords: {
-                        latitude: location.latitude,
-                        longitude: location.longitude,
-                        accuracy: 100 // دقة أقل للموقع اليدوي
-                    }
-                });
-
-                // إرسال دوري للموقع اليدوي كل 5 دقائق
-                trackingInterval = setInterval(() => {
-                    sendLocationToServer({
-                        coords: {
-                            latitude: location.latitude,
-                            longitude: location.longitude,
-                            accuracy: 100
-                        }
-                    });
-                }, 300000); // 5 دقائق
-
-                isTracking = true;
-                trackingPaused = false;
-
-                updateTrackingStatus('active', 'جاري التتبع - موقع ثابت');
-
-                setTimeout(() => {
-                    fadeOutTrackingStatus();
-                }, 5000);
-            }
-
-            function startTrackingSilently() {
+            function getLocation() {
                 if (!navigator.geolocation) return;
 
-                const trackingState = JSON.parse(sessionStorage.getItem('trackingState'));
-
-                if (trackingState.isTracking && trackingState.lastLocation) {
-                    const lastUpdate = new Date(trackingState.lastUpdate);
-                    const now = new Date();
-                    const minutesDiff = (now - lastUpdate) / (1000 * 60);
-
-                    if (minutesDiff < 10) { // إذا مر أقل من 10 دقائق منذ آخر تحديث
-                        lastLocation = trackingState.lastLocation;
-                        isTracking = true;
-                        trackingPaused = false;
-
-                        if (!trackingState.isManualLocation) {
-                            const watchOptions = isWebView ? {
-                                enableHighAccuracy: false,
-                                timeout: 30000,
-                                maximumAge: 600000
-                            } : {
-                                enableHighAccuracy: true,
-                                timeout: 10000,
-                                maximumAge: 0
-                            };
-
-                            watchId = navigator.geolocation.watchPosition(
-                                handlePositionUpdate,
-                                handleTrackingError,
-                                watchOptions
-                            );
-                        }
-
-                        const intervalDuration = isWebView ? 120000 : 60000;
-                        trackingInterval = setInterval(() => {
-                            if (lastLocation) {
-                                sendLocationToServer({
-                                    coords: {
-                                        latitude: lastLocation.latitude,
-                                        longitude: lastLocation.longitude,
-                                        accuracy: trackingState.isManualLocation ? 100 : 20
-                                    }
-                                });
-                            }
-                        }, intervalDuration);
-
-                        if (trackingState.isManualLocation) {
-                            updateTrackingStatus('active', 'جاري التتبع - موقع ثابت');
-                        } else {
-                            updateTrackingStatus('active', 'جاري التتبع - موقعك يتم تسجيله');
-                        }
-
-                        if (!trackingState.pageAlreadyLoaded) {
-                            setTimeout(() => {
-                                fadeOutTrackingStatus();
-                            }, 5000);
-                            trackingState.pageAlreadyLoaded = true;
-                            sessionStorage.setItem('trackingState', JSON.stringify(trackingState));
-                        }
-
-                        return;
-                    }
-                }
-
-                // بدء جلسة جديدة
                 const options = isWebView ? {
                     enableHighAccuracy: false,
                     timeout: 15000,
@@ -904,50 +660,23 @@
 
                 navigator.geolocation.getCurrentPosition(
                     position => {
-                        startTracking(position);
+                        lastLocation = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        };
+                        console.log('الموقع الحالي:', lastLocation);
+                        updateTrackingStatus('active', 'تم الحصول على الموقع');
+                        setTimeout(() => fadeOutTrackingStatus(), 3000);
                     },
                     error => {
                         console.error('خطأ في الحصول على الموقع:', error);
-                        updateTrackingStatus('inactive', 'تم إيقاف التتبع - خطأ في الموقع');
+                        updateTrackingStatus('inactive', 'خطأ في الموقع');
                     },
                     options
                 );
             }
 
-            function handlePositionUpdate(position) {
-                const { latitude, longitude } = position.coords;
-
-                if (!lastLocation || getDistance(latitude, longitude, lastLocation.latitude, lastLocation.longitude) > 50) {
-                    lastLocation = { latitude, longitude };
-
-                    const trackingState = JSON.parse(sessionStorage.getItem('trackingState'));
-                    trackingState.lastLocation = lastLocation;
-                    trackingState.lastUpdate = new Date().toISOString();
-                    sessionStorage.setItem('trackingState', JSON.stringify(trackingState));
-
-                    sendLocationToServer(position);
-                }
-            }
-
-            function handleTrackingError(error) {
-                console.error('خطأ في تتبع الموقع:', error);
-
-                if (error.code === error.PERMISSION_DENIED) {
-                    permissionDenied = true;
-                    updateTrackingStatus('inactive', 'تم إيقاف التتبع - إذن الموقع مرفوض');
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'تم إيقاف التتبع',
-                        text: 'تم سحب إذن الموقع، يرجى تحديث الصفحة ومنح الإذن مرة أخرى',
-                        confirmButtonText: 'حسناً'
-                    });
-                }
-            }
-
             function updateTrackingStatus(status, text) {
-                const trackingState = JSON.parse(sessionStorage.getItem('trackingState'));
-
                 trackingStatusElement.style.display = 'block';
                 trackingStatusElement.classList.remove('fade-out');
                 trackingStatusText.textContent = text;
@@ -961,12 +690,6 @@
                 } else {
                     trackingStatusElement.classList.add('tracking-inactive');
                 }
-
-                if (!trackingState.pageAlreadyLoaded) {
-                    setTimeout(() => {
-                        fadeOutTrackingStatus();
-                    }, 5000);
-                }
             }
 
             function fadeOutTrackingStatus() {
@@ -976,55 +699,6 @@
                         trackingStatusElement.style.display = 'none';
                     }, 500);
                 }
-            }
-
-            async function sendLocationToServer(position) {
-                const { latitude, longitude, accuracy } = position.coords;
-
-                try {
-                    const response = await fetch("{{ route('visits.storeLocationEnhanced') }}", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                        },
-                        body: JSON.stringify({
-                            latitude,
-                            longitude,
-                            accuracy: accuracy || null,
-                            timestamp: new Date().toISOString(),
-                            is_manual: position.coords.accuracy === 100
-                        })
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('خطأ في الخادم');
-                    }
-
-                    const data = await response.json();
-
-                    if (data.nearby_clients && data.nearby_clients.length > 0) {
-                        console.log('العملاء القريبون:', data.nearby_clients);
-                    }
-
-                } catch (error) {
-                    console.error('خطأ في إرسال الموقع:', error);
-                }
-            }
-
-            function getDistance(lat1, lon1, lat2, lon2) {
-                const R = 6371000;
-                const φ1 = lat1 * Math.PI / 180;
-                const φ2 = lat2 * Math.PI / 180;
-                const Δφ = (lat2 - lat1) * Math.PI / 180;
-                const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-                const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-                          Math.cos(φ1) * Math.cos(φ2) *
-                          Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-                return R * c;
             }
 
             // معالجة الأزرار
@@ -1057,7 +731,7 @@
 
             skipLocationBtn.addEventListener('click', () => {
                 overlay.style.display = 'none';
-                updateTrackingStatus('inactive', 'التتبع معطل - تم التخطي');
+                updateTrackingStatus('inactive', 'تم تخطي الموقع');
                 if (rememberChoice.checked) {
                     localStorage.setItem('locationPermission', 'skipped');
                 }
@@ -1098,63 +772,17 @@
                     localStorage.setItem('manualLocation', JSON.stringify(manualLocation));
                 }
 
+                lastLocation = manualLocation;
                 overlay.style.display = 'none';
-                startTrackingWithManualLocation(manualLocation);
 
-                showToastNotification('تم حفظ الموقع', 'سيتم استخدام الموقع المحدد لتسجيل الزيارات', 'success');
+                console.log('تم حفظ الموقع اليدوي:', lastLocation);
+                updateTrackingStatus('active', 'تم حفظ الموقع');
+                showToastNotification('تم حفظ الموقع', 'سيتم استخدام الموقع المحدد', 'success');
+
+                setTimeout(() => {
+                    fadeOutTrackingStatus();
+                }, 5000);
             });
-
-            // أحداث لضمان استمرارية التتبع (مخففة للـ WebView)
-            if (!isWebView) {
-                window.addEventListener('blur', () => {
-                    if (isTracking && !trackingState.isManualLocation) {
-                        trackingPaused = true;
-                        updateTrackingStatus('paused', 'التتبع متوقف مؤقتاً');
-                    }
-                });
-
-                window.addEventListener('focus', () => {
-                    if (trackingPaused && !permissionDenied) {
-                        trackingPaused = false;
-                        if (lastLocation) {
-                            updateTrackingStatus('active', 'جاري التتبع - موقعك يتم تسجيله');
-                        }
-                    }
-                });
-            }
-
-            window.addEventListener('beforeunload', () => {
-                if (lastLocation) {
-                    // إرسال إشارة إنهاء الجلسة
-                    navigator.sendBeacon("{{ route('visits.storeLocationEnhanced') }}", JSON.stringify({
-                        latitude: lastLocation.latitude,
-                        longitude: lastLocation.longitude,
-                        accuracy: 20,
-                        timestamp: new Date().toISOString(),
-                        isExit: true
-                    }));
-                }
-
-                if (pageRefreshInterval) {
-                    clearInterval(pageRefreshInterval);
-                }
-            });
-
-            // فحص دوري للتتبع (كل دقيقتين للـ WebView)
-            const checkInterval = isWebView ? 120000 : 60000;
-            setInterval(() => {
-                const trackingState = JSON.parse(sessionStorage.getItem('trackingState'));
-                if (trackingState.isTracking && !isTracking && !trackingPaused && !permissionDenied) {
-                    if (trackingState.isManualLocation) {
-                        const manualLocation = JSON.parse(localStorage.getItem('manualLocation'));
-                        if (manualLocation) {
-                            startTrackingWithManualLocation(manualLocation);
-                        }
-                    } else {
-                        startTrackingSilently();
-                    }
-                }
-            }, checkInterval);
         });
     </script>
 

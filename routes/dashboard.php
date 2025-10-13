@@ -394,8 +394,21 @@ $averageBranchCollection = $branchesPerformance->avg('total_collected');
 
         Route::prefix('dashboard')->middleware(['auth'])->group(function () {
             #questions routes
+            
+             Route::get('/sales/department', function () {
+                  
+                  return view('sales::master');
+               })->name('sales.department.dashboard');
+               
+               
+                Route::get('/main', function () {
+                  return view('dashboard');
+               });
             Route::prefix('sales')->group(function () {
                 Route::get('/index', [DashboardSalesController::class, 'index'])->name('dashboard_sales.index');
+                
+               
+               
                 Route::get('/dashboard/employee-invoices/{userId}/{type}', [DashboardController::class, 'getEmployeeInvoices']);
             });
         });
