@@ -155,7 +155,7 @@ body {
         </a>
 
         {{-- المتجر الإلكتروني --}}
-        <a href="{{ url('/store') }}" class="card-link">
+        <a href="{{ route('onlinestore.department.dashboard')}}" class="card-link">
             <div class="card">
                 <div class="card-content">
                     <div>

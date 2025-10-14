@@ -1,11 +1,11 @@
 {
-    "name": "Sales",
-    "alias": "sales",
+    "name": "OnlineStore",
+    "alias": "OnlineStore",
     "description": "",
     "keywords": [],
     "priority": 0,
     "providers": [
-        "Modules\\Sales\\Providers\\SalesServiceProvider"
+        "Modules\\Sales\\Providers\\OnlineStoreServiceProvider"
     ],
     "files": []
 }

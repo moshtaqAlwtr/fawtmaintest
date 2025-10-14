@@ -425,6 +425,11 @@ $averageBranchCollection = $branchesPerformance->avg('total_collected');
 
                   return view('sitting::master');
                })->name('sittings.department.dashboard');
+ Route::get('/onlinestore/department', function () {
+
+                  return view('onlinestore::master');
+               })->name('onlinestore.department.dashboard');
+
 
 
                 Route::get('/main', function () {

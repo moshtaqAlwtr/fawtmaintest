@@ -1,13 +1,13 @@
 <?php
 
-namespace Modules\Sales\Providers;
+namespace Modules\OnlineStore\Providers;
 
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Route;
 
 class RouteServiceProvider extends ServiceProvider
 {
-    protected string $name = 'Sales';
+    protected string $name = 'OnlineStore';
 
     /**
      * Called before routes are registered.
