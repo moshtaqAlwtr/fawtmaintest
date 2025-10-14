@@ -172,7 +172,7 @@ body {
         </a>
 
         {{-- إدارة الوحدات والإيجارات --}}
-        <a href="{{ url('/rents') }}" class="card-link">
+        <a href="{{ route('rentalmanagement.department.dashboard') }}" class="card-link">
             <div class="card">
                 <div class="card-content">
                     <div>

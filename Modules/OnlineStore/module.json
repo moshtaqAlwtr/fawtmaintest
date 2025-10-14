@@ -5,7 +5,7 @@
     "keywords": [],
     "priority": 0,
     "providers": [
-        "Modules\\Sales\\Providers\\OnlineStoreServiceProvider"
+        "Modules\\OnlineStore\\Providers\\OnlineStoreServiceProvider"
     ],
     "files": []
 }

@@ -41,7 +41,7 @@ Route::group(
         Route::get('', function () {
                   return view('dashboard');
                });
-               
+
                // صفحة المبيعات الرئيسية
         Route::get('sales/dashboard', function (Request $request) {
 
@@ -429,11 +429,16 @@ $averageBranchCollection = $branchesPerformance->avg('total_collected');
  Route::get('/setting/department', function () {
 
                   return view('sitting::master');
-               })->name('sittings.department.dashboard');
+               })->name('settings.department.dashboard');
  Route::get('/onlinestore/department', function () {
 
                   return view('onlinestore::master');
                })->name('onlinestore.department.dashboard');
+
+ Route::get('/rentalmanagement/department', function () {
+
+                  return view('rentalmanagement::master');
+               })->name('rentalmanagement.department.dashboard');
 
 
 
