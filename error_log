@@ -1,0 +1,58 @@
+[11-Mar-2025 21:20:04 UTC] PHP Warning:  require(/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php): Failed to open stream: No such file or directory in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:20:04 UTC] PHP Warning:  require(/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php): Failed to open stream: No such file or directory in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:20:04 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/sehohoqm/hitstest.sehoool.com/index.php:13
+Stack trace:
+#0 {main}
+  thrown in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:22:44 UTC] PHP Warning:  require(/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php): Failed to open stream: No such file or directory in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:22:44 UTC] PHP Warning:  require(/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php): Failed to open stream: No such file or directory in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:22:44 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/sehohoqm/hitstest.sehoool.com/index.php:13
+Stack trace:
+#0 {main}
+  thrown in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:23:59 UTC] PHP Warning:  require(/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php): Failed to open stream: No such file or directory in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:23:59 UTC] PHP Warning:  require(/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php): Failed to open stream: No such file or directory in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:23:59 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/sehohoqm/hitstest.sehoool.com/index.php:13
+Stack trace:
+#0 {main}
+  thrown in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:24:04 UTC] PHP Warning:  require(/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php): Failed to open stream: No such file or directory in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:24:04 UTC] PHP Warning:  require(/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php): Failed to open stream: No such file or directory in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:24:04 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/sehohoqm/hitstest.sehoool.com/index.php:13
+Stack trace:
+#0 {main}
+  thrown in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:37:09 UTC] PHP Warning:  require(/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php): Failed to open stream: No such file or directory in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:37:09 UTC] PHP Warning:  require(/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php): Failed to open stream: No such file or directory in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:37:09 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/sehohoqm/hitstest.sehoool.com/index.php:13
+Stack trace:
+#0 {main}
+  thrown in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:38:13 UTC] PHP Warning:  require(/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php): Failed to open stream: No such file or directory in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:38:13 UTC] PHP Warning:  require(/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php): Failed to open stream: No such file or directory in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:38:13 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/sehohoqm/hitstest.sehoool.com/index.php:13
+Stack trace:
+#0 {main}
+  thrown in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:38:42 UTC] PHP Warning:  require(/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php): Failed to open stream: No such file or directory in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:38:42 UTC] PHP Warning:  require(/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php): Failed to open stream: No such file or directory in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:38:42 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/sehohoqm/hitstest.sehoool.com/index.php:13
+Stack trace:
+#0 {main}
+  thrown in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:42:58 UTC] PHP Warning:  require(/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php): Failed to open stream: No such file or directory in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:42:58 UTC] PHP Warning:  require(/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php): Failed to open stream: No such file or directory in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[11-Mar-2025 21:42:58 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/sehohoqm/hitstest.sehoool.com/vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/sehohoqm/hitstest.sehoool.com/index.php:13
+Stack trace:
+#0 {main}
+  thrown in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[22-Mar-2025 21:51:11 Asia/Riyadh] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Sitting\TaxSittingController::update() in /home/sehohoqm/hitstest.sehoool.com/app/Http/Controllers/Sitting/TaxSittingController.php on line 41
+[28-Mar-2025 01:59:55 Asia/Riyadh] PHP Fatal error:  App\Http\Controllers\Salaries\SalarySlipController cannot use TCPDF - it is not a trait in /home/sehohoqm/hitstest.sehoool.com/app/Http/Controllers/Salaries/SalarySlipController.php on line 29
+[29-Mar-2025 03:27:00 Asia/Riyadh] PHP Fatal error:  Cannot use empty array elements in arrays in /home/sehohoqm/hitstest.sehoool.com/app/Http/Controllers/Salaries/AncestorController.php on line 224
+[29-Mar-2025 03:27:08 Asia/Riyadh] PHP Fatal error:  Cannot use empty array elements in arrays in /home/sehohoqm/hitstest.sehoool.com/app/Http/Controllers/Salaries/AncestorController.php on line 224
+[29-Mar-2025 03:27:29 Asia/Riyadh] PHP Fatal error:  Cannot use empty array elements in arrays in /home/sehohoqm/hitstest.sehoool.com/app/Http/Controllers/Salaries/AncestorController.php on line 224
+[02-Apr-2025 22:35:08 Asia/Riyadh] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Salaries\AncestorController::storePayments() in /home/sehohoqm/hitstest.sehoool.com/app/Http/Controllers/Salaries/AncestorController.php on line 152
+[02-Apr-2025 22:36:23 Asia/Riyadh] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Salaries\AncestorController::storePayments() in /home/sehohoqm/hitstest.sehoool.com/app/Http/Controllers/Salaries/AncestorController.php on line 152
+[02-Apr-2025 23:38:22 Asia/Riyadh] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Salaries\AncestorController::pay() in /home/sehohoqm/hitstest.sehoool.com/app/Http/Controllers/Salaries/AncestorController.php on line 178
+[12-Apr-2025 17:54:12 Asia/Riyadh] PHP Fatal error:  Trait "App\Http\Controllers\Sales\Mpdf\Mpdf" not found in /home/sehohoqm/hitstest.sehoool.com/app/Http/Controllers/Sales/InvoicesController.php on line 54
+[12-Apr-2025 19:01:52 Asia/Riyadh] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Sales\InvoicesController::label() in /home/sehohoqm/hitstest.sehoool.com/app/Http/Controllers/Sales/InvoicesController.php on line 1611
