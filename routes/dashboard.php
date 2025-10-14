@@ -37,8 +37,13 @@ Route::group(
         'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath', 'check.branch']
     ],
     function () {
-
-        Route::get('', function (Request $request) {
+// الصفحة الرئيسية
+        Route::get('', function () {
+                  return view('dashboard');
+               });
+               
+               // صفحة المبيعات الرئيسية
+        Route::get('sales/dashboard', function (Request $request) {
 
         $ClientCount = Client::count();
         $Invoice = Invoice::where('type', 'normal')->sum('grand_total');
