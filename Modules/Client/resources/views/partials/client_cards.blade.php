@@ -268,14 +268,7 @@
                         </div>
                     </div>
 
-                    <!-- زر الإخفاء السريع -->
-                    <div class="quick-actions">
-                        <button class="hide-btn hide-from-map-btn" data-client-id="{{ $client->id }}"
-                            data-client-name="{{ $client->trade_name }}">
-                            <i class="fas fa-eye-slash"></i>
-                            إخفاء لـ 24 ساعة
-                        </button>
-                    </div>
+
                 </div>
             </div>
         @endforeach
