@@ -1,5 +1,5 @@
 {
-    "name": "nwidart/sales",
+    "name": "nwidart/OnlineStore",
     "description": "",
     "authors": [
         {
@@ -17,15 +17,15 @@
     },
     "autoload": {
         "psr-4": {
-            "Modules\\Sales\\": "app/",
-            "Modules\\Sales\\Database\\Factories\\": "database/factories/",
-            "Modules\\Sales\\Database\\Seeders\\": "database/seeders/",
-            "Modules\\Sales\\Providers\\": "Providers/"
+            "Modules\\OnlineStore\\": "app/",
+            "Modules\\OnlineStore\\Database\\Factories\\": "database/factories/",
+            "Modules\\OnlineStore\\Database\\Seeders\\": "database/seeders/",
+            "Modules\\OnlineStore\\Providers\\": "Providers/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Modules\\Sales\\Tests\\": "tests/"
+            "Modules\\OnlineStore\\Tests\\": "tests/"
         }
     }
 }

@@ -133,7 +133,7 @@ Route::group(
         Route::prefix('clients')->group(function () {
             // Itinerary Visits
             Route::delete('/itinerary/visits/{visit}', [ItineraryController::class, 'destroyVisit'])->name('itinerary.visits.destroy');
-
+clients/clients_management/index
             // Clients Management
             Route::prefix('clients_management')->group(function () {
                 Route::get('/index', [ClientController::class, 'index'])->name('clients.index');
