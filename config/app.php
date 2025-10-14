@@ -199,6 +199,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Modules\Sales\Providers\SalesServiceProvider::class,
+                 Modules\Client\Providers\ClientServiceProvider::class,
         Modules\HR\Providers\HRServiceProvider::class,
         Modules\Stock\Providers\StockServiceProvider::class,
         Modules\Account\Providers\AccountServiceProvider::class,
