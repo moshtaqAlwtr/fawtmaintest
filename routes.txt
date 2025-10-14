@@ -1,7 +1,0 @@
-
-In ProviderRepository.php line 206:
-                                            
-  Class "Modules\Client\Providers\ClientSe  
-  rviceProvider" not found                  
-                                            
-
