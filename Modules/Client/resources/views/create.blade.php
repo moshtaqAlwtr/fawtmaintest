@@ -1,4 +1,4 @@
-@extends('master')
+@extends('sales::master')
 
 @section('title')
     اضافة عميل
@@ -41,8 +41,8 @@
                                 <i class="fa fa-ban"></i> الغاء
                             </a>
                             <button type="submit" class="btn btn-outline-primary" id="submitBtn">
-                                <i class="fa fa-save"></i> حفظ
-                            </button>
+                            <i class="fa fa-save"></i> حفظ
+                        </button>
                         </div>
                     </div>
                 </div>
@@ -501,26 +501,7 @@
                                                     </div>
                                                 </div>
                                             @endif
-                                        @endforeach
 
-                                        <!-- نوع العميل -->
-                                        <div class="col-md-12 col-12 mb-3">
-                                            <div class="form-group">
-                                                <label for="client_type">نوع العميل</label>
-                                                <div class="position-relative has-icon-left">
-                                                    <select class="form-control" name="client_type" id="client_type">
-                                                        <option value="1"
-                                                            {{ old('client_type') == 1 ? 'selected' : '' }}>عميل VIP
-                                                        </option>
-                                                        <option value="2"
-                                                            {{ old('client_type') == 2 ? 'selected' : '' }}>عميل عادي
-                                                        </option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- الفرع -->
                                         <div class="col-md-12 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="branch_id">الفرع <span class="text-danger">*</span></label>

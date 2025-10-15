@@ -127,6 +127,162 @@ class ClientController extends Controller
 
         return response()->json(['data' => $clients]);
     }
+private function applyFilters($baseQuery, $request)
+{
+    if ($request->filled('client')) {
+        $baseQuery->where('id', $request->client);
+    }
+
+    if ($request->filled('name')) {
+        $baseQuery->where('trade_name', 'like', '%' . $request->name . '%');
+    }
+
+    if ($request->filled('status')) {
+        $baseQuery->where('status_id', $request->status);
+    }
+
+    if ($request->filled('region')) {
+        $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
+            $q->where('id', $request->region);
+        });
+    }
+
+    if ($request->filled('neighborhood')) {
+        $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->neighborhood . '%')
+              ->orWhere('id', $request->neighborhood);
+        });
+    }
+
+    if ($request->filled('date_from') && $request->filled('date_to')) {
+        $baseQuery->whereBetween('created_at', [
+            $request->date_from . ' 00:00:00',
+            $request->date_to . ' 23:59:59'
+        ]);
+    } elseif ($request->filled('date_from')) {
+        $baseQuery->where('created_at', '>=', $request->date_from . ' 00:00:00');
+    } elseif ($request->filled('date_to')) {
+        $baseQuery->where('created_at', '<=', $request->date_to . ' 23:59:59');
+    }
+
+    if ($request->filled('categories')) {
+        $baseQuery->where('category_id', $request->categories);
+    }
+
+    if ($request->filled('user')) {
+        $baseQuery->where('created_by', $request->user);
+    }
+
+    if ($request->filled('type')) {
+        $baseQuery->where('type', $request->type);
+    }
+
+    if ($request->filled('employee')) {
+        $baseQuery->where('employee_id', $request->employee);
+    }
+
+    // فلترة حسب آخر فاتورة
+    if ($request->filled('last_invoice_period')) {
+        $dates = $this->getPeriodDates($request->last_invoice_period);
+
+        $baseQuery->whereHas('invoices', function ($q) use ($dates) {
+            $q->whereBetween('invoice_date', [$dates['start'], $dates['end']]);
+        });
+    }
+
+    // فلترة حسب آخر دفعة (من خلال الفواتير)
+    if ($request->filled('last_payment_period')) {
+        $dates = $this->getPeriodDates($request->last_payment_period);
+
+        $baseQuery->whereHas('invoices.payments', function ($q) use ($dates) {
+            $q->whereBetween('created_at', [$dates['start'], $dates['end']])
+              ->where('type', 'client payments');
+        });
+    }
+
+    // فلترة حسب آخر نشاط (دفعة أو سند قبض)
+    if ($request->filled('last_activity_period')) {
+        $dates = $this->getPeriodDates($request->last_activity_period);
+
+        $baseQuery->where(function ($q) use ($dates) {
+            // دفعة من خلال الفواتير
+            $q->whereHas('invoices.payments', function ($query) use ($dates) {
+                $query->whereBetween('created_at', [$dates['start'], $dates['end']])
+                      ->where('type', 'client payments');
+            })
+            // سند قبض: نستخدم whereIn بدلاً من whereHas
+            ->orWhereIn('id', function ($subQuery) use ($dates) {
+                $subQuery->select('accounts.client_id')
+                    ->from('accounts')
+                    ->join('receipts', 'accounts.id', '=', 'receipts.account_id')
+                    ->whereBetween('receipts.created_at', [$dates['start'], $dates['end']]);
+            });
+        });
+    }
+}
+
+// دالة مساعدة لحساب الفترات
+private function getPeriodDates($period)
+{
+    $now = now();
+
+    switch ($period) {
+        case 'today':
+            return [
+                'start' => $now->copy()->startOfDay(),
+                'end' => $now->copy()->endOfDay()
+            ];
+
+        case 'week':
+            return [
+                'start' => $now->copy()->subDays(7)->startOfDay(),
+                'end' => $now->copy()->subDay()->endOfDay()
+            ];
+
+        case 'two_weeks':
+            return [
+                'start' => $now->copy()->subDays(14)->startOfDay(),
+                'end' => $now->copy()->subDays(8)->endOfDay()
+            ];
+
+        case 'month':
+            return [
+                'start' => $now->copy()->subDays(30)->startOfDay(),
+                'end' => $now->copy()->subDays(15)->endOfDay()
+            ];
+
+        case 'three_months':
+            return [
+                'start' => $now->copy()->subDays(90)->startOfDay(),
+                'end' => $now->copy()->subDays(31)->endOfDay()
+            ];
+
+        case 'six_months':
+            return [
+                'start' => $now->copy()->subDays(180)->startOfDay(),
+                'end' => $now->copy()->subDays(91)->endOfDay()
+            ];
+
+        case 'year':
+            return [
+                'start' => $now->copy()->subDays(365)->startOfDay(),
+                'end' => $now->copy()->subDays(181)->endOfDay()
+            ];
+
+        case 'more_than_year':
+            return [
+                'start' => $now->copy()->subYears(100),
+                'end' => $now->copy()->subDays(365)->endOfDay()
+            ];
+
+        default:
+            return [
+                'start' => $now->subYears(100),
+                'end' => $now
+            ];
+    }
+}
+
 
     public function currentRoute(Request $request)
     {
@@ -143,56 +299,6 @@ class ClientController extends Controller
         return response()->json(['data' => $clients]);
     }
 
-   private function applyFilters($baseQuery, $request)
-    {
-        if ($request->filled('client')) {
-            $baseQuery->where('id', $request->client);
-        }
-
-        if ($request->filled('name')) {
-            $baseQuery->where('trade_name', 'like', '%' . $request->name . '%');
-        }
-
-        if ($request->filled('status')) {
-            $baseQuery->where('status_id', $request->status);
-        }
-
-        if ($request->filled('region')) {
-            $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
-                $q->where('id', $request->region);
-            });
-        }
-
-        if ($request->filled('neighborhood')) {
-            $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->neighborhood . '%')->orWhere('id', $request->neighborhood);
-            });
-        }
-
-        if ($request->filled('date_from') && $request->filled('date_to')) {
-            $baseQuery->whereBetween('created_at', [$request->date_from . ' 00:00:00', $request->date_to . ' 23:59:59']);
-        } elseif ($request->filled('date_from')) {
-            $baseQuery->where('created_at', '>=', $request->date_from . ' 00:00:00');
-        } elseif ($request->filled('date_to')) {
-            $baseQuery->where('created_at', '<=', $request->date_to . ' 23:59:59');
-        }
-
-        if ($request->filled('categories')) {
-            $baseQuery->where('category_id', $request->categories);
-        }
-
-        if ($request->filled('user')) {
-            $baseQuery->where('created_by', $request->user);
-        }
-
-        if ($request->filled('type')) {
-            $baseQuery->where('type', $request->type);
-        }
-
-        if ($request->filled('employee')) {
-            $baseQuery->where('employee_id', $request->employee);
-        }
-    }
 
 
     private function calculateClientData($clients, $currentYear)
@@ -629,8 +735,15 @@ public function index(Request $request)
     $clientsData = $this->calculateClientData($clients, $currentYear);
     $clientDueBalances = $this->getClientDueBalances($clients);
 
-    $regionGroups = $user->role === 'employee' ? $user->regionGroups()->get() : Region_groub::all();
+$userBranch = $user->branch ?? null;
 
+    if ($userBranch && $userBranch->is_main) {
+        // ✅ إذا كان الفرع رئيسي → جلب كل المجموعات
+        $regionGroups = Region_groub::all();
+    } else {
+        // ✅ إذا لم يكن رئيسي → جلب مجموعات الفرع نفسه فقط
+        $regionGroups = Region_groub::where('branch_id', $userBranch->id ?? null)->get();
+    }
     return view('client::index', [
         'clients' => $clients,
         'allClients' => $allClients,
