@@ -556,53 +556,16 @@
                                         <!-- المرفقات -->
                                         @foreach ($GeneralClientSettings as $GeneralClientSetting)
                                             @if ($GeneralClientSetting->is_active && $GeneralClientSetting->key == 'image')
-                                                <div class="col-md-12 col-12 mb-3">
-                                                    <div class="form-group">
-                                                        <label for="attachments">المرفقات</label>
-                                                        @if ($client->attachments)
-                                                            <div class="mb-2">
-                                                                <span class="text-muted">الملف الحالي: </span>
-                                                                <a href="{{ asset('storage/' . $client->attachments) }}"
-                                                                    target="_blank">عرض الملف</a>
-                                                            </div>
-                                                        @endif
-                                                        <input type="file" name="attachments" id="attachments"
-                                                            class="d-none">
-                                                        <div class="upload-area border rounded p-3 text-center position-relative"
-                                                            onclick="document.getElementById('attachments').click()">
-                                                            <div
-                                                                class="d-flex align-items-center justify-content-center gap-2">
-                                                                <i class="fas fa-cloud-upload-alt text-primary"></i>
-                                                                <span class="text-primary">اضغط هنا</span>
-                                                                <span>أو</span>
-                                                                <span class="text-primary">اختر من جهازك</span>
-                                                            </div>
-                                                            <div
-                                                                class="position-absolute end-0 top-50 translate-middle-y me-3">
-                                                                <i class="fas fa-file-alt fs-3 text-secondary"></i>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                 <div class="col-md-12">
+                        <label for="attachments" class="form-label">المرفقات</label>
+                        <input id="attachments" type="file" name="attachments" class="form-control"
+                            accept=".pdf,.jpg,.jpeg,.png">
+                        <small class="text-muted">يمكنك رفع ملف PDF أو صورة (الحد الأقصى 2 ميجابايت)</small>
+                    </div>
                                             @endif
                                         @endforeach
 
                                         <!-- نوع العميل -->
-                                        <div class="col-md-12 col-12 mb-3">
-                                            <div class="form-group">
-                                                <label for="client_type">نوع العميل</label>
-                                                <div class="position-relative has-icon-left">
-                                                    <select class="form-control" name="client_type" id="client_type">
-                                                        <option value="1"
-                                                            {{ old('client_type', $client->client_type) == 1 ? 'selected' : '' }}>
-                                                            عميل VIP</option>
-                                                        <option value="2"
-                                                            {{ old('client_type', $client->client_type) == 2 ? 'selected' : '' }}>
-                                                            عميل عادي</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
 
                                         <!-- الفرع -->
                                         <div class="col-md-12 col-12 mb-3">

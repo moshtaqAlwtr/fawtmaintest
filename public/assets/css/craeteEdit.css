@@ -1,4 +1,3 @@
-
         body {
             background-color: #f4f7f6;
             font-family: 'Cairo', sans-serif;
@@ -9,6 +8,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .itinerary-header h2 {
@@ -33,7 +34,7 @@
         }
 
         .day-card .card-header {
-            background: linear-gradient(135deg, #343a40, #495057);
+            background: linear-gradient(135deg, #007bff, #0056b3);
         }
 
         .client-assignment-container {
@@ -50,6 +51,12 @@
             border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             border-left: 4px solid #007bff;
+            transition: all 0.3s ease;
+        }
+
+        .day-assignment:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
         }
 
         .day-title {
@@ -60,6 +67,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .day-title i {
@@ -115,14 +123,15 @@
             margin-bottom: 10px;
             background: white;
             border: 1px solid #e0e0e0;
-            border-left: 4px solid #28a745;
+            border-left: 4px solid #007bff;
             border-radius: 8px;
             transition: all 0.3s ease;
+            animation: slideInRight 0.3s ease-in-out;
         }
 
         .selected-client-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
         }
 
         .selected-client-info .client-name {
@@ -138,7 +147,7 @@
         }
 
         .remove-client-btn {
-            background: #dc3545;
+            background: #007bff;
             color: white;
             border: none;
             border-radius: 50%;
@@ -153,26 +162,27 @@
         }
 
         .remove-client-btn:hover {
-            background: #c82333;
+            background: #0056b3;
             transform: scale(1.1);
         }
 
         .client-count-badge {
-            background: linear-gradient(135deg, #28a745, #20c997);
+            background: linear-gradient(135deg, #007bff, #0056b3);
             color: white;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 600;
-            margin-right: 10px;
+            min-width: 60px;
+            text-align: center;
         }
 
         .empty-day-message {
             text-align: center;
             color: #6c757d;
             font-style: italic;
-            padding: 20px;
-            border: 2px dashed #dee2e6;
+            padding: 25px 20px;
+            border: 2px dashed #007bff;
             border-radius: 8px;
             background-color: #fafafa;
         }
@@ -209,14 +219,14 @@
             font-weight: 600;
             border-radius: 8px;
             padding: 0.75rem 1.5rem;
-            background: linear-gradient(135deg, #28a745, #20c997);
+            background: linear-gradient(135deg, #007bff, #0056b3);
             border: none;
             transition: all 0.3s ease;
         }
 
         #save-itinerary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
         }
 
         .available-clients-list {
@@ -233,17 +243,80 @@
             margin-bottom: 10px;
             background-color: #fff;
             border: 1px solid #e0e0e0;
-            border-left: 5px solid #17a2b8;
+            border-left: 5px solid #007bff;
             border-radius: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.2s ease;
+            cursor: grab;
         }
 
         .available-client-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+        }
+
+        .available-client-card.client-assigned {
+            background-color: #f8f9fa;
+            border-left-color: #0056b3;
+            opacity: 0.8;
+        }
+
+        .day-action-buttons {
+            display: flex;
+            gap: 5px;
+            margin-right: auto;
+        }
+
+        .btn-day-action {
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            background: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+        }
+
+        .btn-day-action:hover {
+            background: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .btn-day-action.add-all-btn {
+            background: #007bff;
+        }
+
+        .btn-day-action.add-5-btn {
+            background: #007bff;
+        }
+
+        .btn-day-action.clear-day-btn {
+            background: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .btn-day-action.clear-day-btn:hover {
+            background: #c82333;
+            border-color: #c82333;
+        }
+
+        .day-assignment.drop-zone-active {
+            background: linear-gradient(135deg, rgba(0, 123, 255, 0.1), rgba(0, 86, 179, 0.1));
+            border-left-color: #007bff;
+            border-left-width: 6px;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         @media (max-width: 768px) {
@@ -257,5 +330,23 @@
 
             .selected-client-card {
                 padding: 10px 12px;
+            }
+
+            .itinerary-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .itinerary-header > div {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            .btn {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.875rem;
             }
         }

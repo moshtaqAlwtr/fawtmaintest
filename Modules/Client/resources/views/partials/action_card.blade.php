@@ -26,144 +26,353 @@
                 <i class="fas fa-credit-card text-primary"></i>
             </a>
 
+            <!-- زر تصدير PDF - جديد -->
+            <button id="exportPdfBtn" class="bg-white border d-flex align-items-center justify-content-center"
+                style="width: 44px; height: 44px; border-radius: 6px;" title="تصدير ك PDF">
+                <i class="fas fa-file-pdf text-danger"></i>
+            </button>
+
+            <!-- زر تصدير Excel -->
             <button id="exportExcelBtn" class="bg-white border d-flex align-items-center justify-content-center"
                 style="width: 44px; height: 44px; border-radius: 6px;" title="تصدير ك Excel">
-                <i class="fas fa-file-excel text-primary"></i>
+                <i class="fas fa-file-excel text-success"></i>
             </button>
 
             <a href="{{ route('clients.create') }}" type="submit" class="btn btn-primary">
                 <i class="fas fa-add me-1"></i>
-                اضافة عميل            </a>
+                اضافة عميل
+            </a>
         </div>
     </div>
 </div>
 
-<script>
-// Ensure XLSX library is loaded
-function loadXLSX() {
-    return new Promise((resolve, reject) => {
-        if (typeof XLSX !== 'undefined') {
-            resolve();
-            return;
-        }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ibrahimokdadov/jspdf-arabic@latest/jspdf-arabic.min.js"></script>
 
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-    });
-}
+<script>
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Export to Excel functionality
-    document.getElementById('exportExcelBtn')?.addEventListener('click', async function() {
-        // Show loading indicator
-        const originalIcon = this.innerHTML;
-        this.innerHTML = '<i class="fas fa-spinner fa-spin text-primary"></i>';
-        this.disabled = true;
+
+    // 🔹 دالة لجلب جميع العملاء من الجدول الموجود في الصفحة
+    function fetchAllClientsFromTable() {
+        const clients = [];
+        const tableRows = document.querySelectorAll('table tbody tr');
+
+        tableRows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length > 0) {
+                clients.push({
+                    code: cells[0]?.textContent.trim() || '-',
+                    trade_name: cells[1]?.textContent.trim() || '-',
+                    first_name: cells[2]?.textContent.trim() || '-',
+                    phone: cells[3]?.textContent.trim() || '-',
+                    category: cells[4]?.textContent.trim() || '-',
+                    branch: cells[5]?.textContent.trim() || '-',
+                    status: cells[6]?.textContent.trim() || '-',
+                    distance: cells[7]?.textContent.trim() || '-',
+                    created_at: cells[8]?.textContent.trim() || '-',
+                    last_invoice: cells[9]?.textContent.trim() || '-',
+                    last_payment: cells[10]?.textContent.trim() || '-',
+                    balance: cells[11]?.textContent.trim() || '-',
+                    credit_limit: cells[12]?.textContent.trim() || '-',
+                    credit_period: cells[13]?.textContent.trim() || '-',
+                    address: cells[14]?.textContent.trim() || '-'
+                });
+            }
+        });
+
+        return clients;
+    }
+
+    // ============================
+    // 📗 تصدير كـ Excel
+    // ============================
+    document.getElementById('exportExcelBtn')?.addEventListener('click', function() {
+        const btn = this;
+        const originalIcon = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-success"></i>';
+        btn.disabled = true;
 
         try {
-            // Load XLSX library if not already loaded
-            await loadXLSX();
+            const clients = fetchAllClientsFromTable();
 
-            // Collect all client data from the cards
-            const clients = [];
-            document.querySelectorAll('.client-card').forEach(card => {
-                try {
-                    const clientId = card.getAttribute('data-client-id');
-                    const tradeName = card.querySelector('.client-title')?.textContent?.trim() || '';
-                    const code = card.querySelector('.client-code-badge')?.textContent?.trim() || '';
-                    const firstName = card.querySelector('.contact-item:nth-child(1) span')?.textContent?.trim() || '';
-                    const phone = card.querySelector('.contact-item:nth-child(2) span')?.textContent?.trim() || '';
-                    const category = card.querySelector('.contact-item:nth-child(3) span')?.textContent?.trim() || '';
-                    const branch = card.querySelector('.contact-item:nth-child(4) span')?.textContent?.trim() || '';
-                    const createdAt = card.querySelector('.date-item:first-child .date-value')?.textContent?.trim() || '';
-                    const lastInvoice = card.querySelectorAll('.date-item')[1]?.querySelector('.date-value')?.textContent?.trim() || '';
-                    const lastPayment = card.querySelectorAll('.date-item')[2]?.querySelector('.date-value')?.textContent?.trim() || '';
-
-                    // Get status
-                    const statusElement = card.querySelector('.status-indicator span');
-                    const status = statusElement ? statusElement.textContent.trim() : '';
-
-                    // Get distance
-                    const distanceElement = card.querySelector('.distance-item span');
-                    const distance = distanceElement ? distanceElement.textContent.trim() : '';
-
-                    clients.push({
-                        id: clientId,
-                        code: code,
-                        trade_name: tradeName,
-                        first_name: firstName,
-                        phone: phone,
-                        category: category,
-                        branch: branch,
-                        status: status,
-                        distance: distance,
-                        created_at: createdAt,
-                        last_invoice: lastInvoice,
-                        last_payment: lastPayment
-                    });
-                } catch (e) {
-                    console.warn('Failed to gather client data', e);
-                }
-            });
-
-            if (clients.length === 0) {
-                alert('لا توجد بيانات للتصدير');
+            if (!clients.length) {
+                alert('لا توجد بيانات عملاء للتصدير');
+                btn.innerHTML = originalIcon;
+                btn.disabled = false;
                 return;
             }
 
-            // Create Excel workbook
             const worksheetData = [
-                ['الكود', 'الاسم التجاري', 'اسم العميل', 'الهاتف', 'التصنيف', 'الفرع', 'الحالة', 'المسافة', 'تاريخ التسجيل', 'آخر فاتورة', 'آخر دفعة'],
-                ...clients.map(client => [
-                    client.code,
-                    client.trade_name,
-                    client.first_name,
-                    client.phone,
-                    client.category,
-                    client.branch,
-                    client.status,
-                    client.distance,
-                    client.created_at,
-                    client.last_invoice,
-                    client.last_payment
+                [
+                    'الكود', 'الاسم التجاري', 'اسم العميل', 'الهاتف',
+                    'التصنيف', 'الفرع', 'الحالة', 'المسافة',
+                    'تاريخ التسجيل', 'آخر فاتورة', 'آخر دفعة',
+                    'الرصيد', 'حد الائتمان', 'فترة الائتمان', 'العنوان'
+                ],
+                ...clients.map(c => [
+                    c.code, c.trade_name, c.first_name, c.phone,
+                    c.category, c.branch, c.status, c.distance,
+                    c.created_at, c.last_invoice, c.last_payment,
+                    c.balance, c.credit_limit, c.credit_period, c.address
                 ])
             ];
 
             const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-
-            // Set column widths
-            ws['!cols'] = [
-                {wch: 10}, // الكود
-                {wch: 25}, // الاسم التجاري
-                {wch: 20}, // اسم العميل
-                {wch: 15}, // الهاتف
-                {wch: 15}, // التصنيف
-                {wch: 15}, // الفرع
-                {wch: 15}, // الحالة
-                {wch: 15}, // المسافة
-                {wch: 15}, // تاريخ التسجيل
-                {wch: 15}, // آخر فاتورة
-                {wch: 15}  // آخر دفعة
-            ];
-
+            ws['!cols'] = Array(worksheetData[0].length).fill({ wch: 20 });
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'العملاء');
-
-            // Download the file
             const filename = 'العملاء_' + new Date().toISOString().slice(0, 10) + '.xlsx';
             XLSX.writeFile(wb, filename);
 
-            alert('تم تصدير ' + clients.length + ' عميل إلى ملف Excel');
-        } catch (error) {
-            console.error('Export error:', error);
-            alert('حدث خطأ أثناء التصدير: ' + error.message);
+            alert('✅ تم تصدير ' + clients.length + ' عميل إلى ملف Excel بنجاح');
+        } catch (err) {
+            console.error('خطأ في التصدير:', err);
+            alert('حدث خطأ أثناء تصدير Excel: ' + err.message);
         } finally {
-            // Restore button
-            this.innerHTML = originalIcon;
-            this.disabled = false;
+            btn.innerHTML = originalIcon;
+            btn.disabled = false;
+        }
+    });
+
+    // ============================
+    // 📕 تصدير كـ PDF
+    // ============================
+    document.getElementById('exportPdfBtn')?.addEventListener('click', function() {
+        const btn = this;
+        const originalIcon = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-danger"></i>';
+        btn.disabled = true;
+
+        try {
+            const clients = fetchAllClientsFromTable();
+
+            if (!clients.length) {
+                alert('لا توجد بيانات عملاء للتصدير');
+                btn.innerHTML = originalIcon;
+                btn.disabled = false;
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape', 'mm', 'a4');
+
+            // دعم اللغة العربية واتجاه النص
+            doc.setR2L(true);
+            doc.setFont('Amiri', 'normal');
+            doc.setFontSize(16);
+
+            // العنوان
+            doc.text('قائمة العملاء', doc.internal.pageSize.width / 2, 15, { align: 'center' });
+
+            // التاريخ
+            const today = new Date().toLocaleDateString('ar-SA');
+            doc.setFontSize(10);
+            doc.text('تاريخ التصدير: ' + today, doc.internal.pageSize.width - 15, 15, { align: 'right' });
+
+            // تجهيز بيانات الجدول
+            const tableData = clients.map(c => [
+                c.code, c.trade_name, c.first_name, c.phone,
+                c.category, c.branch, c.status, c.distance,
+                c.created_at, c.last_invoice, c.last_payment,
+                c.balance, c.credit_limit, c.credit_period, c.address
+            ]);
+
+            // إنشاء الجدول
+            doc.autoTable({
+                head: [[
+                    'الكود', 'الاسم التجاري', 'اسم العميل', 'الهاتف',
+                    'التصنيف', 'الفرع', 'الحالة', 'المسافة',
+                    'تاريخ التسجيل', 'آخر فاتورة', 'آخر دفعة',
+                    'الرصيد', 'حد الائتمان', 'فترة الائتمان', 'العنوان'
+                ]],
+                body: tableData,
+                startY: 25,
+                styles: {
+                    font: 'Amiri',
+                    fontSize: 8,
+                    halign: 'center',
+                    cellPadding: 2
+                },
+                headStyles: {
+                    fillColor: [41, 128, 185],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 245, 245]
+                },
+                margin: { top: 25, right: 10, bottom: 15, left: 10 },
+                didDrawPage: function (data) {
+                    doc.setFontSize(8);
+                    doc.text(
+                        'صفحة ' + doc.internal.getNumberOfPages(),
+                        doc.internal.pageSize.width / 2,
+                        doc.internal.pageSize.height - 5,
+                        { align: 'center' }
+                    );
+                }
+            });
+
+            const filename = 'العملاء_' + new Date().toISOString().slice(0, 10) + '.pdf';
+            doc.save(filename);
+
+            alert('✅ تم تصدير ' + clients.length + ' عميل إلى ملف PDF بنجاح');
+        } catch (err) {
+            console.error('خطأ في التصدير:', err);
+            alert('حدث خطأ أثناء تصدير PDF: ' + err.message);
+        } finally {
+            btn.innerHTML = originalIcon;
+            btn.disabled = false;
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    // 🔹 دالة لجلب جميع العملاء من السيرفر
+    async function fetchAllClients() {
+        const response = await fetch("{{ route('clients.export.all') }}");
+        if (!response.ok) throw new Error("فشل في تحميل بيانات العملاء");
+        return await response.json();
+    }
+
+    // ============================
+    // 📗 تصدير كـ Excel
+    // ============================
+    document.getElementById('exportExcelBtn')?.addEventListener('click', async function() {
+        const btn = this;
+        const originalIcon = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-success"></i>';
+        btn.disabled = true;
+
+        try {
+            const clients = await fetchAllClients();
+            if (!clients.length) {
+                alert('لا توجد بيانات عملاء للتصدير');
+                return;
+            }
+
+            const worksheetData = [
+                [
+                    'الكود', 'الاسم التجاري', 'اسم العميل', 'الهاتف',
+                    'التصنيف', 'الفرع', 'الحالة', 'المسافة',
+                    'تاريخ التسجيل', 'آخر فاتورة', 'آخر دفعة',
+                    'الرصيد', 'حد الائتمان', 'فترة الائتمان', 'العنوان'
+                ],
+                ...clients.map(c => [
+                    c.code, c.trade_name, c.first_name, c.phone,
+                    c.category, c.branch, c.status, c.distance,
+                    c.created_at, c.last_invoice, c.last_payment,
+                    c.balance, c.credit_limit, c.credit_period, c.address
+                ])
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+            ws['!cols'] = Array(worksheetData[0].length).fill({ wch: 20 });
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'العملاء');
+            const filename = 'العملاء_' + new Date().toISOString().slice(0, 10) + '.xlsx';
+            XLSX.writeFile(wb, filename);
+
+            alert('✅ تم تصدير ' + clients.length + ' عميل إلى ملف Excel بنجاح');
+        } catch (err) {
+            console.error(err);
+            alert('حدث خطأ أثناء تصدير Excel: ' + err.message);
+        } finally {
+            btn.innerHTML = originalIcon;
+            btn.disabled = false;
+        }
+    });
+
+    // ============================
+    // 📕 تصدير كـ PDF
+    // ============================
+    document.getElementById('exportPdfBtn')?.addEventListener('click', async function() {
+        const btn = this;
+        const originalIcon = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-danger"></i>';
+        btn.disabled = true;
+
+        try {
+            const clients = await fetchAllClients();
+            if (!clients.length) {
+                alert('لا توجد بيانات عملاء للتصدير');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape', 'mm', 'a4');
+
+            // دعم اللغة العربية واتجاه النص
+            doc.setR2L(true);
+            doc.setFont('Amiri', 'normal');
+            doc.setFontSize(16);
+
+            // العنوان
+            doc.text('قائمة العملاء', doc.internal.pageSize.width / 2, 15, { align: 'center' });
+
+            // التاريخ
+            const today = new Date().toLocaleDateString('ar-SA');
+            doc.setFontSize(10);
+            doc.text('تاريخ التصدير: ' + today, doc.internal.pageSize.width - 15, 15, { align: 'right' });
+
+            // تجهيز بيانات الجدول
+            const tableData = clients.map(c => [
+                c.code, c.trade_name, c.first_name, c.phone,
+                c.category, c.branch, c.status, c.distance,
+                c.created_at, c.last_invoice, c.last_payment,
+                c.balance, c.credit_limit, c.credit_period, c.address
+            ]);
+
+            // إنشاء الجدول
+            doc.autoTable({
+                head: [[
+                    'الكود', 'الاسم التجاري', 'اسم العميل', 'الهاتف',
+                    'التصنيف', 'الفرع', 'الحالة', 'المسافة',
+                    'تاريخ التسجيل', 'آخر فاتورة', 'آخر دفعة',
+                    'الرصيد', 'حد الائتمان', 'فترة الائتمان', 'العنوان'
+                ]],
+                body: tableData,
+                startY: 25,
+                styles: {
+                    font: 'Amiri',
+                    fontSize: 8,
+                    halign: 'center',
+                    cellPadding: 2
+                },
+                headStyles: {
+                    fillColor: [41, 128, 185],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 245, 245]
+                },
+                margin: { top: 25, right: 10, bottom: 15, left: 10 },
+                didDrawPage: function (data) {
+                    doc.setFontSize(8);
+                    doc.text(
+                        'صفحة ' + doc.internal.getNumberOfPages(),
+                        doc.internal.pageSize.width / 2,
+                        doc.internal.pageSize.height - 5,
+                        { align: 'center' }
+                    );
+                }
+            });
+
+            const filename = 'العملاء_' + new Date().toISOString().slice(0, 10) + '.pdf';
+            doc.save(filename);
+
+            alert('✅ تم تصدير ' + clients.length + ' عميل إلى ملف PDF بنجاح');
+        } catch (err) {
+            console.error(err);
+            alert('حدث خطأ أثناء تصدير PDF: ' + err.message);
+        } finally {
+            btn.innerHTML = originalIcon;
+            btn.disabled = false;
         }
     });
 });

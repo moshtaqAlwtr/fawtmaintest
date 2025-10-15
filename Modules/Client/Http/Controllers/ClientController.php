@@ -2127,6 +2127,41 @@ public function completeVisit(Request $request, $visitId)
 }
 
 
+public function exportAllClients()
+{
+    // جلب جميع العملاء مع العلاقات الأساسية المهمة للتصدير
+    $clients = \App\Models\Client::with([
+        'branch',
+        'categoriesClient',
+        'status_client',
+    ])->get();
+
+    // تجهيز البيانات بصيغة منظمة للتصدير
+    $data = $clients->map(function ($client) {
+        return [
+            'id' => $client->id,
+            'code' => $client->code ?? '-',
+            'trade_name' => $client->trade_name ?? '-',
+            'first_name' => trim(($client->first_name ?? '') . ' ' . ($client->last_name ?? '')),
+            'phone' => $client->phone ?? '-',
+            'category' => $client->categoriesClient->name ?? $client->category ?? '-',
+            'branch' => $client->branch->name ?? '-',
+            'status' => $client->status_client->name ?? 'نشط',
+            'distance' => $client->locations->map_url ?? '-',
+            'created_at' => optional($client->created_at)->format('Y-m-d'),
+            'last_invoice' => optional($client->invoices()->latest('invoice_date')->first())->invoice_date ?? '-',
+
+            'balance' => number_format($client->Balance(), 2),
+            'credit_limit' => $client->credit_limit ?? '-',
+            'credit_period' => $client->credit_period ?? '-',
+            'address' => $client->formatted_address ?? '-',
+        ];
+    });
+
+    return response()->json($data);
+}
+
+
     public function updateStatus(Request $request, $id)
     {
         $client = Client::findOrFail($id);

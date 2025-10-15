@@ -146,7 +146,8 @@ Route::group(
                 Route::post('/{client}/hide-from-map', [ClientController::class, 'hideFromMap'])->name('clients.hideFromMap');
                 Route::post('/{client}/show-in-map', [ClientController::class, 'showInMap'])->name('clients.showInMap');
                 Route::get('/hidden-clients', [ClientController::class, 'getHiddenClients'])->name('clients.getHiddenClients');
-
+Route::get('/clients/export/all', [ClientController::class, 'exportAllClients'])
+    ->name('clients.export.all');
                 Route::get('/{client}/details', [ClientController::class, 'getClientDetails'])->name('clients.details');
                 Route::get('/{client}/invoices', [ClientController::class, 'getClientInvoices'])->name('clients.invoices');
                 Route::get('/{client}/notes', [ClientController::class, 'getClientNotes'])->name('clients.notes');
