@@ -1,4 +1,4 @@
-@extends('master')
+@extends('salas::master')
 
 @section('title')
     عرض العميل

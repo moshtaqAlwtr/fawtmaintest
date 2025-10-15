@@ -1,5 +1,4 @@
 <!-- تحديث ملف: resources/views/client/partials/client_cards.blade.php -->
-<!-- تحديث ملف: resources/views/client/partials/client_cards.blade.php -->
 @if (isset($clients) && $clients->count() > 0)
     <div class="row g-4">
         @foreach ($clients as $client)
@@ -60,27 +59,26 @@
                                 </div>
                             @endif
 
-                            <!-- Dropdown الحالي -->
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary" type="button"
+                            <!-- Dropdown المحسّن -->
+                            <div class="dropdown client-dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle-btn" type="button"
                                     id="clientActionsDropdown{{ $client->id }}" data-bs-toggle="dropdown"
-                                    aria-expanded="false" style="font-size: 11px;">
+                                    aria-expanded="false">
                                     <i class="fas fa-ellipsis-v"></i>
                                 </button>
-                                <ul class="dropdown-menu" aria-labelledby="clientActionsDropdown{{ $client->id }}">
+                                <ul class="dropdown-menu dropdown-menu-end shadow-lg"
+                                    aria-labelledby="clientActionsDropdown{{ $client->id }}">
                                     @php
-                                        // Check if employee has an ACTIVE visit (no departure time) for this client today
                                         $today = now()->toDateString();
                                         $hasActiveVisit = \App\Models\Visit::where('employee_id', auth()->id())
                                             ->where('client_id', $client->id)
                                             ->whereDate('visit_date', $today)
                                             ->whereNotNull('arrival_time')
-                                            ->whereNull('departure_time') // الزيارة النشطة فقط (بدون انصراف)
+                                            ->whereNull('departure_time')
                                             ->exists();
                                     @endphp
 
                                     @if (auth()->user()->role === 'employee')
-                                        {{-- هذا الجزء يظهر فقط للموظفين --}}
                                         @if ($hasActiveVisit)
                                             <li>
                                                 <a class="dropdown-item"
@@ -97,7 +95,6 @@
                                             </li>
                                         @endif
                                     @else
-                                        {{-- هذا الجزء يظهر للأدوار الأخرى (admin, manager, etc) --}}
                                         <li>
                                             <a class="dropdown-item" href="{{ route('clients.show', $client->id) }}">
                                                 <i class="far fa-eye me-1"></i> عرض
@@ -205,6 +202,43 @@
                             </div>
                         </div>
 
+                        <div class="date-item">
+                            <div class="date-label">آخر دفعة/سند قبض</div>
+                            <div class="date-value">
+                                @php
+                                    $lastPayment = $client
+                                        ->invoices()
+                                        ->with('payments')
+                                        ->get()
+                                        ->pluck('payments')
+                                        ->flatten()
+                                        ->sortByDesc('created_at')
+                                        ->first();
+
+                                    $lastReceipt = $client->account
+                                        ? $client->account->receipts()->latest('created_at')->first()
+                                        : null;
+
+                                    if ($lastPayment && $lastReceipt) {
+                                        if ($lastPayment->payment_date >= $lastReceipt->created_at) {
+                                            echo \Carbon\Carbon::parse($lastPayment->created_at)->diffForHumans() .
+                                                ' (دفعة)';
+                                        } else {
+                                            echo \Carbon\Carbon::parse($lastReceipt->created_at)->diffForHumans() .
+                                                ' (سند قبض)';
+                                        }
+                                    } elseif ($lastPayment) {
+                                        echo \Carbon\Carbon::parse($lastPayment->created_at)->diffForHumans() .
+                                            ' (دفعة)';
+                                    } elseif ($lastReceipt) {
+                                        echo \Carbon\Carbon::parse($lastReceipt->created_at)->diffForHumans() .
+                                            ' (سند قبض)';
+                                    } else {
+                                        echo 'لا توجد';
+                                    }
+                                @endphp
+                            </div>
+                        </div>
                     </div>
 
                     <!-- الإحصائيات المالية -->
@@ -224,55 +258,195 @@
                         </div>
                     </div>
 
-                    <!-- التصنيف الشهري -->
+                    <!-- التصنيف الشهري مع Bar Chart -->
                     <div class="classification-section">
                         <div class="classification-header">
                             <h4>التصنيف الشهري {{ $currentYear }}</h4>
                         </div>
-                        <div class="months-container">
-                            @foreach ($months as $monthName => $monthNumber)
-                                @continue($monthNumber > now()->month)
 
-                                @php
-                                    $monthData = $clientsData[$client->id]['monthly'][$monthName] ?? null;
-                                    $group = strtoupper($monthData['group'] ?? 'D');
-                                    $groupClass = $monthData['group_class'] ?? 'secondary';
-                                    $collected = $monthData['collected'] ?? 0;
-                                    $percentage = $monthData['percentage'] ?? 0;
-                                    $paymentsTotal = $monthData['payments_total'] ?? 0;
-                                    $receiptsTotal = $monthData['receipts_total'] ?? 0;
-                                @endphp
-
-                                <div class="month-item" data-bs-toggle="tooltip" data-bs-placement="top"
-                                    title="تفاصيل {{ $monthName }}:
-        التحصيلات {{ number_format($collected) }} |
-        المدفوعات {{ number_format($paymentsTotal) }} |
-        سندات القبض {{ number_format($receiptsTotal) }} |
-        النسبة {{ $percentage }}%">
-
-                                    <!-- تصنيف الشهر -->
-                                    <div class="month-badge month-{{ $groupClass }}">{{ $group }}</div>
-
-                                    <!-- اسم الشهر -->
-                                    <div class="month-name">{{ $monthName }}</div>
-
-                                    <!-- التحصيلات -->
-                                    @if ($collected > 0)
-                                        <div class="month-amount">{{ number_format($collected, 0) }}</div>
-                                    @else
-                                        <div class="month-amount text-muted">0</div>
-                                    @endif
-                                </div>
-                            @endforeach
-
+                        <!-- الرسم البياني فقط -->
+                        <div class="chart-container">
+                            <canvas id="monthlyChart{{ $client->id }}" class="monthly-chart"></canvas>
                         </div>
                     </div>
-
 
                 </div>
             </div>
         @endforeach
     </div>
+
+    <!-- إضافة Chart.js -->
+    @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            @foreach ($clients as $client)
+                @php
+                    $chartData = [];
+                    $chartLabels = [];
+                    $chartColors = [];
+                    $chartBorderColors = [];
+
+                    // Debug: التأكد من وجود البيانات
+                    $clientInfo = $clientsData[$client->id] ?? null;
+
+                    if ($clientInfo && isset($clientInfo['monthly'])) {
+                        foreach ($clientInfo['monthly'] as $monthName => $monthData) {
+                            $collected = $monthData['collected'] ?? 0;
+                            $paymentsTotal = $monthData['payments_total'] ?? 0;
+                            $receiptsTotal = $monthData['receipts_total'] ?? 0;
+                            $group = strtoupper($monthData['group'] ?? 'D');
+
+                            // حساب إجمالي التحصيلات (المدفوعات + سندات القبض)
+                            $totalCollected = $collected;
+
+                            $chartLabels[] = $monthName;
+                            $chartData[] = $totalCollected;
+
+                            // تحديد لون البار حسب التصنيف
+                            switch($group) {
+                                case 'A':
+                                    $chartColors[] = 'rgba(33, 150, 243, 0.7)';
+                                    $chartBorderColors[] = 'rgba(33, 150, 243, 1)';
+                                    break;
+                                case 'B':
+                                    $chartColors[] = 'rgba(76, 175, 80, 0.7)';
+                                    $chartBorderColors[] = 'rgba(76, 175, 80, 1)';
+                                    break;
+                                case 'C':
+                                    $chartColors[] = 'rgba(255, 152, 0, 0.7)';
+                                    $chartBorderColors[] = 'rgba(255, 152, 0, 1)';
+                                    break;
+                                case 'D':
+                                    $chartColors[] = 'rgba(244, 67, 54, 0.7)';
+                                    $chartBorderColors[] = 'rgba(244, 67, 54, 1)';
+                                    break;
+                                default:
+                                    $chartColors[] = 'rgba(158, 158, 158, 0.7)';
+                                    $chartBorderColors[] = 'rgba(158, 158, 158, 1)';
+                            }
+                        }
+                    }
+                @endphp
+
+                const ctx{{ $client->id }} = document.getElementById('monthlyChart{{ $client->id }}');
+                if (ctx{{ $client->id }}) {
+                    const chartData{{ $client->id }} = {!! json_encode($chartData) !!};
+                    const chartLabels{{ $client->id }} = {!! json_encode($chartLabels) !!};
+                    const chartColors{{ $client->id }} = {!! json_encode($chartColors) !!};
+                    const chartBorderColors{{ $client->id }} = {!! json_encode($chartBorderColors) !!};
+
+                    console.log('Client {{ $client->id }} - Labels:', chartLabels{{ $client->id }});
+                    console.log('Client {{ $client->id }} - Data:', chartData{{ $client->id }});
+                    console.log('Client {{ $client->id }} - Colors:', chartColors{{ $client->id }});
+
+                    new Chart(ctx{{ $client->id }}, {
+                        type: 'bar',
+                        data: {
+                            labels: chartLabels{{ $client->id }},
+                            datasets: [{
+                                label: 'التحصيلات الشهرية',
+                                data: chartData{{ $client->id }},
+                                backgroundColor: chartColors{{ $client->id }},
+                                borderColor: chartBorderColors{{ $client->id }},
+                                borderWidth: 2,
+                                borderRadius: 6,
+                                borderSkipped: false,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    padding: 12,
+                                    titleFont: {
+                                        size: 13,
+                                        family: 'Cairo, sans-serif'
+                                    },
+                                    bodyFont: {
+                                        size: 12,
+                                        family: 'Cairo, sans-serif'
+                                    },
+                                    callbacks: {
+                                        title: function(context) {
+                                            return context[0].label;
+                                        },
+                                        label: function(context) {
+                                            const value = context.parsed.y;
+                                            return 'التحصيلات: ' + value.toLocaleString('ar-SA') + ' ريال';
+                                        }
+                                    },
+                                    rtl: true,
+                                    displayColors: true
+                                },
+                                datalabels: {
+                                    anchor: 'end',
+                                    align: 'top',
+                                    formatter: function(value) {
+                                        if (value === 0) return '';
+                                        if (value >= 1000) {
+                                            return (value / 1000).toFixed(1) + 'K';
+                                        }
+                                        return value.toLocaleString('ar-SA');
+                                    },
+                                    font: {
+                                        weight: 'bold',
+                                        size: 9,
+                                        family: 'Cairo, sans-serif'
+                                    },
+                                    color: function(context) {
+                                        return context.dataset.borderColor[context.dataIndex];
+                                    },
+                                    padding: 2
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    min: 50,
+                                    max: 500,
+                                    ticks: {
+                                        stepSize: 100,
+                                        font: {
+                                            size: 10,
+                                            family: 'Cairo, sans-serif'
+                                        },
+                                        callback: function(value) {
+                                            return value.toLocaleString('ar-SA');
+                                        }
+                                    },
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.05)',
+                                        drawBorder: false
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        font: {
+                                            size: 12,
+                                            family: 'Cairo, sans-serif',
+                                            weight: 'bold'
+                                        },
+                                        maxRotation: 45,
+                                        minRotation: 45
+                                    },
+                                    grid: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            @endforeach
+        });
+    </script>
+    @endpush
 
     <style>
         .client-card-elegant {
@@ -280,13 +454,49 @@
             border-radius: 16px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            overflow: hidden;
+            overflow: visible;
             position: relative;
         }
 
         .client-card-elegant:hover {
             transform: translateY(-4px);
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        /* إصلاح Dropdown */
+        .client-dropdown {
+            position: relative;
+        }
+
+        .dropdown-toggle-btn {
+            font-size: 11px;
+            padding: 5px 10px;
+        }
+
+        .client-dropdown .dropdown-menu {
+            position: absolute !important;
+            top: 100% !important;
+            left: auto !important;
+            right: 0 !important;
+            z-index: 9999 !important;
+            margin-top: 5px;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+            min-width: 200px;
+        }
+
+        .client-dropdown .dropdown-menu.show {
+            display: block !important;
+        }
+
+        .client-card {
+            position: relative;
+            z-index: 1;
+        }
+
+        .client-card:has(.dropdown-menu.show) {
+            z-index: 1000;
         }
 
         .loading-overlay {
@@ -348,141 +558,6 @@
             background: #f5f5f5;
             border-left: 3px solid #9e9e9e;
             color: #757575;
-        }
-
-        /* Menu Toggle */
-        .menu-toggle {
-            background: none;
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 3px;
-            transition: all 0.2s ease;
-        }
-
-        .menu-toggle:hover {
-            background: #f8f9fa;
-        }
-
-        .menu-toggle span {
-            width: 4px;
-            height: 4px;
-            background: #6c757d;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-        }
-
-        .menu-toggle:hover span {
-            background: #495057;
-        }
-
-        /* Dropdown Menu */
-        .dropdown-menu-elegant {
-            border: none;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-            border-radius: 12px;
-            padding: 0;
-            min-width: 280px;
-            overflow: hidden;
-        }
-
-        .menu-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 16px 20px;
-            margin: 0;
-        }
-
-        .menu-header h6 {
-            margin: 0;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .menu-items {
-            padding: 8px 0;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            text-decoration: none;
-            color: #495057;
-            transition: all 0.2s ease;
-            border: none;
-            background: none;
-            width: 100%;
-        }
-
-        .menu-item:hover {
-            background: #f8f9fa;
-            color: #212529;
-        }
-
-        .menu-item.danger:hover {
-            background: #fff5f5;
-            color: #dc3545;
-        }
-
-        .menu-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: 12px;
-            font-size: 14px;
-        }
-
-        .menu-icon.view {
-            background: #e3f2fd;
-            color: #1976d2;
-        }
-
-        .menu-icon.edit {
-            background: #f3e5f5;
-            color: #7b1fa2;
-        }
-
-        .menu-icon.hide {
-            background: #fff3e0;
-            color: #f57c00;
-        }
-
-        .menu-icon.delete {
-            background: #ffebee;
-            color: #d32f2f;
-        }
-
-        .menu-text {
-            flex: 1;
-        }
-
-        .menu-title {
-            display: block;
-            font-weight: 600;
-            font-size: 13px;
-            line-height: 1.2;
-        }
-
-        .menu-subtitle {
-            display: block;
-            font-size: 11px;
-            color: #6c757d;
-            margin-top: 2px;
-        }
-
-        .menu-divider {
-            height: 1px;
-            background: #e9ecef;
-            margin: 8px 0;
         }
 
         /* Contact Section */
@@ -624,7 +699,7 @@
             font-weight: 600;
         }
 
-        /* Classification Section */
+        /* Classification Section with Chart */
         .classification-section {
             padding: 20px 24px;
             background: #fafafa;
@@ -632,105 +707,28 @@
 
         .classification-header {
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
         .classification-header h4 {
-            font-size: 13px;
+            font-size: 14px;
             color: #495057;
-            font-weight: 600;
+            font-weight: 700;
             margin: 0;
         }
 
-        .months-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
+        .chart-container {
+            height: 220px;
+            position: relative;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
-        .month-item {
-            text-align: center;
-            cursor: pointer;
-        }
-
-        .month-badge {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: 800;
-            margin: 0 auto 4px;
-            border: 2px solid transparent;
-        }
-
-        .month-primary {
-            background: #e3f2fd;
-            color: #1976d2;
-            border-color: #1976d2;
-        }
-
-        .month-success {
-            background: #e8f5e8;
-            color: #2e7d32;
-            border-color: #2e7d32;
-        }
-
-        .month-warning {
-            background: #fff3e0;
-            color: #f57c00;
-            border-color: #f57c00;
-        }
-
-        .month-danger {
-            background: #ffebee;
-            color: #d32f2f;
-            border-color: #d32f2f;
-        }
-
-        .month-secondary {
-            background: #f5f5f5;
-            color: #616161;
-            border-color: #9e9e9e;
-        }
-
-        .month-name {
-            font-size: 9px;
-            color: #6c757d;
-            font-weight: 600;
-        }
-
-        .month-amount {
-            font-size: 8px;
-            color: #28a745;
-            font-weight: 700;
-            margin-top: 1px;
-        }
-
-        /* Quick Actions */
-        .quick-actions {
-            padding: 16px 24px;
-            border-top: 1px solid #f0f0f0;
-        }
-
-        .hide-btn {
-            width: 100%;
-            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
-            color: #2d3436;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-
-        .hide-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        .monthly-chart {
+            width: 100% !important;
+            height: 100% !important;
         }
 
         /* Responsive Design */
@@ -759,46 +757,8 @@
         }
     </style>
 @else
-    <div class="empty-state-elegant">
-        <div class="empty-illustration">
-            <i class="fas fa-users"></i>
-        </div>
-        <h3>لا توجد عملاء بعد</h3>
-        <p>ابدأ رحلتك بإضافة أول عميل</p>
+    <div class="alert alert-info text-center" role="alert">
+        <i class="fa fa-info-circle me-2"></i>
+        <p class="mb-0">لا يوجد عملاء </p>
     </div>
-
-    <style>
-        .empty-state-elegant {
-            text-align: center;
-            padding: 80px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 20px;
-            margin: 20px 0;
-        }
-
-        .empty-illustration {
-            width: 100px;
-            height: 100px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 24px;
-            font-size: 40px;
-        }
-
-        .empty-state-elegant h3 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .empty-state-elegant p {
-            font-size: 16px;
-            opacity: 0.9;
-            margin: 0;
-        }
-    </style>
 @endif
