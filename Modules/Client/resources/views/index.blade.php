@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/indexclient.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="{{ asset('assets/css/map-styles.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="{{ asset('assets/css/hidden-clients.css') }}?v={{ time() }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/card_client.css') }}?v={{ time() }}">
     <!-- إضافة Font Awesome إذا لم تكن محملة -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 @stop
@@ -23,7 +24,7 @@
                     <h2 class="content-header-title float-left mb-0">إدارة العملاء</h2>
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="">الرئيسية</a></li>
+                            <li class="breadcrumb-item"><a href="{{ route('sales.department.dashboard') }}">الرئيسية</a></li>
                             <li class="breadcrumb-item active">عرض</li>
                         </ol>
                     </div>

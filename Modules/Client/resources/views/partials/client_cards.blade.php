@@ -258,24 +258,24 @@
                             <!-- دليل الألوان المحسّن -->
                             <div class="color-legend">
                                 <div class="legend-item" data-bs-toggle="tooltip" data-bs-placement="top"
-                                     title="<strong>أكثر من 1000 ريال</strong><br>تحصيلات ممتازة">
-                                    <span class="legend-dot legend-gray"></span>
-                                    <span class="legend-label">+1000</span>
+                                     title="<strong>A</strong><br>تحصيلات ممتازة<br>أكثر من 1000 ريال">
+                                    <span class="legend-dot legend-a"></span>
+                                    <span class="legend-label">A</span>
                                 </div>
                                 <div class="legend-item" data-bs-toggle="tooltip" data-bs-placement="top"
-                                     title="<strong>500 - 1000 ريال</strong><br>تحصيلات جيدة">
-                                    <span class="legend-dot legend-blue"></span>
-                                    <span class="legend-label">500-1000</span>
+                                     title="<strong>B</strong><br>تحصيلات جيدة<br>500 - 1000 ريال">
+                                    <span class="legend-dot legend-b"></span>
+                                    <span class="legend-label">B</span>
                                 </div>
                                 <div class="legend-item" data-bs-toggle="tooltip" data-bs-placement="top"
-                                     title="<strong>200 - 500 ريال</strong><br>تحصيلات متوسطة">
-                                    <span class="legend-dot legend-green"></span>
-                                    <span class="legend-label">200-500</span>
+                                     title="<strong>C</strong><br>تحصيلات متوسطة<br>200 - 500 ريال">
+                                    <span class="legend-dot legend-c"></span>
+                                    <span class="legend-label">C</span>
                                 </div>
                                 <div class="legend-item" data-bs-toggle="tooltip" data-bs-placement="top"
-                                     title="<strong>0 - 200 ريال</strong><br>تحصيلات ضعيفة">
-                                    <span class="legend-dot legend-orange"></span>
-                                    <span class="legend-label">0-200</span>
+                                     title="<strong>D</strong><br>تحصيلات ضعيفة<br>0 - 200 ريال">
+                                    <span class="legend-dot legend-d"></span>
+                                    <span class="legend-label">D</span>
                                 </div>
                             </div>
                         </div>
@@ -297,430 +297,7 @@
         <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
     @endpush
 
-    <style>
-        .client-card-elegant {
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            overflow: visible;
-            position: relative;
-        }
 
-        .client-card-elegant:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-        }
-
-        /* إصلاح Dropdown */
-        .client-dropdown {
-            position: relative;
-        }
-
-        .dropdown-toggle-btn {
-            font-size: 11px;
-            padding: 5px 10px;
-        }
-
-        .client-dropdown .dropdown-menu {
-            position: absolute !important;
-            top: 100% !important;
-            left: auto !important;
-            right: 0 !important;
-            z-index: 9999 !important;
-            margin-top: 5px;
-            border: none;
-            border-radius: 8px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
-            min-width: 200px;
-        }
-
-        .client-dropdown .dropdown-menu.show {
-            display: block !important;
-        }
-
-        .client-card {
-            position: relative;
-            z-index: 1;
-        }
-
-        .client-card:has(.dropdown-menu.show) {
-            z-index: 1000;
-        }
-
-        .loading-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-            backdrop-filter: blur(2px);
-        }
-
-        /* Header Section */
-        .card-header-elegant {
-            padding: 24px;
-            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .client-title-section {
-            margin-bottom: 16px;
-        }
-
-        .client-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin: 0 0 8px 0;
-            line-height: 1.3;
-        }
-
-        .client-code-badge {
-            background: #e8f4f8;
-            color: #2c5aa0;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .actions-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .status-indicator {
-            padding: 8px 16px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .status-unknown {
-            background: #f5f5f5;
-            border-left: 3px solid #9e9e9e;
-            color: #757575;
-        }
-
-        /* Contact Section */
-        .contact-section {
-            padding: 20px 24px;
-        }
-
-        .contact-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 13px;
-            color: #495057;
-        }
-
-        .contact-item i {
-            width: 16px;
-            color: #6c757d;
-            font-size: 12px;
-        }
-
-        /* أنماط تصنيف الفئات - النظام الجديد */
-        .category-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #fff;
-            background: #9e9e9e;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        /* A: رمادي فاتح (أكثر من 1000 ريال) */
-        .category-a {
-            background: rgba(189, 189, 189, 0.9);
-            border: 1px solid rgba(158, 158, 158, 1);
-            color: #fff;
-        }
-
-        /* B: أزرق/سماوي (500-1000 ريال) */
-        .category-b {
-            background: rgba(33, 150, 243, 0.9);
-            border: 1px solid rgba(33, 150, 243, 1);
-            color: #fff;
-        }
-
-        /* C: أخضر (200-500 ريال) */
-        .category-c {
-            background: rgba(76, 175, 80, 0.9);
-            border: 1px solid rgba(76, 175, 80, 1);
-            color: #fff;
-        }
-
-        /* D: برتقالي (0-200 ريال) */
-        .category-d {
-            background: rgba(255, 152, 0, 0.9);
-            border: 1px solid rgba(255, 152, 0, 1);
-            color: #fff;
-        }
-
-        .category-default {
-            background: #9e9e9e;
-            border: 1px solid #757575;
-        }
-
-        .location-section {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 16px;
-            padding-top: 16px;
-            border-top: 1px solid #f0f0f0;
-        }
-
-        .location-item a {
-            color: #007bff;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .distance-item {
-            font-size: 12px;
-            font-weight: 600;
-            padding: 4px 8px;
-            border-radius: 6px;
-        }
-
-        .distance-close {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .distance-far {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .distance-default {
-            background: #e2e3e5;
-            color: #383d41;
-        }
-
-        /* Dates Section */
-        .dates-section {
-            padding: 16px 24px;
-            background: #f8f9fa;
-            display: flex;
-            align-items: center;
-        }
-
-        .date-item {
-            flex: 1;
-            text-align: center;
-        }
-
-        .date-label {
-            font-size: 11px;
-            color: #6c757d;
-            margin-bottom: 4px;
-            font-weight: 500;
-        }
-
-        .date-value {
-            font-size: 13px;
-            color: #212529;
-            font-weight: 700;
-        }
-
-        .date-separator {
-            width: 1px;
-            height: 30px;
-            background: #dee2e6;
-            margin: 0 16px;
-        }
-
-        /* Classification Section الكبير */
-        .classification-section-large {
-            padding: 30px 24px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-        }
-
-        .classification-header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .classification-header h4 {
-            font-size: 16px;
-            color: #2c3e50;
-            font-weight: 700;
-            margin: 0 0 18px 0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* دليل الألوان المحسّن - النظام الجديد */
-        .color-legend {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 18px;
-            flex-wrap: wrap;
-            margin-top: 12px;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 12px;
-            backdrop-filter: blur(5px);
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            cursor: help;
-            transition: all 0.3s ease;
-            padding: 6px 10px;
-            border-radius: 8px;
-            background: white;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        }
-
-        .legend-item:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .legend-dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            border: 2.5px solid transparent;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .legend-item:hover .legend-dot {
-            transform: scale(1.4);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
-        }
-
-        /* ألوان التصنيفات - حسب المبلغ مباشرة */
-
-        /* رمادي فاتح (أكثر من 1000 ريال) */
-        .legend-gray {
-            background: rgba(189, 189, 189, 0.8);
-            border-color: rgba(158, 158, 158, 1);
-            box-shadow: 0 0 6px rgba(158, 158, 158, 0.3);
-        }
-
-        .legend-item:hover .legend-gray {
-            background: rgba(189, 189, 189, 0.95);
-            box-shadow: 0 0 10px rgba(158, 158, 158, 0.5);
-        }
-
-        /* أزرق/سماوي (500-1000 ريال) */
-        .legend-blue {
-            background: rgba(33, 150, 243, 0.8);
-            border-color: rgba(33, 150, 243, 1);
-            box-shadow: 0 0 6px rgba(33, 150, 243, 0.3);
-        }
-
-        .legend-item:hover .legend-blue {
-            background: rgba(33, 150, 243, 0.95);
-            box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
-        }
-
-        /* أخضر (200-500 ريال) */
-        .legend-green {
-            background: rgba(76, 175, 80, 0.8);
-            border-color: rgba(76, 175, 80, 1);
-            box-shadow: 0 0 6px rgba(76, 175, 80, 0.3);
-        }
-
-        .legend-item:hover .legend-green {
-            background: rgba(76, 175, 80, 0.95);
-            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
-        }
-
-        /* برتقالي (0-200 ريال) */
-        .legend-orange {
-            background: rgba(255, 152, 0, 0.8);
-            border-color: rgba(255, 152, 0, 1);
-            box-shadow: 0 0 6px rgba(255, 152, 0, 0.3);
-        }
-
-        .legend-item:hover .legend-orange {
-            background: rgba(255, 152, 0, 0.95);
-            box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
-        }
-
-        .legend-label {
-            font-size: 12px;
-            font-weight: 700;
-            color: #2c3e50;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
-        }
-
-        .chart-container-large {
-            height: 350px;
-            position: relative;
-            background: white;
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        }
-
-        .monthly-chart {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .contact-grid {
-                grid-template-columns: 1fr;
-                gap: 8px;
-            }
-
-            .location-section {
-                grid-template-columns: 1fr;
-                gap: 8px;
-            }
-
-            .chart-container-large {
-                height: 300px;
-                padding: 20px;
-            }
-
-            .classification-section-large {
-                padding: 20px 16px;
-            }
-
-            .color-legend {
-                gap: 12px;
-            }
-
-            .legend-item {
-                padding: 5px 8px;
-            }
-
-            .legend-dot {
-                width: 12px;
-                height: 12px;
-            }
-        }
-    </style>
 @else
     <div class="alert alert-info text-center" role="alert">
         <i class="fa fa-info-circle me-2"></i>
@@ -748,23 +325,27 @@
                 $chartLabels[] = $monthName;
                 $chartData[] = $totalCollected;
 
-                // تحديد اللون حسب قيمة المبلغ مباشرة
-                if ($totalCollected >= 1000) {
-                    // رمادي فاتح (أكثر من 1000)
-                    $chartColors[] = 'rgba(189, 189, 189, 0.7)';
-                    $chartBorderColors[] = 'rgba(158, 158, 158, 1)';
-                } elseif ($totalCollected >= 500) {
-                    // أزرق سماوي (500-1000)
-                    $chartColors[] = 'rgba(33, 150, 243, 0.7)';
-                    $chartBorderColors[] = 'rgba(33, 150, 243, 1)';
-                } elseif ($totalCollected >= 200) {
-                    // أخضر (200-500)
-                    $chartColors[] = 'rgba(76, 175, 80, 0.7)';
-                    $chartBorderColors[] = 'rgba(76, 175, 80, 1)';
-                } else {
-                    // برتقالي (0-200)
-                    $chartColors[] = 'rgba(255, 152, 0, 0.7)';
-                    $chartBorderColors[] = 'rgba(255, 152, 0, 1)';
+                // ألوان النظام الجديد
+                switch ($group) {
+                    case 'A': // رمادي فاتح (أكثر من 1000)
+                        $chartColors[] = 'rgba(189, 189, 189, 0.7)';
+                        $chartBorderColors[] = 'rgba(158, 158, 158, 1)';
+                        break;
+                    case 'B': // أزرق سماوي (500-1000)
+                        $chartColors[] = 'rgba(33, 150, 243, 0.7)';
+                        $chartBorderColors[] = 'rgba(33, 150, 243, 1)';
+                        break;
+                    case 'C': // أخضر (200-500)
+                        $chartColors[] = 'rgba(76, 175, 80, 0.7)';
+                        $chartBorderColors[] = 'rgba(76, 175, 80, 1)';
+                        break;
+                    case 'D': // برتقالي (0-200)
+                        $chartColors[] = 'rgba(255, 152, 0, 0.7)';
+                        $chartBorderColors[] = 'rgba(255, 152, 0, 1)';
+                        break;
+                    default:
+                        $chartColors[] = 'rgba(158, 158, 158, 0.7)';
+                        $chartBorderColors[] = 'rgba(158, 158, 158, 1)';
                 }
             }
         }

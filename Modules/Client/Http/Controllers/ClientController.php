@@ -57,11 +57,10 @@ use Carbon\Carbon;
 use GuzzleHttp\Psr7\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Client\Http\Requests\ClientRequest;
+use TCPDF;
 
 // PDF Generation
-use Dompdf\Dompdf;
-use Dompdf\Options;
-use TCPDF;
+
 
 class ClientController extends Controller
 {
@@ -2126,6 +2125,7 @@ public function completeVisit(Request $request, $visitId)
     $filename = 'ملاحظات_العميل_' . $client->code . '.pdf';
     return $pdf->Output($filename, 'I');
 }
+
 
     public function updateStatus(Request $request, $id)
     {

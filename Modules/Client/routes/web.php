@@ -150,7 +150,7 @@ Route::group(
                 Route::get('/{client}/details', [ClientController::class, 'getClientDetails'])->name('clients.details');
                 Route::get('/{client}/invoices', [ClientController::class, 'getClientInvoices'])->name('clients.invoices');
                 Route::get('/{client}/notes', [ClientController::class, 'getClientNotes'])->name('clients.notes');
- Route::get('/notes/pdf', [ClientController::class, 'generateNotesPdf'])->name('clients.notes.pdf');
+ Route::get('/notes/pdf/{id}', [ClientController::class, 'generateNotesPdf'])->name('clients.notes.pdf');
                 Route::get('/clients/select', [ClientController::class, 'getClientsForSelect'])->name('clients.getForSelect');
                 Route::get('/clients/ajax', [ClientController::class, 'ajaxIndex'])->name('clients.ajax');
                 Route::post('/clients/update-credit-limit', [ClientController::class, 'updateCreditLimit'])->name('clients.update_credit_limit');
@@ -206,6 +206,7 @@ Route::group(
                 Route::get('/clients_management/clients/all', [ClientController::class, 'getAllClients'])->name('clients.all');
                 Route::get('/show-contant/{id}', [ClientController::class, 'show_contant'])->name('clients.show_contant');
                 Route::get('/export', [ClientController::class, 'export'])->name('clients.export');
+                Route::post('/export-all', [ClientController::class, 'exportAllClients'])->name('clients.exportAll');
 
                 // بحث Ajax
                 Route::get('/clients/search', function (Request $request) {

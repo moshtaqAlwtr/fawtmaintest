@@ -39,15 +39,34 @@
 </div>
 
 <script>
+// Ensure XLSX library is loaded
+function loadXLSX() {
+    return new Promise((resolve, reject) => {
+        if (typeof XLSX !== 'undefined') {
+            resolve();
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Export to Excel functionality
-    document.getElementById('exportExcelBtn')?.addEventListener('click', function() {
+    document.getElementById('exportExcelBtn')?.addEventListener('click', async function() {
         // Show loading indicator
         const originalIcon = this.innerHTML;
         this.innerHTML = '<i class="fas fa-spinner fa-spin text-primary"></i>';
         this.disabled = true;
-        
+
         try {
+            // Load XLSX library if not already loaded
+            await loadXLSX();
+
             // Collect all client data from the cards
             const clients = [];
             document.querySelectorAll('.client-card').forEach(card => {
@@ -62,15 +81,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     const createdAt = card.querySelector('.date-item:first-child .date-value')?.textContent?.trim() || '';
                     const lastInvoice = card.querySelectorAll('.date-item')[1]?.querySelector('.date-value')?.textContent?.trim() || '';
                     const lastPayment = card.querySelectorAll('.date-item')[2]?.querySelector('.date-value')?.textContent?.trim() || '';
-                    
+
                     // Get status
                     const statusElement = card.querySelector('.status-indicator span');
                     const status = statusElement ? statusElement.textContent.trim() : '';
-                    
+
                     // Get distance
                     const distanceElement = card.querySelector('.distance-item span');
                     const distance = distanceElement ? distanceElement.textContent.trim() : '';
-                    
+
                     clients.push({
                         id: clientId,
                         code: code,
@@ -114,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ];
 
             const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-            
+
             // Set column widths
             ws['!cols'] = [
                 {wch: 10}, // الكود
@@ -132,15 +151,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'العملاء');
-            
+
             // Download the file
             const filename = 'العملاء_' + new Date().toISOString().slice(0, 10) + '.xlsx';
             XLSX.writeFile(wb, filename);
-            
-            // Show success message
-            setTimeout(() => {
-                alert('تم تصدير ' + clients.length + ' عميل إلى ملف Excel');
-            }, 100);
+
+            alert('تم تصدير ' + clients.length + ' عميل إلى ملف Excel');
         } catch (error) {
             console.error('Export error:', error);
             alert('حدث خطأ أثناء التصدير: ' + error.message);
