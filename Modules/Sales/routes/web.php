@@ -10,7 +10,7 @@ use Modules\Sales\Http\Controllers\InvoicesController;
 use Modules\Sales\Http\Controllers\NotificationsController;
 use Modules\Sales\Http\Controllers\OffersController;
 use Modules\Sales\Http\Controllers\OrderSourceController;
-
+use Modules\Sales\Http\Controllers\DashboardController;
 use Modules\Sales\Http\Controllers\PeriodicInvoicesController;
 use Modules\Sales\Http\Controllers\QuoteController;
 use Modules\Sales\Http\Controllers\ReturnInvoiceController;
@@ -30,16 +30,12 @@ Route::group(
     function () {
         // Existing sales routes...
 
+
+ 
         // GiftOfferController routes
-        Route::prefix('gift-offers')->group(function () {
-            Route::get('/', [GiftOfferController::class, 'index'])->name('gift-offers.index');
-            Route::get('/create', [GiftOfferController::class, 'create'])->name('gift-offers.create');
-            Route::post('/create', [GiftOfferController::class, 'store'])->name('gift_offers.store');
-            Route::get('/edit/{giftOffer}', [GiftOfferController::class, 'edit'])->name('gift-offers.edit');
-            Route::put('/update/{giftOffer}', [GiftOfferController::class, 'update'])->name('gift_offers.update');
-            Route::get('/status/{id}', [GiftOfferController::class, 'status'])->name('gift-offers.status');
-            Route::get('/show/{id}', [GiftOfferController::class, 'show'])->name('gift-offers.show');
-            Route::delete('/destroy/{id}', [GiftOfferController::class, 'destroy'])->name('gift-offers.destroy');
+        Route::prefix('sales')->group(function () {
+            Route::get('/kpis', [DashboardController::class, 'index'])->name('dashboard.kpis');
+            
         });
 
         // OffersController routes

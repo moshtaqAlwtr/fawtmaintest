@@ -76,6 +76,11 @@
                         </a>
                         <ul class="menu-content">
 
+                            <li><a href=""><i
+                                        class="feather icon-circle {{ request()->is("$getLocal/sales/invoices/index") ? 'active' : '' }}"></i><span
+                                        class="menu-item"
+                                        data-i18n="Analytics">مؤشرات الاداء</span></a>
+                            </li>
                             <li><a href="{{ route('invoices.index') }}"><i
                                         class="feather icon-circle {{ request()->is("$getLocal/sales/invoices/index") ? 'active' : '' }}"></i><span
                                         class="menu-item"
