@@ -1,5 +1,10 @@
 <!-- تحديث ملف: resources/views/client/partials/client_cards.blade.php -->
 @if (isset($clients) && $clients->count() > 0)
+    <div class="d-flex mb-3 justify-content-end">
+        <button id="exportAllClientsBtn" class="btn btn-success btn-sm">
+            <i class="fa fa-file-excel"></i> تصدير اكسل
+        </button>
+    </div>
     <div class="row g-4">
         @foreach ($clients as $client)
             @php
@@ -60,78 +65,66 @@
                             @endif
 
                             <!-- Dropdown المحسّن -->
-                            <div class="dropdown client-dropdown">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle-btn" type="button"
-                                    id="clientActionsDropdown{{ $client->id }}" data-bs-toggle="dropdown"
-                                    aria-expanded="false">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-lg"
-                                    aria-labelledby="clientActionsDropdown{{ $client->id }}">
-                                    @php
-                                        $today = now()->toDateString();
-                                        $hasActiveVisit = \App\Models\Visit::where('employee_id', auth()->id())
-                                            ->where('client_id', $client->id)
-                                            ->whereDate('visit_date', $today)
-                                            ->whereNotNull('arrival_time')
-                                            ->whereNull('departure_time')
-                                            ->exists();
-                                    @endphp
+                            <div class="btn-group">
+                                <div class="dropdown">
+                                    <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                        type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    </button>
 
-                                    @if (auth()->user()->role === 'employee')
-                                        @if ($hasActiveVisit)
-                                            <li>
+                                    <div class="dropdown-menu dropdown-menu-end shadow-lg">
+                                        @php
+                                            $today = now()->toDateString();
+                                            $hasActiveVisit = \App\Models\Visit::where('employee_id', auth()->id())
+                                                ->where('client_id', $client->id)
+                                                ->whereDate('visit_date', $today)
+                                                ->whereNotNull('arrival_time')
+                                                ->whereNull('departure_time')
+                                                ->exists();
+                                        @endphp
+
+                                        {{-- عرض أو تسجيل زيارة --}}
+                                        @if (auth()->user()->role === 'employee')
+                                            @if ($hasActiveVisit)
                                                 <a class="dropdown-item"
                                                     href="{{ route('clients.show', $client->id) }}">
-                                                    <i class="far fa-eye me-1"></i> عرض
+                                                    <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                 </a>
-                                            </li>
-                                        @else
-                                            <li>
+                                            @else
                                                 <a class="dropdown-item"
                                                     href="{{ route('clients.registerVisit', $client->id) }}">
-                                                    <i class="fas fa-walking me-1"></i> تسجيل زيارة وعرض
+                                                    <i class="fa fa-walking me-2 text-info"></i>تسجيل زيارة وعرض
                                                 </a>
-                                            </li>
-                                        @endif
-                                    @else
-                                        <li>
+                                            @endif
+                                        @else
                                             <a class="dropdown-item" href="{{ route('clients.show', $client->id) }}">
-                                                <i class="far fa-eye me-1"></i> عرض
+                                                <i class="fa fa-eye me-2 text-primary"></i>عرض
                                             </a>
-                                        </li>
-                                    @endif
-                                    @if (auth()->user()->hasPermissionTo('Edit_Client'))
-                                        <li>
+                                        @endif
+
+                                        {{-- تعديل --}}
+                                        @if (auth()->user()->hasPermissionTo('Edit_Client'))
                                             <a class="dropdown-item" href="{{ route('clients.edit', $client->id) }}">
-                                                <i class="fas fa-edit me-1"></i> تعديل
+                                                <i class="fa fa-edit me-2 text-success"></i>تعديل
                                             </a>
-                                        </li>
-                                    @endif
-                                    <li>
-                                        <hr class="dropdown-divider">
-                                    </li>
-                                    <li>
+                                        @endif
+
+                                        {{-- إخفاء من الخريطة --}}
                                         <a class="dropdown-item text-warning hide-from-map-link" href="#"
                                             data-client-id="{{ $client->id }}"
                                             data-client-name="{{ $client->trade_name }}">
-                                            <i class="fas fa-eye-slash me-1"></i> إخفاء من الخريطة (24 ساعة)
+                                            <i class="fa fa-eye-slash me-2 text-warning"></i>إخفاء من الخريطة (24 ساعة)
                                         </a>
-                                    </li>
-                                    @if (auth()->user()->hasPermissionTo('Delete_Client'))
-                                        <li>
-                                            <hr class="dropdown-divider">
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item text-danger"
-                                                href="{{ route('clients.destroy', $client->id) }}">
-                                                <i class="fas fa-trash-alt me-1"></i> حذف
-                                            </a>
-                                        </li>
-                                    @endif
-                                </ul>
-                            </div>
 
+                                        {{-- حذف --}}
+                                        @if (auth()->user()->hasPermissionTo('Delete_Client'))
+                                            <a class="dropdown-item text-danger delete-client" href="#"
+                                                data-id="{{ $client->id }}">
+                                                <i class="fa fa-trash me-2"></i>حذف
+                                            </a>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -241,31 +234,14 @@
                         </div>
                     </div>
 
-                    <!-- الإحصائيات المالية -->
-                    <div class="stats-section">
-                        <div class="stat-card stat-sales">
-                            <div class="stat-number">{{ number_format($totalSales ?? 0) }}</div>
-                            <div class="stat-label">إجمالي المبيعات</div>
-                        </div>
-                        <div class="stat-card stat-collected">
-                            <div class="stat-number">
-                                {{ number_format($clientsData[$client->id]['total_collected'] ?? 0) }}</div>
-                            <div class="stat-label">التحصيلات</div>
-                        </div>
-                        <div class="stat-card stat-due">
-                            <div class="stat-number">{{ number_format($clientDueBalances[$client->id] ?? 0) }}</div>
-                            <div class="stat-label">المبالغ الآجلة</div>
-                        </div>
-                    </div>
-
-                    <!-- التصنيف الشهري مع Bar Chart -->
-                    <div class="classification-section">
+                    <!-- التصنيف الشهري مع Bar Chart الكبير -->
+                    <div class="classification-section-large">
                         <div class="classification-header">
-                            <h4>التصنيف الشهري {{ $currentYear }}</h4>
+                            <h4>التصنيف الشهري {{ now()->year }}</h4>
                         </div>
 
-                        <!-- الرسم البياني فقط -->
-                        <div class="chart-container">
+                        <!-- الرسم البياني الكبير -->
+                        <div class="chart-container-large">
                             <canvas id="monthlyChart{{ $client->id }}" class="monthly-chart"></canvas>
                         </div>
                     </div>
@@ -277,175 +253,8 @@
 
     <!-- إضافة Chart.js -->
     @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            @foreach ($clients as $client)
-                @php
-                    $chartData = [];
-                    $chartLabels = [];
-                    $chartColors = [];
-                    $chartBorderColors = [];
-
-                    // Debug: التأكد من وجود البيانات
-                    $clientInfo = $clientsData[$client->id] ?? null;
-
-                    if ($clientInfo && isset($clientInfo['monthly'])) {
-                        foreach ($clientInfo['monthly'] as $monthName => $monthData) {
-                            $collected = $monthData['collected'] ?? 0;
-                            $paymentsTotal = $monthData['payments_total'] ?? 0;
-                            $receiptsTotal = $monthData['receipts_total'] ?? 0;
-                            $group = strtoupper($monthData['group'] ?? 'D');
-
-                            // حساب إجمالي التحصيلات (المدفوعات + سندات القبض)
-                            $totalCollected = $collected;
-
-                            $chartLabels[] = $monthName;
-                            $chartData[] = $totalCollected;
-
-                            // تحديد لون البار حسب التصنيف
-                            switch($group) {
-                                case 'A':
-                                    $chartColors[] = 'rgba(33, 150, 243, 0.7)';
-                                    $chartBorderColors[] = 'rgba(33, 150, 243, 1)';
-                                    break;
-                                case 'B':
-                                    $chartColors[] = 'rgba(76, 175, 80, 0.7)';
-                                    $chartBorderColors[] = 'rgba(76, 175, 80, 1)';
-                                    break;
-                                case 'C':
-                                    $chartColors[] = 'rgba(255, 152, 0, 0.7)';
-                                    $chartBorderColors[] = 'rgba(255, 152, 0, 1)';
-                                    break;
-                                case 'D':
-                                    $chartColors[] = 'rgba(244, 67, 54, 0.7)';
-                                    $chartBorderColors[] = 'rgba(244, 67, 54, 1)';
-                                    break;
-                                default:
-                                    $chartColors[] = 'rgba(158, 158, 158, 0.7)';
-                                    $chartBorderColors[] = 'rgba(158, 158, 158, 1)';
-                            }
-                        }
-                    }
-                @endphp
-
-                const ctx{{ $client->id }} = document.getElementById('monthlyChart{{ $client->id }}');
-                if (ctx{{ $client->id }}) {
-                    const chartData{{ $client->id }} = {!! json_encode($chartData) !!};
-                    const chartLabels{{ $client->id }} = {!! json_encode($chartLabels) !!};
-                    const chartColors{{ $client->id }} = {!! json_encode($chartColors) !!};
-                    const chartBorderColors{{ $client->id }} = {!! json_encode($chartBorderColors) !!};
-
-                    console.log('Client {{ $client->id }} - Labels:', chartLabels{{ $client->id }});
-                    console.log('Client {{ $client->id }} - Data:', chartData{{ $client->id }});
-                    console.log('Client {{ $client->id }} - Colors:', chartColors{{ $client->id }});
-
-                    new Chart(ctx{{ $client->id }}, {
-                        type: 'bar',
-                        data: {
-                            labels: chartLabels{{ $client->id }},
-                            datasets: [{
-                                label: 'التحصيلات الشهرية',
-                                data: chartData{{ $client->id }},
-                                backgroundColor: chartColors{{ $client->id }},
-                                borderColor: chartBorderColors{{ $client->id }},
-                                borderWidth: 2,
-                                borderRadius: 6,
-                                borderSkipped: false,
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                    padding: 12,
-                                    titleFont: {
-                                        size: 13,
-                                        family: 'Cairo, sans-serif'
-                                    },
-                                    bodyFont: {
-                                        size: 12,
-                                        family: 'Cairo, sans-serif'
-                                    },
-                                    callbacks: {
-                                        title: function(context) {
-                                            return context[0].label;
-                                        },
-                                        label: function(context) {
-                                            const value = context.parsed.y;
-                                            return 'التحصيلات: ' + value.toLocaleString('ar-SA') + ' ريال';
-                                        }
-                                    },
-                                    rtl: true,
-                                    displayColors: true
-                                },
-                                datalabels: {
-                                    anchor: 'end',
-                                    align: 'top',
-                                    formatter: function(value) {
-                                        if (value === 0) return '';
-                                        if (value >= 1000) {
-                                            return (value / 1000).toFixed(1) + 'K';
-                                        }
-                                        return value.toLocaleString('ar-SA');
-                                    },
-                                    font: {
-                                        weight: 'bold',
-                                        size: 9,
-                                        family: 'Cairo, sans-serif'
-                                    },
-                                    color: function(context) {
-                                        return context.dataset.borderColor[context.dataIndex];
-                                    },
-                                    padding: 2
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    min: 50,
-                                    max: 500,
-                                    ticks: {
-                                        stepSize: 100,
-                                        font: {
-                                            size: 10,
-                                            family: 'Cairo, sans-serif'
-                                        },
-                                        callback: function(value) {
-                                            return value.toLocaleString('ar-SA');
-                                        }
-                                    },
-                                    grid: {
-                                        color: 'rgba(0, 0, 0, 0.05)',
-                                        drawBorder: false
-                                    }
-                                },
-                                x: {
-                                    ticks: {
-                                        font: {
-                                            size: 12,
-                                            family: 'Cairo, sans-serif',
-                                            weight: 'bold'
-                                        },
-                                        maxRotation: 45,
-                                        minRotation: 45
-                                    },
-                                    grid: {
-                                        display: false
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-            @endforeach
-        });
-    </script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
     @endpush
 
     <style>
@@ -655,75 +464,33 @@
             margin: 0 16px;
         }
 
-        /* Stats Section */
-        .stats-section {
-            padding: 20px 24px;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-        }
-
-        .stat-card {
-            text-align: center;
-            padding: 16px 8px;
-            border-radius: 10px;
-            transition: transform 0.2s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .stat-sales {
-            background: linear-gradient(135deg, #667eea20, #764ba220);
-        }
-
-        .stat-collected {
-            background: linear-gradient(135deg, #11998e20, #38ef7d20);
-        }
-
-        .stat-due {
-            background: linear-gradient(135deg, #fc466b20, #3f5efb20);
-        }
-
-        .stat-number {
-            font-size: 16px;
-            font-weight: 800;
-            color: #212529;
-            margin-bottom: 4px;
-        }
-
-        .stat-label {
-            font-size: 11px;
-            color: #6c757d;
-            font-weight: 600;
-        }
-
-        /* Classification Section with Chart */
-        .classification-section {
-            padding: 20px 24px;
-            background: #fafafa;
+        /* Classification Section الكبير بدون الكاردات */
+        .classification-section-large {
+            padding: 30px 24px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
         }
 
         .classification-header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         .classification-header h4 {
-            font-size: 14px;
-            color: #495057;
+            font-size: 16px;
+            color: #2c3e50;
             font-weight: 700;
             margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .chart-container {
-            height: 220px;
+        .chart-container-large {
+            height: 350px;
             position: relative;
             background: white;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
 
         .monthly-chart {
@@ -738,21 +505,18 @@
                 gap: 8px;
             }
 
-            .stats-section {
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-
-            .stat-card {
-                display: flex;
-                align-items: center;
-                text-align: right;
-                gap: 12px;
-            }
-
             .location-section {
                 grid-template-columns: 1fr;
                 gap: 8px;
+            }
+
+            .chart-container-large {
+                height: 300px;
+                padding: 20px;
+            }
+
+            .classification-section-large {
+                padding: 20px 16px;
             }
         }
     </style>
@@ -762,3 +526,314 @@
         <p class="mb-0">لا يوجد عملاء </p>
     </div>
 @endif
+
+<!-- Hidden chart data for each client -->
+@foreach ($clients as $client)
+    @php
+        $chartData = [];
+        $chartLabels = [];
+        $chartColors = [];
+        $chartBorderColors = [];
+
+        $clientInfo = $clientsData[$client->id] ?? null;
+
+        if ($clientInfo && isset($clientInfo['monthly'])) {
+            foreach ($clientInfo['monthly'] as $monthName => $monthData) {
+                $collected = $monthData['collected'] ?? 0;
+                $group = strtoupper($monthData['group'] ?? 'D');
+
+                $totalCollected = $collected;
+
+                $chartLabels[] = $monthName;
+                $chartData[] = $totalCollected;
+
+                switch ($group) {
+                    case 'A':
+                        $chartColors[] = 'rgba(33, 150, 243, 0.7)';
+                        $chartBorderColors[] = 'rgba(33, 150, 243, 1)';
+                        break;
+                    case 'B':
+                        $chartColors[] = 'rgba(76, 175, 80, 0.7)';
+                        $chartBorderColors[] = 'rgba(76, 175, 80, 1)';
+                        break;
+                    case 'C':
+                        $chartColors[] = 'rgba(255, 152, 0, 0.7)';
+                        $chartBorderColors[] = 'rgba(255, 152, 0, 1)';
+                        break;
+                    case 'D':
+                        $chartColors[] = 'rgba(244, 67, 54, 0.7)';
+                        $chartBorderColors[] = 'rgba(244, 67, 54, 1)';
+                        break;
+                    default:
+                        $chartColors[] = 'rgba(158, 158, 158, 0.7)';
+                        $chartBorderColors[] = 'rgba(158, 158, 158, 1)';
+                }
+            }
+        }
+
+        // Prepare chart configuration (بدون الدوال - سنضيفها في JavaScript)
+        $chartConfig = [
+            'type' => 'bar',
+            'data' => [
+                'labels' => $chartLabels,
+                'datasets' => [
+                    [
+                        'label' => 'التحصيلات الشهرية',
+                        'data' => $chartData,
+                        'backgroundColor' => $chartColors,
+                        'borderColor' => $chartBorderColors,
+                        'borderWidth' => 2,
+                        'borderRadius' => 8,
+                        'borderSkipped' => false,
+                    ],
+                ],
+            ],
+            'options' => [
+                'responsive' => true,
+                'maintainAspectRatio' => false,
+                'plugins' => [
+                    'legend' => [
+                        'display' => false,
+                    ],
+                    'tooltip' => [
+                        'enabled' => true,
+                        'backgroundColor' => 'rgba(0, 0, 0, 0.8)',
+                        'padding' => 12,
+                        'titleFont' => [
+                            'size' => 14,
+                            'family' => 'Cairo, sans-serif',
+                        ],
+                        'bodyFont' => [
+                            'size' => 13,
+                            'family' => 'Cairo, sans-serif',
+                        ],
+                        'rtl' => true,
+                        'displayColors' => true,
+                        'callbacks' => [], // سيتم إضافة الدوال في JavaScript
+                    ],
+                    'datalabels' => [
+                        'anchor' => 'end',
+                        'align' => 'top',
+                        'font' => [
+                            'weight' => 'bold',
+                            'size' => 11,
+                            'family' => 'Cairo, sans-serif',
+                        ],
+                        'padding' => 4,
+                    ],
+                ],
+                'scales' => [
+                    'y' => [
+                        'min' => 0,
+                        'max' => 1000,
+                        'ticks' => [
+                            'stepSize' => 100,
+                            'font' => [
+                                'size' => 11,
+                                'family' => 'Cairo, sans-serif',
+                            ],
+                        ],
+                        'grid' => [
+                            'color' => 'rgba(0, 0, 0, 0.05)',
+                            'drawBorder' => false,
+                        ],
+                    ],
+                    'x' => [
+                        'ticks' => [
+                            'font' => [
+                                'size' => 12,
+                                'family' => 'Cairo, sans-serif',
+                                'weight' => 'bold',
+                            ],
+                            'maxRotation' => 45,
+                            'minRotation' => 45,
+                        ],
+                        'grid' => [
+                            'display' => false,
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    @endphp
+
+    <!-- Hidden chart data for client {{ $client->id }} -->
+    <div id="chartData{{ $client->id }}" style="display: none;">{!! json_encode($chartConfig) !!}</div>
+@endforeach
+
+<script>
+    // Function to create charts for all clients
+    function createCharts() {
+        // Destroy existing charts first to prevent duplication
+        if (typeof window.clientCharts === 'undefined') {
+            window.clientCharts = {};
+        }
+
+        // Loop through all chart elements
+        document.querySelectorAll('canvas[id^="monthlyChart"]').forEach(canvas => {
+            const clientId = canvas.id.replace('monthlyChart', '');
+
+            // Destroy existing chart if it exists
+            if (window.clientCharts[clientId]) {
+                window.clientCharts[clientId].destroy();
+            }
+
+            // Get chart data from data attributes
+            const chartDataElement = document.getElementById('chartData' + clientId);
+            if (chartDataElement) {
+                try {
+                    const chartConfig = JSON.parse(chartDataElement.textContent);
+                    const ctx = canvas.getContext('2d');
+
+                    // إصلاح callback functions للـ tooltip
+                    chartConfig.options.plugins.tooltip.callbacks = {
+                        title: function(context) {
+                            return context[0].label;
+                        },
+                        label: function(context) {
+                            const value = context.parsed.y;
+                            return 'التحصيلات: ' + value.toLocaleString('ar-SA') + ' ريال';
+                        }
+                    };
+
+                    // إصلاح formatter للـ datalabels
+                    chartConfig.options.plugins.datalabels.formatter = function(value) {
+                        if (value === 0) return '';
+                        if (value >= 1000) {
+                            return (value / 1000).toFixed(1) + 'K';
+                        }
+                        return value.toLocaleString('ar-SA');
+                    };
+
+                    // إصلاح color function للـ datalabels
+                    chartConfig.options.plugins.datalabels.color = function(context) {
+                        return context.dataset.borderColor[context.dataIndex];
+                    };
+
+                    // إصلاح callback للـ y-axis
+                    chartConfig.options.scales.y.ticks.callback = function(value) {
+                        return value.toLocaleString('ar-SA');
+                    };
+
+                    window.clientCharts[clientId] = new Chart(ctx, chartConfig);
+                } catch (e) {
+                    console.error('Error creating chart for client ' + clientId, e);
+                }
+            }
+        });
+    }
+
+    // Initialize charts when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        createCharts();
+    });
+
+    // Reinitialize charts after AJAX calls
+    document.addEventListener('reinitializeCharts', function() {
+        setTimeout(function() {
+            createCharts();
+        }, 150);
+    });
+
+    $(document).ajaxComplete(function() {
+        setTimeout(function() {
+            createCharts();
+        }, 500);
+    });
+
+    document.addEventListener('clientsFiltered', function() {
+        setTimeout(function() {
+            createCharts();
+        }, 500);
+    });
+</script>
+
+<!-- SheetJS (xlsx) CDN for client-side Excel export -->
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+<script>
+    (function() {
+        function downloadWorkbook(workbook, filename) {
+            const wbout = XLSX.write(workbook, {
+                bookType: 'xlsx',
+                type: 'array'
+            });
+            const blob = new Blob([wbout], {
+                type: 'application/octet-stream'
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportClientsToExcel(clientsArray, filename = 'clients.xlsx') {
+            if (!clientsArray || clientsArray.length === 0) {
+                alert('لا توجد بيانات للتصدير');
+                return;
+            }
+
+            // Normalize data keys / order
+            const cols = ['id', 'code', 'trade_name', 'frist_name', 'phone', 'branch', 'category', 'created_at'];
+            const data = [cols];
+            clientsArray.forEach(c => {
+                data.push(cols.map(k => c[k] ?? ''));
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Clients');
+
+            downloadWorkbook(wb, filename);
+        }
+
+        // Export all visible clients
+        document.getElementById('exportAllClientsBtn')?.addEventListener('click', function() {
+            const clients = [];
+            document.querySelectorAll('.client-card').forEach(card => {
+                try {
+                    const id = card.getAttribute('data-client-id');
+                    const tradeName = card.querySelector('.client-title')?.textContent?.trim() || '';
+                    const code = card.querySelector('.client-code-badge')?.textContent?.trim() || '';
+                    const fristName = card.querySelector('.contact-item:nth-child(1) span')?.textContent?.trim() || '';
+                    const phone = card.querySelector('.contact-item:nth-child(2) span')?.textContent?.trim() || '';
+                    const category = card.querySelector('.contact-item:nth-child(3) span')?.textContent?.trim() || '';
+                    const branch = card.querySelector('.contact-item:nth-child(4) span')?.textContent?.trim() || '';
+                    const created = card.querySelector('.date-value')?.textContent?.trim() || '';
+
+                    clients.push({
+                        id,
+                        code,
+                        trade_name: tradeName,
+                        frist_name: fristName,
+                        phone,
+                        branch,
+                        category,
+                        created_at: created
+                    });
+                } catch (e) {
+                    console.warn('failed to gather client data', e);
+                }
+            });
+
+            exportClientsToExcel(clients, 'clients_export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        });
+
+        // Export single client from actions dropdown
+        document.addEventListener('click', function(e) {
+            const el = e.target.closest('.export-single-client');
+            if (!el) return;
+            e.preventDefault();
+            try {
+                const data = JSON.parse(el.getAttribute('data-client'));
+                exportClientsToExcel([data], 'client_' + (data.id || 'export') + '.xlsx');
+            } catch (err) {
+                console.error('Failed to export single client', err);
+                alert('حدث خطأ أثناء التصدير');
+            }
+        });
+    })();
+</script>

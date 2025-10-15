@@ -31,12 +31,9 @@
                 <i class="fas fa-file-excel text-primary"></i>
             </button>
 
-            <a href="{{ route('clients.create') }}"
-                class="btn btn-success d-flex align-items-center justify-content-center"
-                style="height: 44px; padding: 0 16px; font-weight: bold; border-radius: 6px;">
-                <i class="fas fa-plus ms-2"></i>
-                أضف العميل
-            </a>
+            <a href="{{ route('clients.create') }}" type="submit" class="btn btn-primary">
+                <i class="fas fa-add me-1"></i>
+                اضافة عميل            </a>
         </div>
     </div>
 </div>

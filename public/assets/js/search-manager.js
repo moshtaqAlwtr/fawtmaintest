@@ -111,6 +111,9 @@ class SearchManager {
                     $('#clientsContainer').html(response.html).addClass('fade-in');
                     this.updatePagination(response.pagination);
                     this.updatePerPageSelect(params.perPage || 50);
+
+                    // ✅ إعادة تشغيل الـ Charts بعد تحميل HTML الجديد
+                    this.reinitializeCharts();
                 }
             },
             error: (xhr) => {
@@ -123,6 +126,35 @@ class SearchManager {
                 setTimeout(() => $('#clientsContainer').removeClass('fade-in'), 300);
             }
         });
+    }
+
+    /**
+     * ✅ إعادة تهيئة الـ Charts بعد AJAX
+     */
+    reinitializeCharts() {
+        // الانتظار قليلاً للتأكد من تحميل العناصر في DOM
+        setTimeout(() => {
+            // البحث عن جميع canvas elements الخاصة بالـ Charts
+            const chartElements = document.querySelectorAll('canvas[id^="monthlyChart"]');
+
+            if (chartElements.length === 0) {
+                console.warn('لم يتم العثور على عناصر Charts');
+                return;
+            }
+
+            console.log(`تم العثور على ${chartElements.length} chart(s)، جاري إعادة التهيئة...`);
+
+            // إطلاق حدث مخصص لإعادة إنشاء الـ Charts
+            const event = new CustomEvent('reinitializeCharts', {
+                detail: { timestamp: Date.now() }
+            });
+            document.dispatchEvent(event);
+
+            // إذا كان هناك دالة عامة لإنشاء الـ Charts، استدعها
+            if (typeof window.initializeAllCharts === 'function') {
+                window.initializeAllCharts();
+            }
+        }, 150); // تأخير 150ms للتأكد من تحميل DOM
     }
 
     /**

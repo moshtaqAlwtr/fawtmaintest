@@ -22,6 +22,19 @@
                     <i class="fa fa-trash-alt me-2"></i>حذف
                 </a>
             @endif
+            <!-- Excel Export Option -->
+            <a class="dropdown-item export-single-client" href="#" data-client='@json([
+                "id" => $client->id,
+                "code" => $client->code,
+                "trade_name" => $client->trade_name,
+                "frist_name" => $client->frist_name,
+                "phone" => $client->phone,
+                "branch" => optional($client->branch)->name,
+                "category" => optional($client->categoriesClient)->name,
+                "created_at" => $client->created_at->format('Y-m-d'),
+            ], JSON_UNESCAPED_UNICODE)'>
+                <i class="fa fa-file-excel me-2 text-success"></i>تصدير اكسل
+            </a>
             <a class="dropdown-item" href="{{ route('clients.edit', $client->id) }}">
                 <i class="fa fa-file-invoice me-2 text-warning"></i>كشف حساب
             </a>

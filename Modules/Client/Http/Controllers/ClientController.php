@@ -127,6 +127,7 @@ class ClientController extends Controller
 
         return response()->json(['data' => $clients]);
     }
+
 private function applyFilters($baseQuery, $request)
 {
     if ($request->filled('client')) {
@@ -201,24 +202,52 @@ private function applyFilters($baseQuery, $request)
     }
 
     // فلترة حسب آخر نشاط (دفعة أو سند قبض)
-    if ($request->filled('last_activity_period')) {
-        $dates = $this->getPeriodDates($request->last_activity_period);
+   // فلترة حسب آخر نشاط فعلي (فاتورة أو دفعة أو سند قبض)
+if ($request->filled('last_activity_period')) {
+    $dates = $this->getPeriodDates($request->last_activity_period);
 
-        $baseQuery->where(function ($q) use ($dates) {
-            // دفعة من خلال الفواتير
-            $q->whereHas('invoices.payments', function ($query) use ($dates) {
-                $query->whereBetween('created_at', [$dates['start'], $dates['end']])
-                      ->where('type', 'client payments');
-            })
-            // سند قبض: نستخدم whereIn بدلاً من whereHas
-            ->orWhereIn('id', function ($subQuery) use ($dates) {
-                $subQuery->select('accounts.client_id')
-                    ->from('accounts')
-                    ->join('receipts', 'accounts.id', '=', 'receipts.account_id')
-                    ->whereBetween('receipts.created_at', [$dates['start'], $dates['end']]);
-            });
-        });
-    }
+    $baseQuery->whereIn('id', function ($subQuery) use ($dates) {
+        $subQuery->select('client_id')
+            ->from(function ($inner) {
+                $inner->select('invoices.client_id', 'invoices.invoice_date as date')
+                    ->from('invoices')
+
+                    // الدفعات من جدول payments_process
+                    ->unionAll(
+                        \DB::table('payments_process')
+                            ->join('invoices', 'payments_process.invoice_id', '=', 'invoices.id')
+                            ->select('invoices.client_id', 'payments_process.created_at as date')
+                    )
+
+                    // السندات
+                    ->unionAll(
+                        \DB::table('accounts')
+                            ->join('receipts', 'accounts.id', '=', 'receipts.account_id')
+                            ->select('accounts.client_id', 'receipts.created_at as date')
+                    );
+            }, 'activities')
+            ->whereRaw('activities.date = (
+                SELECT MAX(a2.date)
+                FROM (
+                    SELECT invoices.client_id, invoices.invoice_date as date
+                    FROM invoices
+
+                    UNION ALL
+                    SELECT invoices.client_id, payments_process.created_at as date
+                    FROM payments_process
+                    JOIN invoices ON payments_process.invoice_id = invoices.id
+
+                    UNION ALL
+                    SELECT accounts.client_id, receipts.created_at as date
+                    FROM accounts
+                    JOIN receipts ON accounts.id = receipts.account_id
+                ) as a2
+                WHERE a2.client_id = activities.client_id
+            )')
+            ->whereBetween('activities.date', [$dates['start'], $dates['end']]);
+    });
+}
+
 }
 
 // دالة مساعدة لحساب الفترات
