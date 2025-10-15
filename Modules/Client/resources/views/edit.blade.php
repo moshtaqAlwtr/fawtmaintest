@@ -1,4 +1,4 @@
-@extends('master')
+@extends('sales::master')
 
 @section('title')
     تعديل عميل
@@ -556,12 +556,13 @@
                                         <!-- المرفقات -->
                                         @foreach ($GeneralClientSettings as $GeneralClientSetting)
                                             @if ($GeneralClientSetting->is_active && $GeneralClientSetting->key == 'image')
-                                                 <div class="col-md-12">
-                        <label for="attachments" class="form-label">المرفقات</label>
-                        <input id="attachments" type="file" name="attachments" class="form-control"
-                            accept=".pdf,.jpg,.jpeg,.png">
-                        <small class="text-muted">يمكنك رفع ملف PDF أو صورة (الحد الأقصى 2 ميجابايت)</small>
-                    </div>
+                                                <div class="col-md-12">
+                                                    <label for="attachments" class="form-label">المرفقات</label>
+                                                    <input id="attachments" type="file" name="attachments"
+                                                        class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                                    <small class="text-muted">يمكنك رفع ملف PDF أو صورة (الحد الأقصى 2
+                                                        ميجابايت)</small>
+                                                </div>
                                             @endif
                                         @endforeach
 
@@ -571,7 +572,8 @@
                                         <div class="col-md-12 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="branch_id">الفرع <span class="text-danger">*</span></label>
-                                                <select class="form-control select2" name="branch_id" id="branch_id" required>
+                                                <select class="form-control select2" name="branch_id" id="branch_id"
+                                                    required>
                                                     <option value="">اختر الفرع</option>
                                                     @foreach ($branches as $branche)
                                                         <option value="{{ $branche->id }}"
@@ -583,14 +585,16 @@
                                             </div>
                                         </div>
 
-                                                                                   @if (auth()->user()->role === 'manager')
+                                        @if (auth()->user()->role === 'manager')
                                             <div class="col-md-12 col-12 mb-3">
                                                 <div class="form-group">
-                                                    <label for="employee_client_id" class="form-label">الموظفين المسؤولين</label>
+                                                    <label for="employee_client_id" class="form-label">الموظفين
+                                                        المسؤولين</label>
                                                     <select id="employee_select" class="form-control select2">
                                                         <option value="">اختر الموظف</option>
                                                         @foreach ($employees as $employee)
-                                                            <option value="{{ $employee->id }}" data-name="{{ $employee->full_name }}">
+                                                            <option value="{{ $employee->id }}"
+                                                                data-name="{{ $employee->full_name }}">
                                                                 {{ $employee->full_name }}
                                                             </option>
                                                         @endforeach
@@ -599,16 +603,20 @@
                                                     {{-- الحقل الحقيقي الذي يتم إرساله --}}
                                                     <div id="selected_employees">
                                                         @foreach ($client->employees as $assigned)
-                                                            <input type="hidden" name="employee_client_id[]" value="{{ $assigned->id }}">
+                                                            <input type="hidden" name="employee_client_id[]"
+                                                                value="{{ $assigned->id }}">
                                                         @endforeach
                                                     </div>
 
                                                     {{-- عرض الموظفين المسؤولين الحاليين --}}
                                                     <ul id="employee_list" class="mt-2 list-group">
                                                         @foreach ($client->employees as $assigned)
-                                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                            <li
+                                                                class="list-group-item d-flex justify-content-between align-items-center">
                                                                 {{ $assigned->full_name }}
-                                                                <button type="button" class="btn btn-sm btn-danger remove-employee" data-id="{{ $assigned->id }}">حذف</button>
+                                                                <button type="button"
+                                                                    class="btn btn-sm btn-danger remove-employee"
+                                                                    data-id="{{ $assigned->id }}">حذف</button>
                                                             </li>
                                                         @endforeach
                                                     </ul>

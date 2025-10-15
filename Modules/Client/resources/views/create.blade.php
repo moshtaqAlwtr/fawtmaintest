@@ -41,8 +41,8 @@
                                 <i class="fa fa-ban"></i> الغاء
                             </a>
                             <button type="submit" class="btn btn-outline-primary" id="submitBtn">
-                                <i class="fa fa-save"></i> حفظ
-                            </button>
+                            <i class="fa fa-save"></i> حفظ
+                        </button>
                         </div>
                     </div>
                 </div>
@@ -487,54 +487,52 @@
                                                         ميجابايت)</small>
                                                 </div>
                                             @endif
+                                        @endforeach
+                                        <div class="col-md-12 col-12 mb-3">
+                                            <div class="form-group">
+                                                <label for="branch_id">الفرع <span class="text-danger">*</span></label>
+                                                <select class="form-control" name="branch_id" id="branch_id" required>
+                                                    <option value="">اختر الفرع</option>
+                                                    @foreach ($branches as $branche)
+                                                        <option value="{{ $branche->id }}">
+                                                            {{ $branche->name ?? 'لا يوجد فروع' }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
 
+                                        <!-- الموظفين المسؤولين -->
+                                        @if (auth()->user()->role === 'manager')
                                             <div class="col-md-12 col-12 mb-3">
                                                 <div class="form-group">
-                                                    <label for="branch_id">الفرع <span
-                                                            class="text-danger">*</span></label>
-                                                    <select class="form-control" name="branch_id" id="branch_id"
-                                                        required>
-                                                        <option value="">اختر الفرع</option>
-                                                        @foreach ($branches as $branche)
-                                                            <option value="{{ $branche->id }}">
-                                                                {{ $branche->name ?? 'لا يوجد فروع' }}</option>
+                                                    <label for="employee_client_id" class="form-label">الموظفين
+                                                        المسؤولين</label>
+                                                    <select id="employee_select" class="form-control">
+                                                        <option value="">اختر الموظف</option>
+                                                        @foreach ($employees as $employee)
+                                                            <option value="{{ $employee->id }}"
+                                                                data-name="{{ $employee->full_name }}">
+                                                                {{ $employee->full_name }}
+                                                            </option>
                                                         @endforeach
                                                     </select>
+
+                                                    {{-- الحقل الحقيقي الذي سترسله للباك إند --}}
+                                                    <div id="selected_employees"></div>
+
+                                                    {{-- هنا سيظهر الموظفون المختارون --}}
+                                                    <ul id="employee_list" class="mt-2 list-group"></ul>
+
+
+
+
+                                                    @error('employee_client_id')
+                                                        <div class="invalid-feedback">{{ $message }}
+                                                        </div>
+                                                    @enderror
                                                 </div>
                                             </div>
-
-                                            <!-- الموظفين المسؤولين -->
-                                            @if (auth()->user()->role === 'manager')
-                                                <div class="col-md-12 col-12 mb-3">
-                                                    <div class="form-group">
-                                                        <label for="employee_client_id" class="form-label">الموظفين
-                                                            المسؤولين</label>
-                                                        <select id="employee_select" class="form-control">
-                                                            <option value="">اختر الموظف</option>
-                                                            @foreach ($employees as $employee)
-                                                                <option value="{{ $employee->id }}"
-                                                                    data-name="{{ $employee->full_name }}">
-                                                                    {{ $employee->full_name }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-
-                                                        {{-- الحقل الحقيقي الذي سترسله للباك إند --}}
-                                                        <div id="selected_employees"></div>
-
-                                                        {{-- هنا سيظهر الموظفون المختارون --}}
-                                                        <ul id="employee_list" class="mt-2 list-group"></ul>
-
-
-
-
-                                                        @error('employee_client_id')
-                                                            <div class="invalid-feedback">{{ $message }}
-                                                            </div>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            @endif
+                                        @endif
 
                                     </div>
                                 </div>

@@ -293,13 +293,13 @@
         }
 
         .btn-day-action.clear-day-btn {
-            background: #dc3545;
-            border-color: #dc3545;
+            background: #6c757d;
+            border-color: #6c757d;
         }
 
         .btn-day-action.clear-day-btn:hover {
-            background: #c82333;
-            border-color: #c82333;
+            background: #5a6268;
+            border-color: #545b62;
         }
 
         .day-assignment.drop-zone-active {
