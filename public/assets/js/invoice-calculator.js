@@ -763,47 +763,47 @@ checkPreselectedSupplier() {
     /**
      * إضافة صف جديد
      */
-    addNewRow() {
-        const table = document.querySelector('#items-table tbody');
-        const rowCount = table.children.length;
-        const firstRow = table.children[0];
+    // addNewRow() {
+    //     const table = document.querySelector('#items-table tbody');
+    //     const rowCount = table.children.length;
+    //     const firstRow = table.children[0];
 
-        if (!firstRow) return;
+    //     if (!firstRow) return;
 
-        const newRow = firstRow.cloneNode(true);
+    //     const newRow = firstRow.cloneNode(true);
 
-        // تحديث أسماء الحقول
-        newRow.querySelectorAll('input, select').forEach(input => {
-            if (input.name) {
-                input.name = input.name.replace(/\[\d+\]/, `[${rowCount}]`);
+    //     // تحديث أسماء الحقول
+    //     newRow.querySelectorAll('input, select').forEach(input => {
+    //         if (input.name) {
+    //             input.name = input.name.replace(/\[\d+\]/, `[${rowCount}]`);
 
-                // إعادة تعيين القيم
-                if (input.type !== 'hidden') {
-                    if (input.classList.contains('quantity')) {
-                        input.value = '1';
-                    } else if (input.type === 'number') {
-                        input.value = '0';
-                    } else {
-                        input.value = '';
-                    }
-                }
-            }
-        });
+    //             // إعادة تعيين القيم
+    //             if (input.type !== 'hidden') {
+    //                 if (input.classList.contains('quantity')) {
+    //                     input.value = '1';
+    //                 } else if (input.type === 'number') {
+    //                     input.value = '0';
+    //                 } else {
+    //                     input.value = '';
+    //                 }
+    //             }
+    //         }
+    //     });
 
-        // إعادة تهيئة Select2 إذا كان متوفراً
-        const select2Elements = newRow.querySelectorAll('.select2');
-        select2Elements.forEach(element => {
-            if (typeof $ !== 'undefined' && $.fn.select2) {
-                $(element).removeClass('select2-hidden-accessible').next().remove().end().select2();
-            }
-        });
+    //     // إعادة تهيئة Select2 إذا كان متوفراً
+    //     const select2Elements = newRow.querySelectorAll('.select2');
+    //     select2Elements.forEach(element => {
+    //         if (typeof $ !== 'undefined' && $.fn.select2) {
+    //             $(element).removeClass('select2-hidden-accessible').next().remove().end().select2();
+    //         }
+    //     });
 
-        table.appendChild(newRow);
-        this.setupNumberInputs(); // إعادة تهيئة حقول الأرقام للصف الجديد
-        this.calculateTotals();
+    //     table.appendChild(newRow);
+    //     this.setupNumberInputs(); // إعادة تهيئة حقول الأرقام للصف الجديد
+    //     this.calculateTotals();
 
-        this.showNotification('تم إضافة صف جديد', 'success');
-    }
+    //     this.showNotification('تم إضافة صف جديد', 'success');
+    // }
 
     /**
      * حذف صف
