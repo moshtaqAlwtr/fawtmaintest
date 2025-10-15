@@ -86,7 +86,7 @@
         border-radius: 8px;
         box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
     }
-    .filter-bar .btn-outline-secondary {
+    .filter-bar .btn {
         border-radius: 8px;
         box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
     }
@@ -117,66 +117,68 @@
         border-radius: 15px;
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         margin-top: 30px;
-        text-align: center;
     }
 
     .pagination-wrapper {
         display: flex;
-        justify-content: center;
+        justify-content: space-between;
         align-items: center;
-        gap: 10px;
         flex-wrap: wrap;
+        gap: 15px;
     }
 
-    .pagination-btn {
-        background: linear-gradient(145deg, #f8f9fa, #e9ecef);
-        border: 2px solid #dee2e6;
-        border-radius: 12px;
-        width: 50px;
-        height: 50px;
+    .pagination-info {
+        color: #6c757d;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .pagination {
+        margin: 0;
+        display: flex;
+        gap: 5px;
+    }
+
+    .page-item {
+        list-style: none;
+    }
+
+    .page-link {
         display: flex;
         align-items: center;
         justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 18px;
+        width: 40px;
+        height: 40px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
         color: #495057;
-        position: relative;
-        overflow: hidden;
+        background: #fff;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
     }
 
-    .pagination-btn:hover:not(.disabled) {
-        background: linear-gradient(145deg, #28a745, #20c997);
+    .page-link:hover:not(.disabled) {
+        background: #28a745;
         border-color: #28a745;
         color: white;
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
     }
 
-    .pagination-btn.active {
-        background: linear-gradient(145deg, #007bff, #0056b3);
+    .page-item.active .page-link {
+        background: #007bff;
         border-color: #007bff;
         color: white;
-        box-shadow: 0 6px 15px rgba(0, 123, 255, 0.4);
+        font-weight: bold;
     }
 
-    .pagination-btn.disabled {
+    .page-item.disabled .page-link {
         background: #f8f9fa;
         border-color: #e9ecef;
         color: #6c757d;
         cursor: not-allowed;
         opacity: 0.6;
-    }
-
-    .pagination-info {
-        background: linear-gradient(145deg, #e3f2fd, #bbdefb);
-        padding: 12px 20px;
-        border-radius: 25px;
-        margin: 0 15px;
-        font-weight: 600;
-        color: #1976d2;
-        font-size: 14px;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     /* Animation for new content */
@@ -189,46 +191,43 @@
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* RTL Support */
-    .pagination-wrapper {
-        direction: ltr;
+    /* Date Inputs */
+    .date-filter-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .date-filter-group label {
+        margin: 0;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .date-filter-group input {
+        max-width: 200px;
     }
 
     /* Responsive Design */
     @media (max-width: 768px) {
-        .pagination-btn {
-            width: 40px;
-            height: 40px;
-            font-size: 14px;
-        }
-        .pagination-info {
-            margin: 10px 0;
-            font-size: 12px;
-        }
         .pagination-wrapper {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .filter-bar {
             flex-direction: column;
             gap: 15px;
         }
-    }
 
-    /* Tooltip for pagination buttons */
-    .pagination-btn[data-tooltip] {
-        position: relative;
-    }
+        .date-filter-group {
+            flex-direction: column;
+            width: 100%;
+        }
 
-    .pagination-btn[data-tooltip]:hover::after {
-        content: attr(data-tooltip);
-        position: absolute;
-        bottom: -35px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.8);
-        color: white;
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 12px;
-        white-space: nowrap;
-        z-index: 1000;
+        .date-filter-group input {
+            max-width: 100%;
+        }
     }
 </style>
 @endsection
@@ -251,21 +250,33 @@
 </div>
 
 <div class="card">
-    <div class="card">
-        <div class="container">
+    <div class="card-body">
+        <div class="container-fluid">
             <div class="row mt-4">
                 <div class="col-12">
-                    <!-- شريط التصفية -->
-                    <div class="filter-bar d-flex justify-content-between align-items-center">
-                        <div>
-                            <button class="btn btn-outline-secondary"><i class="fas fa-th"></i></button>
-                            <button class="btn btn-outline-secondary"><i class="fas fa-list"></i></button>
-                        </div>
-                        <div class="d-flex">
-                            <form id="searchForm" class="d-flex">
-                                <input type="text" id="searchInput" class="form-control me-2" placeholder="ابحث في الأحداث...">
+                    <!-- شريط التصفية والبحث -->
+                    <div class="filter-bar">
+                        <div class="row">
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                <input type="text" id="searchInput" class="form-control" placeholder="ابحث في الأحداث...">
+                            </div>
+                            <div class="col-md-8">
+                                <div class="date-filter-group">
+                                    <label>من تاريخ:</label>
+                                    <input type="date" id="fromDate" class="form-control">
 
-                            </form>
+                                    <label>إلى تاريخ:</label>
+                                    <input type="date" id="toDate" class="form-control">
+
+                                    <button class="btn btn-primary" id="filterBtn">
+                                        <i class="fas fa-filter"></i> تصفية
+                                    </button>
+
+                                    <button class="btn btn-secondary" id="resetBtn">
+                                        <i class="fas fa-redo"></i> إعادة تعيين
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -274,7 +285,7 @@
                         <div class="spinner-border text-primary" role="status">
                             <span class="sr-only"></span>
                         </div>
-
+                        <p class="mt-2">جاري التحميل...</p>
                     </div>
 
                     <!-- محتوى السجلات -->
@@ -285,23 +296,14 @@
                     <!-- Pagination -->
                     <div class="pagination-container" id="paginationContainer" style="display: none;">
                         <div class="pagination-wrapper">
-                            <button class="pagination-btn" id="firstBtn" data-tooltip="الصفحة الأولى">
-                                <i class="fas fa-angle-double-right"></i>
-                            </button>
-                            <button class="pagination-btn" id="prevBtn" data-tooltip="الصفحة السابقة">
-                                <i class="fas fa-angle-right"></i>
-                            </button>
-
                             <div class="pagination-info" id="paginationInfo">
-                                صفحة 1 من 1
+                                عرض 1 إلى 50 من 100 نتيجة
                             </div>
-
-                            <button class="pagination-btn" id="nextBtn" data-tooltip="الصفحة التالية">
-                                <i class="fas fa-angle-left"></i>
-                            </button>
-                            <button class="pagination-btn" id="lastBtn" data-tooltip="الصفحة الأخيرة">
-                                <i class="fas fa-angle-double-left"></i>
-                            </button>
+                            <nav aria-label="صفحات النتائج">
+                                <ul class="pagination mb-0" id="paginationList">
+                                    <!-- سيتم إنشاء أزرار Pagination هنا -->
+                                </ul>
+                            </nav>
                         </div>
                     </div>
                 </div>
@@ -317,20 +319,14 @@ $(document).ready(function() {
     let currentPage = 1;
     let totalPages = 1;
     let currentSearch = '';
+    let fromDate = '';
+    let toDate = '';
     let isLoading = false;
 
     // تحميل البيانات الأولية
     loadLogs();
 
-    // البحث
-    $('#searchForm').on('submit', function(e) {
-        e.preventDefault();
-        currentSearch = $('#searchInput').val();
-        currentPage = 1;
-        loadLogs();
-    });
-
-    // البحث المباشر أثناء الكتابة (مع تأخير)
+    // البحث المباشر أثناء الكتابة
     let searchTimeout;
     $('#searchInput').on('input', function() {
         clearTimeout(searchTimeout);
@@ -341,32 +337,35 @@ $(document).ready(function() {
         }, 500);
     });
 
-    // أزرار التنقل
-    $('#firstBtn').on('click', function() {
-        if (currentPage > 1) {
-            currentPage = 1;
-            loadLogs();
-        }
+    // زر التصفية
+    $('#filterBtn').on('click', function() {
+        fromDate = $('#fromDate').val();
+        toDate = $('#toDate').val();
+        currentPage = 1;
+        loadLogs();
     });
 
-    $('#prevBtn').on('click', function() {
-        if (currentPage > 1) {
-            currentPage--;
-            loadLogs();
-        }
+    // زر إعادة التعيين
+    $('#resetBtn').on('click', function() {
+        $('#searchInput').val('');
+        $('#fromDate').val('');
+        $('#toDate').val('');
+        currentSearch = '';
+        fromDate = '';
+        toDate = '';
+        currentPage = 1;
+        loadLogs();
     });
 
-    $('#nextBtn').on('click', function() {
-        if (currentPage < totalPages) {
-            currentPage++;
+    // التعامل مع النقر على أزرار Pagination
+    $(document).on('click', '.page-link', function(e) {
+        e.preventDefault();
+        const page = $(this).data('page');
+        if (page && page !== currentPage) {
+            currentPage = page;
             loadLogs();
-        }
-    });
-
-    $('#lastBtn').on('click', function() {
-        if (currentPage < totalPages) {
-            currentPage = totalPages;
-            loadLogs();
+            // التمرير للأعلى
+            $('html, body').animate({ scrollTop: $('#logsContent').offset().top - 100 }, 500);
         }
     });
 
@@ -381,7 +380,9 @@ $(document).ready(function() {
             method: 'GET',
             data: {
                 page: currentPage,
-                search: currentSearch
+                search: currentSearch,
+                from_date: fromDate,
+                to_date: toDate
             },
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -423,7 +424,6 @@ $(document).ready(function() {
                 const currentDate = new Date(date);
                 const dayLogs = logs[date];
 
-                // إضافة تاريخ إذا كان هناك فجوة كبيرة
                 if (previousDate) {
                     const diffInDays = Math.abs((currentDate - previousDate) / (1000 * 60 * 60 * 24));
                     if (diffInDays > 7) {
@@ -433,7 +433,7 @@ $(document).ready(function() {
                     }
                 }
 
-                html += `<div class="timeline-day fade-in">${getDayName(currentDate)}</div>`;
+                html += `<div class="timeline-day fade-in">${getDayName(currentDate)} - ${formatDate(currentDate)}</div>`;
                 html += '<ul class="timeline fade-in">';
 
                 dayLogs.forEach(function(log) {
@@ -452,7 +452,7 @@ $(document).ready(function() {
                                     <div>
                                         <strong>${userName}</strong>
                                         <div>${parseMarkdown(description)}</div>
-                                        <div class="text-muted">${branchName}</div>
+                                        <div class="text-muted"><i class="fas fa-building"></i> ${branchName}</div>
                                     </div>
                                 </div>
                             </li>
@@ -473,11 +473,90 @@ $(document).ready(function() {
         totalPages = pagination.last_page;
 
         // تحديث معلومات التصفح
-        $('#paginationInfo').text(`صفحة ${currentPage} من ${totalPages} (${pagination.total} سجل)`);
+        const from = pagination.from || 0;
+        const to = pagination.to || 0;
+        const total = pagination.total || 0;
+        $('#paginationInfo').text(`عرض ${from} إلى ${to} من ${total} نتيجة`);
 
-        // تحديث حالة الأزرار
-        $('#firstBtn, #prevBtn').toggleClass('disabled', !pagination.has_previous_pages);
-        $('#nextBtn, #lastBtn').toggleClass('disabled', !pagination.has_more_pages);
+        // إنشاء أزرار Pagination
+        let paginationHtml = '';
+
+        // زر الصفحة الأولى
+        if (pagination.has_previous_pages) {
+            paginationHtml += `
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="1" aria-label="الأول">
+                        <i class="fa fa-angle-double-right"></i>
+                    </a>
+                </li>
+            `;
+        } else {
+            paginationHtml += `
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="fa fa-angle-double-right"></i></span>
+                </li>
+            `;
+        }
+
+        // زر الصفحة السابقة
+        if (pagination.has_previous_pages) {
+            paginationHtml += `
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="السابق">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                </li>
+            `;
+        } else {
+            paginationHtml += `
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="fa fa-angle-right"></i></span>
+                </li>
+            `;
+        }
+
+        // رقم الصفحة الحالية
+        paginationHtml += `
+            <li class="page-item active">
+                <span class="page-link">${currentPage}</span>
+            </li>
+        `;
+
+        // زر الصفحة التالية
+        if (pagination.has_more_pages) {
+            paginationHtml += `
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="التالي">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                </li>
+            `;
+        } else {
+            paginationHtml += `
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="fa fa-angle-left"></i></span>
+                </li>
+            `;
+        }
+
+        // زر الصفحة الأخيرة
+        if (pagination.has_more_pages) {
+            paginationHtml += `
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="${totalPages}" aria-label="الأخير">
+                        <i class="fa fa-angle-double-left"></i>
+                    </a>
+                </li>
+            `;
+        } else {
+            paginationHtml += `
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="fa fa-angle-double-left"></i></span>
+                </li>
+            `;
+        }
+
+        $('#paginationList').html(paginationHtml);
 
         // إظهار/إخفاء التصفح
         $('#paginationContainer').toggle(totalPages > 1);
@@ -520,8 +599,7 @@ $(document).ready(function() {
         return date.toLocaleTimeString('ar-SA', {
             hour: '2-digit',
             minute: '2-digit',
-            second: '2-digit',
-            hour12: false
+            hour12: true
         });
     }
 
@@ -531,7 +609,6 @@ $(document).ready(function() {
     }
 
     function parseMarkdown(text) {
-        // تحويل Markdown بسيط إلى HTML
         return text
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')

@@ -150,7 +150,7 @@ Route::group(
                 Route::get('/{client}/details', [ClientController::class, 'getClientDetails'])->name('clients.details');
                 Route::get('/{client}/invoices', [ClientController::class, 'getClientInvoices'])->name('clients.invoices');
                 Route::get('/{client}/notes', [ClientController::class, 'getClientNotes'])->name('clients.notes');
-
+ Route::get('/notes/pdf', [ClientController::class, 'generateNotesPdf'])->name('clients.notes.pdf');
                 Route::get('/clients/select', [ClientController::class, 'getClientsForSelect'])->name('clients.getForSelect');
                 Route::get('/clients/ajax', [ClientController::class, 'ajaxIndex'])->name('clients.ajax');
                 Route::post('/clients/update-credit-limit', [ClientController::class, 'updateCreditLimit'])->name('clients.update_credit_limit');
@@ -169,6 +169,7 @@ Route::group(
                 // إعدادات العميل
                 Route::get('/setting', [ClientSettingController::class, 'setting'])->name('clients.setting');
                 Route::get('/general/settings', [ClientSettingController::class, 'general'])->name('clients.general');
+
                 Route::post('/general/settings', [ClientSettingController::class, 'store'])->name('clients.store_general');
                 Route::get('/status/clients', [ClientSettingController::class, 'status'])->name('clients.status');
                 Route::post('/status/store', [ClientSettingController::class, 'storeStatus'])->name('clients.status.store');

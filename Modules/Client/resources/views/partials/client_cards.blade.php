@@ -1,10 +1,6 @@
 <!-- تحديث ملف: resources/views/client/partials/client_cards.blade.php -->
 @if (isset($clients) && $clients->count() > 0)
-    <div class="d-flex mb-3 justify-content-end">
-        <button id="exportAllClientsBtn" class="btn btn-success btn-sm">
-            <i class="fa fa-file-excel"></i> تصدير اكسل
-        </button>
-    </div>
+
     <div class="row g-4">
         @foreach ($clients as $client)
             @php
@@ -141,7 +137,27 @@
                             </div>
                             <div class="contact-item">
                                 <i class="fas fa-tags"></i>
-                                <span>{{ optional($client->categoriesClient)->name ?: 'غير مصنف' }}</span>
+                                @php
+                                    // تحديد لون التصنيف بناءً على تصنيف العميل
+                                    $categoryClass = '';
+                                    switch ($monthlyGroup) {
+                                        case 'A':
+                                            $categoryClass = 'category-a';
+                                            break;
+                                        case 'B':
+                                            $categoryClass = 'category-b';
+                                            break;
+                                        case 'C':
+                                            $categoryClass = 'category-c';
+                                            break;
+                                        case 'D':
+                                            $categoryClass = 'category-d';
+                                            break;
+                                        default:
+                                            $categoryClass = 'category-default';
+                                    }
+                                @endphp
+                                <span class="category-badge {{ $categoryClass }}">{{ optional($client->categoriesClient)->name ?: 'غير مصنف' }}</span>
                             </div>
                             <div class="contact-item">
                                 <i class="fas fa-building"></i>
@@ -238,6 +254,30 @@
                     <div class="classification-section-large">
                         <div class="classification-header">
                             <h4>التصنيف الشهري {{ now()->year }}</h4>
+
+                            <!-- دليل الألوان المحسّن -->
+                            <div class="color-legend">
+                                <div class="legend-item" data-bs-toggle="tooltip" data-bs-placement="top"
+                                     title="<strong>أكثر من 1000 ريال</strong><br>تحصيلات ممتازة">
+                                    <span class="legend-dot legend-gray"></span>
+                                    <span class="legend-label">+1000</span>
+                                </div>
+                                <div class="legend-item" data-bs-toggle="tooltip" data-bs-placement="top"
+                                     title="<strong>500 - 1000 ريال</strong><br>تحصيلات جيدة">
+                                    <span class="legend-dot legend-blue"></span>
+                                    <span class="legend-label">500-1000</span>
+                                </div>
+                                <div class="legend-item" data-bs-toggle="tooltip" data-bs-placement="top"
+                                     title="<strong>200 - 500 ريال</strong><br>تحصيلات متوسطة">
+                                    <span class="legend-dot legend-green"></span>
+                                    <span class="legend-label">200-500</span>
+                                </div>
+                                <div class="legend-item" data-bs-toggle="tooltip" data-bs-placement="top"
+                                     title="<strong>0 - 200 ريال</strong><br>تحصيلات ضعيفة">
+                                    <span class="legend-dot legend-orange"></span>
+                                    <span class="legend-label">0-200</span>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- الرسم البياني الكبير -->
@@ -395,6 +435,51 @@
             font-size: 12px;
         }
 
+        /* أنماط تصنيف الفئات - النظام الجديد */
+        .category-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            background: #9e9e9e;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* A: رمادي فاتح (أكثر من 1000 ريال) */
+        .category-a {
+            background: rgba(189, 189, 189, 0.9);
+            border: 1px solid rgba(158, 158, 158, 1);
+            color: #fff;
+        }
+
+        /* B: أزرق/سماوي (500-1000 ريال) */
+        .category-b {
+            background: rgba(33, 150, 243, 0.9);
+            border: 1px solid rgba(33, 150, 243, 1);
+            color: #fff;
+        }
+
+        /* C: أخضر (200-500 ريال) */
+        .category-c {
+            background: rgba(76, 175, 80, 0.9);
+            border: 1px solid rgba(76, 175, 80, 1);
+            color: #fff;
+        }
+
+        /* D: برتقالي (0-200 ريال) */
+        .category-d {
+            background: rgba(255, 152, 0, 0.9);
+            border: 1px solid rgba(255, 152, 0, 1);
+            color: #fff;
+        }
+
+        .category-default {
+            background: #9e9e9e;
+            border: 1px solid #757575;
+        }
+
         .location-section {
             display: grid;
             grid-template-columns: 1fr auto;
@@ -464,7 +549,7 @@
             margin: 0 16px;
         }
 
-        /* Classification Section الكبير بدون الكاردات */
+        /* Classification Section الكبير */
         .classification-section-large {
             padding: 30px 24px;
             background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
@@ -479,9 +564,112 @@
             font-size: 16px;
             color: #2c3e50;
             font-weight: 700;
-            margin: 0;
+            margin: 0 0 18px 0;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+
+        /* دليل الألوان المحسّن - النظام الجديد */
+        .color-legend {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            cursor: help;
+            transition: all 0.3s ease;
+            padding: 6px 10px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .legend-item:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2.5px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .legend-item:hover .legend-dot {
+            transform: scale(1.4);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+        }
+
+        /* ألوان التصنيفات - حسب المبلغ مباشرة */
+
+        /* رمادي فاتح (أكثر من 1000 ريال) */
+        .legend-gray {
+            background: rgba(189, 189, 189, 0.8);
+            border-color: rgba(158, 158, 158, 1);
+            box-shadow: 0 0 6px rgba(158, 158, 158, 0.3);
+        }
+
+        .legend-item:hover .legend-gray {
+            background: rgba(189, 189, 189, 0.95);
+            box-shadow: 0 0 10px rgba(158, 158, 158, 0.5);
+        }
+
+        /* أزرق/سماوي (500-1000 ريال) */
+        .legend-blue {
+            background: rgba(33, 150, 243, 0.8);
+            border-color: rgba(33, 150, 243, 1);
+            box-shadow: 0 0 6px rgba(33, 150, 243, 0.3);
+        }
+
+        .legend-item:hover .legend-blue {
+            background: rgba(33, 150, 243, 0.95);
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+        }
+
+        /* أخضر (200-500 ريال) */
+        .legend-green {
+            background: rgba(76, 175, 80, 0.8);
+            border-color: rgba(76, 175, 80, 1);
+            box-shadow: 0 0 6px rgba(76, 175, 80, 0.3);
+        }
+
+        .legend-item:hover .legend-green {
+            background: rgba(76, 175, 80, 0.95);
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+        }
+
+        /* برتقالي (0-200 ريال) */
+        .legend-orange {
+            background: rgba(255, 152, 0, 0.8);
+            border-color: rgba(255, 152, 0, 1);
+            box-shadow: 0 0 6px rgba(255, 152, 0, 0.3);
+        }
+
+        .legend-item:hover .legend-orange {
+            background: rgba(255, 152, 0, 0.95);
+            box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+        }
+
+        .legend-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #2c3e50;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
 
         .chart-container-large {
@@ -518,6 +706,19 @@
             .classification-section-large {
                 padding: 20px 16px;
             }
+
+            .color-legend {
+                gap: 12px;
+            }
+
+            .legend-item {
+                padding: 5px 8px;
+            }
+
+            .legend-dot {
+                width: 12px;
+                height: 12px;
+            }
         }
     </style>
 @else
@@ -547,31 +748,27 @@
                 $chartLabels[] = $monthName;
                 $chartData[] = $totalCollected;
 
-                switch ($group) {
-                    case 'A':
-                        $chartColors[] = 'rgba(33, 150, 243, 0.7)';
-                        $chartBorderColors[] = 'rgba(33, 150, 243, 1)';
-                        break;
-                    case 'B':
-                        $chartColors[] = 'rgba(76, 175, 80, 0.7)';
-                        $chartBorderColors[] = 'rgba(76, 175, 80, 1)';
-                        break;
-                    case 'C':
-                        $chartColors[] = 'rgba(255, 152, 0, 0.7)';
-                        $chartBorderColors[] = 'rgba(255, 152, 0, 1)';
-                        break;
-                    case 'D':
-                        $chartColors[] = 'rgba(244, 67, 54, 0.7)';
-                        $chartBorderColors[] = 'rgba(244, 67, 54, 1)';
-                        break;
-                    default:
-                        $chartColors[] = 'rgba(158, 158, 158, 0.7)';
-                        $chartBorderColors[] = 'rgba(158, 158, 158, 1)';
+                // تحديد اللون حسب قيمة المبلغ مباشرة
+                if ($totalCollected >= 1000) {
+                    // رمادي فاتح (أكثر من 1000)
+                    $chartColors[] = 'rgba(189, 189, 189, 0.7)';
+                    $chartBorderColors[] = 'rgba(158, 158, 158, 1)';
+                } elseif ($totalCollected >= 500) {
+                    // أزرق سماوي (500-1000)
+                    $chartColors[] = 'rgba(33, 150, 243, 0.7)';
+                    $chartBorderColors[] = 'rgba(33, 150, 243, 1)';
+                } elseif ($totalCollected >= 200) {
+                    // أخضر (200-500)
+                    $chartColors[] = 'rgba(76, 175, 80, 0.7)';
+                    $chartBorderColors[] = 'rgba(76, 175, 80, 1)';
+                } else {
+                    // برتقالي (0-200)
+                    $chartColors[] = 'rgba(255, 152, 0, 0.7)';
+                    $chartBorderColors[] = 'rgba(255, 152, 0, 1)';
                 }
             }
         }
 
-        // Prepare chart configuration (بدون الدوال - سنضيفها في JavaScript)
         $chartConfig = [
             'type' => 'bar',
             'data' => [
@@ -609,7 +806,7 @@
                         ],
                         'rtl' => true,
                         'displayColors' => true,
-                        'callbacks' => [], // سيتم إضافة الدوال في JavaScript
+                        'callbacks' => [],
                     ],
                     'datalabels' => [
                         'anchor' => 'end',
@@ -625,7 +822,7 @@
                 'scales' => [
                     'y' => [
                         'min' => 0,
-                        'max' => 1000,
+                        'max' => 1200,
                         'ticks' => [
                             'stepSize' => 100,
                             'font' => [
@@ -657,35 +854,28 @@
         ];
     @endphp
 
-    <!-- Hidden chart data for client {{ $client->id }} -->
     <div id="chartData{{ $client->id }}" style="display: none;">{!! json_encode($chartConfig) !!}</div>
 @endforeach
 
 <script>
-    // Function to create charts for all clients
     function createCharts() {
-        // Destroy existing charts first to prevent duplication
         if (typeof window.clientCharts === 'undefined') {
             window.clientCharts = {};
         }
 
-        // Loop through all chart elements
         document.querySelectorAll('canvas[id^="monthlyChart"]').forEach(canvas => {
             const clientId = canvas.id.replace('monthlyChart', '');
 
-            // Destroy existing chart if it exists
             if (window.clientCharts[clientId]) {
                 window.clientCharts[clientId].destroy();
             }
 
-            // Get chart data from data attributes
             const chartDataElement = document.getElementById('chartData' + clientId);
             if (chartDataElement) {
                 try {
                     const chartConfig = JSON.parse(chartDataElement.textContent);
                     const ctx = canvas.getContext('2d');
 
-                    // إصلاح callback functions للـ tooltip
                     chartConfig.options.plugins.tooltip.callbacks = {
                         title: function(context) {
                             return context[0].label;
@@ -696,7 +886,6 @@
                         }
                     };
 
-                    // إصلاح formatter للـ datalabels
                     chartConfig.options.plugins.datalabels.formatter = function(value) {
                         if (value === 0) return '';
                         if (value >= 1000) {
@@ -705,12 +894,10 @@
                         return value.toLocaleString('ar-SA');
                     };
 
-                    // إصلاح color function للـ datalabels
                     chartConfig.options.plugins.datalabels.color = function(context) {
                         return context.dataset.borderColor[context.dataIndex];
                     };
 
-                    // إصلاح callback للـ y-axis
                     chartConfig.options.scales.y.ticks.callback = function(value) {
                         return value.toLocaleString('ar-SA');
                     };
@@ -723,12 +910,18 @@
         });
     }
 
-    // Initialize charts when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
         createCharts();
+
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl, {
+                trigger: 'hover',
+                html: true
+            });
+        });
     });
 
-    // Reinitialize charts after AJAX calls
     document.addEventListener('reinitializeCharts', function() {
         setTimeout(function() {
             createCharts();
@@ -748,7 +941,6 @@
     });
 </script>
 
-<!-- SheetJS (xlsx) CDN for client-side Excel export -->
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 <script>
     (function() {
@@ -776,7 +968,6 @@
                 return;
             }
 
-            // Normalize data keys / order
             const cols = ['id', 'code', 'trade_name', 'frist_name', 'phone', 'branch', 'category', 'created_at'];
             const data = [cols];
             clientsArray.forEach(c => {
@@ -790,7 +981,6 @@
             downloadWorkbook(wb, filename);
         }
 
-        // Export all visible clients
         document.getElementById('exportAllClientsBtn')?.addEventListener('click', function() {
             const clients = [];
             document.querySelectorAll('.client-card').forEach(card => {
@@ -822,7 +1012,6 @@
             exportClientsToExcel(clients, 'clients_export_' + new Date().toISOString().slice(0, 10) + '.xlsx');
         });
 
-        // Export single client from actions dropdown
         document.addEventListener('click', function(e) {
             const el = e.target.closest('.export-single-client');
             if (!el) return;

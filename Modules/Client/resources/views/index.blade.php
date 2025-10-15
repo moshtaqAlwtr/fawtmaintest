@@ -59,7 +59,7 @@
 
                 <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
                     <!-- شريط الترقيم -->
-                    @include('client::partials.pagination_controls')
+
 
                     <!-- اختيار عدد العملاء -->
                     @include('client::partials.per_page_selector')
@@ -67,6 +67,9 @@
 
                 <div id="clientsContainer">
                     @include('client::partials.client_cards')
+                </div>
+                <div id="paginationControls">
+                    @include('client::partials.pagination_controls')
                 </div>
             </div>
         </div>
