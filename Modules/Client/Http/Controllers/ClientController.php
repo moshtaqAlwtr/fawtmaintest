@@ -57,11 +57,10 @@ use Carbon\Carbon;
 use GuzzleHttp\Psr7\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Client\Http\Requests\ClientRequest;
+use TCPDF;
 
 // PDF Generation
-use Dompdf\Dompdf;
-use Dompdf\Options;
-use TCPDF;
+
 
 class ClientController extends Controller
 {
@@ -127,6 +126,7 @@ class ClientController extends Controller
 
         return response()->json(['data' => $clients]);
     }
+
 private function applyFilters($baseQuery, $request)
 {
     if ($request->filled('client')) {
@@ -201,24 +201,52 @@ private function applyFilters($baseQuery, $request)
     }
 
     // فلترة حسب آخر نشاط (دفعة أو سند قبض)
-    if ($request->filled('last_activity_period')) {
-        $dates = $this->getPeriodDates($request->last_activity_period);
+   // فلترة حسب آخر نشاط فعلي (فاتورة أو دفعة أو سند قبض)
+if ($request->filled('last_activity_period')) {
+    $dates = $this->getPeriodDates($request->last_activity_period);
 
-        $baseQuery->where(function ($q) use ($dates) {
-            // دفعة من خلال الفواتير
-            $q->whereHas('invoices.payments', function ($query) use ($dates) {
-                $query->whereBetween('created_at', [$dates['start'], $dates['end']])
-                      ->where('type', 'client payments');
-            })
-            // سند قبض: نستخدم whereIn بدلاً من whereHas
-            ->orWhereIn('id', function ($subQuery) use ($dates) {
-                $subQuery->select('accounts.client_id')
-                    ->from('accounts')
-                    ->join('receipts', 'accounts.id', '=', 'receipts.account_id')
-                    ->whereBetween('receipts.created_at', [$dates['start'], $dates['end']]);
-            });
-        });
-    }
+    $baseQuery->whereIn('id', function ($subQuery) use ($dates) {
+        $subQuery->select('client_id')
+            ->from(function ($inner) {
+                $inner->select('invoices.client_id', 'invoices.invoice_date as date')
+                    ->from('invoices')
+
+                    // الدفعات من جدول payments_process
+                    ->unionAll(
+                        \DB::table('payments_process')
+                            ->join('invoices', 'payments_process.invoice_id', '=', 'invoices.id')
+                            ->select('invoices.client_id', 'payments_process.created_at as date')
+                    )
+
+                    // السندات
+                    ->unionAll(
+                        \DB::table('accounts')
+                            ->join('receipts', 'accounts.id', '=', 'receipts.account_id')
+                            ->select('accounts.client_id', 'receipts.created_at as date')
+                    );
+            }, 'activities')
+            ->whereRaw('activities.date = (
+                SELECT MAX(a2.date)
+                FROM (
+                    SELECT invoices.client_id, invoices.invoice_date as date
+                    FROM invoices
+
+                    UNION ALL
+                    SELECT invoices.client_id, payments_process.created_at as date
+                    FROM payments_process
+                    JOIN invoices ON payments_process.invoice_id = invoices.id
+
+                    UNION ALL
+                    SELECT accounts.client_id, receipts.created_at as date
+                    FROM accounts
+                    JOIN receipts ON accounts.id = receipts.account_id
+                ) as a2
+                WHERE a2.client_id = activities.client_id
+            )')
+            ->whereBetween('activities.date', [$dates['start'], $dates['end']]);
+    });
+}
+
 }
 
 // دالة مساعدة لحساب الفترات
@@ -2097,6 +2125,42 @@ public function completeVisit(Request $request, $visitId)
     $filename = 'ملاحظات_العميل_' . $client->code . '.pdf';
     return $pdf->Output($filename, 'I');
 }
+
+
+public function exportAllClients()
+{
+    // جلب جميع العملاء مع العلاقات الأساسية المهمة للتصدير
+    $clients = \App\Models\Client::with([
+        'branch',
+        'categoriesClient',
+        'status_client',
+    ])->get();
+
+    // تجهيز البيانات بصيغة منظمة للتصدير
+    $data = $clients->map(function ($client) {
+        return [
+            'id' => $client->id,
+            'code' => $client->code ?? '-',
+            'trade_name' => $client->trade_name ?? '-',
+            'first_name' => trim(($client->first_name ?? '') . ' ' . ($client->last_name ?? '')),
+            'phone' => $client->phone ?? '-',
+            'category' => $client->categoriesClient->name ?? $client->category ?? '-',
+            'branch' => $client->branch->name ?? '-',
+            'status' => $client->status_client->name ?? 'نشط',
+            'distance' => $client->locations->map_url ?? '-',
+            'created_at' => optional($client->created_at)->format('Y-m-d'),
+            'last_invoice' => optional($client->invoices()->latest('invoice_date')->first())->invoice_date ?? '-',
+
+            'balance' => number_format($client->Balance(), 2),
+            'credit_limit' => $client->credit_limit ?? '-',
+            'credit_period' => $client->credit_period ?? '-',
+            'address' => $client->formatted_address ?? '-',
+        ];
+    });
+
+    return response()->json($data);
+}
+
 
     public function updateStatus(Request $request, $id)
     {

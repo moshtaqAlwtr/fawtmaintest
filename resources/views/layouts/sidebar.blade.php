@@ -280,7 +280,7 @@
                                     </a>
                                 </li>
                             @endcan
-                            
+
                             <!-- رابط تبريرات الزيارات للموظفين -->
                             @if (auth()->user()->role === 'employee')
                                 <li><a href="{{ route('employee.visit-justifications.index') }}"><i class="feather icon-circle"></i><span
@@ -288,7 +288,7 @@
                                     </a>
                                 </li>
                             @endif
-                            
+
                             <!-- رابط إدارة تبريرات الزيارات للمديرين -->
                             @if(auth()->user()->hasAnyRole(['admin', 'manager']))
                                 <li><a href="{{ route('admin.visit-justifications.index') }}"><i class="feather icon-circle"></i><span
@@ -296,7 +296,7 @@
                                     </a>
                                 </li>
                             @endif
-                            
+
                             @can('clients_edit_client_settings')
                                 <li><a href="{{ route('groups.group_client') }}"><i class="feather icon-circle"></i><span
                                             class="menu-item" data-i18n="eCommerce">اعدادات المجموعات</span>

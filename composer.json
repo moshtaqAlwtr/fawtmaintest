@@ -17,7 +17,8 @@
         "picqer/php-barcode-generator": "^3.2",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-permission": "^6.9",
-        "symfony/filesystem": "^7.2"
+        "symfony/filesystem": "^7.2",
+        "tecnickcom/tcpdf": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

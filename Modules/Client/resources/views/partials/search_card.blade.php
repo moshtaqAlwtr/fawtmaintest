@@ -114,10 +114,15 @@
                     </div>
                 </div>
             </div>
-
-            <div class="form-actions mt-2">
-                <button type="submit" class="btn btn-primary">بحث</button>
-                <button type="button" id="resetSearch" class="btn btn-outline-warning">إلغاء</button>
+<div class="form-actions mt-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search me-1"></i>
+                    بحث
+                </button>
+                <button type="button" class="btn btn-outline-warning" id="resetFilters">
+                    <i class="fas fa-undo me-1"></i>
+                    إلغاء
+                </button>
             </div>
         </form>
     </div>
