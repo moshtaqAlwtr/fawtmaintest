@@ -5,9 +5,7 @@
         <table class="table table-hover table-striped">
             <thead>
                 <tr>
-                    <th style="width: 5%">
-                        <input type="checkbox" class="form-check-input" id="selectAll">
-                    </th>
+                   
                     <th>رقم الفاتورة</th>
                     <th>العميل</th>
                     <th>التاريخ</th>
@@ -37,9 +35,7 @@
                     @endphp
 
                     <tr>
-                        <td>
-                            <input type="checkbox" class="form-check-input invoice-checkbox" value="{{ $invoice->id }}">
-                        </td>
+                       
                         <td>
                             <div class="d-flex align-items-center">
                                 <div class="avatar me-2" style="background-color: #28a745">
@@ -131,9 +127,20 @@
                                         <a class="dropdown-item" href="{{ route('paymentsClient.create', ['id' => $invoice->id]) }}">
                                             <i class="fa fa-credit-card me-2 text-info"></i>إضافة عملية دفع
                                         </a>
-                                        <a class="dropdown-item text-danger delete-invoice" href="#" data-id="{{ $invoice->id }}">
-                                            <i class="fa fa-trash me-2"></i>حذف
-                                        </a>
+                                       <form id="delete-form-{{ $invoice->id }}" 
+      action="{{ route('invoices.destroy', $invoice->id) }}" 
+      method="POST" 
+      style="display:none;">
+    @csrf
+    @method('DELETE')
+</form>
+
+<a class="dropdown-item text-danger" 
+   href="{{ route('invoices.destroy', $invoice->id) }}" 
+   onclick="event.preventDefault(); document.getElementById('delete-form-{{ $invoice->id }}').submit();">
+    <i class="fa fa-trash me-2"></i> حذف
+</a>
+
                                     </div>
                                 </div>
                             </div>

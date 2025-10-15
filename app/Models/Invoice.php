@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Invoice extends Model
 {
+    
     protected $fillable = ['client_id', 'treasury_id', 'session_id', 'payment', 'invoice_date', 'issue_date', 'payment_terms', 'payment_status', 'currency', 'total', 'grand_total', 'due_value', 'employee_id', 'advance_payment', 'remaining_amount', 'is_paid', 'payment_method', 'reference_number', 'notes', 'code', 'discount_amount', 'discount_type', 'shipping_cost', 'shipping_tax', 'tax_type', 'tax_total', 'attachments', 'type','subtotal', 'created_by', 'updated_by','InvoiceAdjustmentLabel','InvoiceAdjustmentValue','subscription_id','adjustment_label','adjustment_value','adjustment_type'];
 
     protected $casts = [

@@ -268,19 +268,7 @@
         </div>
     </div>
 
-    <script>
-        // طباعة تلقائية عند تحميل الصفحة
-        window.onload = function() {
-            setTimeout(() => {
-                window.print();
-            }, 500);
-        };
 
-        // إعادة الطباعة عند محاولة الإغلاق
-        window.onbeforeunload = function() {
-            window.print();
-        };
-    </script>
 </body>
 
 </html>

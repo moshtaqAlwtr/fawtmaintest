@@ -390,7 +390,7 @@ $(document).ready(function() {
         row.css('opacity', '0.5');
 
         $.ajax({
-            url: `/invoices/${invoiceId}`,
+            url: `/invoices/delete/${invoiceId}`,
             type: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

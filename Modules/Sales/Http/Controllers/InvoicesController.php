@@ -2882,7 +2882,7 @@ if ($client) {
         $qrCodeSvg = $writer->writeString($invoice->qrcode);
         $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice', 'invoice')->get();
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-        $html = view('sales.invoices.print', compact('invoice', 'barcodeImage', 'TaxsInvoice', 'account_setting', 'qrCodeSvg'))->render();
+        $html = view('sales::invoices.pdf', compact('invoice', 'barcodeImage', 'TaxsInvoice', 'account_setting', 'qrCodeSvg'))->render();
 
         // Add content to PDF
         $pdf->writeHTML($html, true, false, true, false, '');

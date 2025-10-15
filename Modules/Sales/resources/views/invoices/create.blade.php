@@ -5,7 +5,7 @@
 @endsection
 
 @section('css')
-    <link rel="stylesheet" href="{{ asset('assets/css/purch.css') }}">
+
 @endsection
 
 @section('content')
@@ -38,23 +38,15 @@
                         <div class="d-flex">
                             <div class="btn-group mr-2" style="margin-left: 10px;">
 
-                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="copyLastInvoice()"
-                                    title="نسخ آخر فاتورة">
-                                    <i class="fa fa-copy"></i> نسخ
-                                </button>
-                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="clearAllItems()"
-                                    title="مسح الكل">
-                                    <i class="fa fa-trash"></i> مسح
-                                </button>
+                              
+                              
 
                             </div>
                             <div>
-                                <a href="{{ route('invoices.index') }}" class="btn btn-outline-danger">
-                                    <i class="fa fa-ban"></i>الغاء
-                                </a>
-                                <button type="submit" class="btn btn-outline-primary">
-                                    <i class="fa fa-save"></i>حفظ
-                                </button>
+                        
+                        <button type="submit" class="btn btn-primary">حفظ</button>
+                        <button type="button" id="resetSearch" class="btn btn-outline-warning" onclick="clearAllItems()">مسح</button>
+                     
                             </div>
                         </div>
                     </div>
@@ -132,197 +124,126 @@
                 </div>
             @else
                 <!-- إذا لم تكن هناك إعدادات مفعلة -->
-                <div class="card mb-3">
-                    <div class="card-body py-2">
-                        <div class="alert alert-light border mb-0" style="border-radius: 8px;">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-muted">
-                                    <i class="fas fa-cog me-2"></i>
-                                    لا توجد إعدادات مفعلة حالياً - ستتم معالجة الفاتورة يدوياً
-                                </span>
-                                <a href="" class="btn btn-outline-secondary btn-sm">
-                                    <i class="fas fa-cogs me-1"></i>
-                                    تفعيل الإعدادات
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!--<div class="card mb-3">-->
+                <!--    <div class="card-body py-2">-->
+                <!--        <div class="alert alert-light border mb-0" style="border-radius: 8px;">-->
+                <!--            <div class="d-flex justify-content-between align-items-center">-->
+                <!--                <span class="text-muted">-->
+                <!--                    <i class="fas fa-cog me-2"></i>-->
+                <!--                    لا توجد إعدادات مفعلة حالياً - ستتم معالجة الفاتورة يدوياً-->
+                <!--                </span>-->
+                <!--                <a href="" class="btn btn-outline-secondary btn-sm">-->
+                <!--                    <i class="fas fa-cogs me-1"></i>-->
+                <!--                    تفعيل الإعدادات-->
+                <!--                </a>-->
+                <!--            </div>-->
+                <!--        </div>-->
+                <!--    </div>-->
+                <!--</div>-->
             @endif
 
             <!-- صف بيانات العميل والفاتورة -->
-            <div class="row">
-                <!-- بيانات العميل -->
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-content">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="form-group row">
-                                            <div class="col-md-2">
-                                                <span>العميل :</span>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <select class="form-control select2" id="clientSelect" name="client_id"
-    required onchange="showClientBalance(this)">
-    <option value="">اختر العميل</option>
-    @foreach ($clients as $c)
-        <option value="{{ $c->id }}"
-            data-balance="{{ $c->account->balance ?? 0 }}"
-            data-name="{{ $c->trade_name }}"
-            @if (isset($selectedClient) && $c->id == $selectedClient) selected @endif>
-            {{ $c->trade_name }} - {{ $c->code }}
-        </option>
-    @endforeach
-</select>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <a href="{{ route('clients.create') }}" type="button"
-                                                    class="btn btn-secondary mr-1 mb-1 waves-effect waves-light">
-                                                    <i class="fa fa-user-plus"></i>جديد
-                                                </a>
-                                            </div>
-                                        </div>
+        <div class="card border-0 shadow-none">
+    <div class="card-body p-3">
+
+        <h5 class="mb-3 fw-bold text-dark">بيانات الفاتورة والعميل</h5>
+
+        <div class="row g-3">
+
+            <!-- العميل -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">العميل <span class="text-danger">*</span></label>
+                <select class="form-select select2 border rounded-3 bg-white" id="clientSelect" name="client_id"
+                    required onchange="showClientBalance(this)">
+                    <option value="">اختر العميل</option>
+                    @foreach ($clients as $c)
+                        <option value="{{ $c->id }}"
+                            data-balance="{{ $c->account->balance ?? 0 }}"
+                            data-name="{{ $c->trade_name }}"
+                            @if (isset($selectedClient) && $c->id == $selectedClient) selected @endif>
+                            {{ $c->trade_name }} - {{ $c->code }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- قوائم الأسعار -->
+        
 
 
+ <div class="col-md-3">
+                <label class="form-label fw-semibold">العميل <span class="text-danger">*</span></label>
+                <select class="form-select select2 border rounded-3 bg-white" id="price-list-select" name="price_list_id">
+                     <option value="">قائمة الاسعار</option>
+                    @foreach ($price_lists as $price_list)
+                        <option value="{{ $price_list->id }}">{{ $price_list->name ?? '' }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <!-- رقم الفاتورة -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">رقم الفاتورة</label>
+                <input type="text" class="form-control border rounded-3 bg-white" name="invoice_number"
+                    value="{{ $invoice_number }}" readonly>
+            </div>
 
-                                        <!-- قوائم الأسعار -->
-                                        <div class="col-12">
-                                            <div class="form-group row">
-                                                <div class="col-md-2">
-                                                    <span>قوائم الاسعار :</span>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <select class="form-control" id="price-list-select"
-                                                        name="price_list_id">
-                                                        <option value="">اختر قائمة اسعار</option>
-                                                        @foreach ($price_lists as $price_list)
-                                                            <option value="{{ $price_list->id }}">
-                                                                {{ $price_list->name ?? '' }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
+            <!-- تاريخ الفاتورة -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">تاريخ الفاتورة</label>
+                <input class="form-control border rounded-3 bg-white" type="date" name="invoice_date"
+                    value="{{ old('invoice_date', date('Y-m-d')) }}">
+            </div>
 
-                                        <!-- تنبيه العروض التلقائية -->
-                                        @if (in_array('auto_apply_offers', $salesSettings ?? []))
-                                            <div class="row" id="autoOffersAlert" style="display: none;">
-                                                <div class="col-12">
-                                                    <div class="alert alert-success" style="border-radius: 8px;">
-                                                        <i class="fas fa-percentage me-2"></i>
-                                                        <strong>عروض تلقائية مفعلة!</strong> سيتم تطبيق العروض المناسبة
-                                                        تلقائياً
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <!-- مسؤول المبيعات -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">مسؤول المبيعات</label>
+                <select name="employee_id" class="form-select select2 border rounded-3 bg-white">
+                    @foreach ($employees as $employee)
+                        <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
+                    @endforeach
+                </select>
+            </div>
 
-                <!-- بيانات الفاتورة -->
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-content">
-                            <div class="card-body">
-                                <div class="row add_item">
-                                    <div class="col-12">
-                                        <div class="form-group row">
-                                            <div class="col-md-3">
-                                                <span>رقم الفاتورة :</span>
-                                            </div>
-                                            <div class="col-md-8">
-                                                <input type="text" class="form-control" name="invoice_number"
-                                                    value="{{ $invoice_number }}" readonly>
-                                            </div>
-                                        </div>
-                                    </div>
+            <!-- تاريخ الإصدار -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">تاريخ الإصدار</label>
+                <input class="form-control border rounded-3 bg-white" type="date" name="issue_date"
+                    value="{{ old('issue_date', date('Y-m-d')) }}">
+            </div>
 
-                                    <div class="col-12">
-                                        <div class="form-group row">
-                                            <div class="col-md-3">
-                                                <span>تاريخ الفاتورة:</span>
-                                            </div>
-                                            <div class="col-md-8">
-                                                <input class="form-control" type="date" name="invoice_date"
-                                                    value="{{ old('invoice_date', date('Y-m-d')) }}">
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-12">
-                                        <div class="form-group row">
-                                            <div class="col-md-3">
-                                                <span>مسئول المبيعات :</span>
-                                            </div>
-                                            <div class="col-md-8">
-                                                <select name="employee_id" class="form-control select2">
-                                                    @foreach ($employees as $employee)
-                                                        <option value="{{ $employee->id }}">{{ $employee->full_name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-12">
-                                        <div class="form-group row">
-                                            <div class="col-md-3">
-                                                <span>تاريخ الاصدار :</span>
-                                            </div>
-                                            <div class="col-md-8">
-                                                <input class="form-control" type="date" name="issue_date"
-                                                    value="{{ old('issue_date', date('Y-m-d')) }}">
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-12">
-                                        <div class="form-group row">
-                                            <div class="col-md-3">
-                                                <span>شروط الدفع :</span>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <input class="form-control" type="text" name="terms">
-                                            </div>
-                                            <div class="col-md-2">
-                                                <span class="form-control-plaintext">أيام</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-12">
-                                        <div class="form-group row">
-                                            <div class="col-md-3">
-                                                <input class="form-control" type="text" placeholder="عنوان إضافي">
-                                            </div>
-                                            <div class="col-md-8">
-                                                <div class="input-group">
-                                                    <input class="form-control" type="text"
-                                                        placeholder="بيانات إضافية">
-                                                    <div class="input-group-append">
-                                                        <button type="button"
-                                                            class="btn btn-outline-success waves-effect waves-light addeventmore">
-                                                            <i class="fa fa-plus-circle"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <!-- شروط الدفع -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">شروط الدفع</label>
+                <div class="input-group">
+                    <input class="form-control border rounded-3 bg-white" type="text" name="terms" placeholder="عدد الأيام">
+                    <span class="input-group-text bg-light">أيام</span>
                 </div>
             </div>
+
+            <!-- بيانات إضافية -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">بيانات إضافية</label>
+                <div class="input-group">
+                    <input class="form-control border rounded-3 bg-white" type="text" placeholder="عنوان إضافي">
+                    <button type="button" class="btn btn-outline-success addeventmore">
+                        <i class="fa fa-plus-circle"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- زر إضافة عميل -->
+        <div class="mt-4">
+            <a href="{{ route('clients.create') }}" class="btn btn-secondary">
+                <i class="fa fa-user-plus me-1"></i> عميل جديد
+            </a>
+        </div>
+
+    </div>
+</div>
+
+
 
             <!-- جدول البنود -->
             <div class="card">
@@ -351,7 +272,7 @@
                                             @endif
                                         </th>
                                         <th>الضريبة 1</th>
-                                        <th>الضريبة 2</th>
+                                       
                                         <th>المجموع</th>
                                         <th></th>
                                     </tr>
@@ -423,24 +344,6 @@
                                                     @endforeach
                                                 </select>
                                                 <input type="hidden" name="items[0][tax_1_id]">
-                                            </div>
-                                        </td>
-
-                                        <td data-label="الضريبة 2">
-                                            <div class="input-group">
-                                                <select name="items[0][tax_2]" class="form-control tax-select"
-                                                    data-target="tax_2" onchange="updateHiddenInput(this)">
-                                                    <option value="">لا يوجد</option>
-                                                    @foreach ($taxs as $tax)
-                                                        <option value="{{ $tax->tax }}"
-                                                            data-id="{{ $tax->id }}"
-                                                            data-name="{{ $tax->name }}"
-                                                            data-type="{{ $tax->type }}">
-                                                            {{ $tax->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <input type="hidden" name="items[0][tax_2_id]">
                                             </div>
                                         </td>
 
@@ -516,7 +419,36 @@
                     </div>
                 </div>
             </div>
+ <!-- كارد الدفع -->
+            <div class="card">
+                <div class="card-body py-2">
+                    <div class="d-flex justify-content-start" style="direction: rtl;">
+                        <div class="form-check">
+                            <input class="form-check-input payment-toggle" type="checkbox" name="is_paid" value="1"
+                                id="full-payment-check" @if (in_array('default_paid_invoices', $salesSettings ?? [])) checked disabled @endif>
+                            <label class="form-check-label" for="full-payment-check">
+                                تم الدفع بالكامل من العميل؟
+                                @if (in_array('default_paid_invoices', $salesSettings ?? []))
+                                    <span class="text-success">
+                                        <i class="fas fa-magic"></i> (تلقائي)
+                                    </span>
+                                @endif
+                            </label>
+                        </div>
+                    </div>
 
+                    @if (in_array('default_paid_invoices', $salesSettings ?? []))
+                        <div class="auto-note mt-2">
+                            <small class="text-success">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>إعداد مفعل:</strong> سيتم الدفع بالكامل تلقائياً عند حفظ الفاتورة
+                            </small>
+                        </div>
+                    @endif
+
+
+                </div>
+            </div>
             <!-- كارد التفاصيل الإضافية -->
             <div class="card">
                 <div class="card-header bg-white">
@@ -684,36 +616,7 @@
                 </div>
             </div>
 
-            <!-- كارد الدفع -->
-            <div class="card">
-                <div class="card-body py-2">
-                    <div class="d-flex justify-content-start" style="direction: rtl;">
-                        <div class="form-check">
-                            <input class="form-check-input payment-toggle" type="checkbox" name="is_paid" value="1"
-                                id="full-payment-check" @if (in_array('default_paid_invoices', $salesSettings ?? [])) checked disabled @endif>
-                            <label class="form-check-label" for="full-payment-check">
-                                تم الدفع بالكامل من العميل؟
-                                @if (in_array('default_paid_invoices', $salesSettings ?? []))
-                                    <span class="text-success">
-                                        <i class="fas fa-magic"></i> (تلقائي)
-                                    </span>
-                                @endif
-                            </label>
-                        </div>
-                    </div>
-
-                    @if (in_array('default_paid_invoices', $salesSettings ?? []))
-                        <div class="auto-note mt-2">
-                            <small class="text-success">
-                                <i class="fas fa-info-circle"></i>
-                                <strong>إعداد مفعل:</strong> سيتم الدفع بالكامل تلقائياً عند حفظ الفاتورة
-                            </small>
-                        </div>
-                    @endif
-
-
-                </div>
-            </div>
+           
 
             <!-- كارد إضافي للدفعة المقدمة -->
             <div id="section-deposit-extra" class="card" style="display: none;">

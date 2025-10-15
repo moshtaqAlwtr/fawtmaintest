@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Quote extends Model
 {
+    
     const STATUS_DRAFT = 1;
     const STATUS_PENDING = 2;
     const STATUS_APPROVED = 3;

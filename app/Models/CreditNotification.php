@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CreditNotification extends Model
 {
+    
     use HasFactory;
 
     // تحديد اسم الجدول المرتبط بهذا المودل
