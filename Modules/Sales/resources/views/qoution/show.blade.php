@@ -28,14 +28,14 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="d-flex gap-2">
-                        <span class="badge badge-pill badge-warning">تحت المراجعة</span>
+                       
                         <strong> عرض الأسعار #{{ $quote->id }}</strong>
                         <span>العميل: {{ $quote->client->trade_name }}</span>
                     </div>
                     <div class="d-flex gap-2">
                         <form action="{{ route('questions.convert-to-invoice', $quote->id) }}" method="POST">
                             @csrf
-                            <button type="submit" class="btn btn-sm btn-success d-inline-flex align-items-center">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-dollar-sign me-1"></i> تحويل لفاتورة
                             </button>
                         </form>
@@ -47,67 +47,50 @@
         <div class="card">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
-                    <div class="d-flex gap-2">
-                        <!-- تعديل -->
-                        {{-- <a href="{{ route('questions.edit', $quote->id) }}"
-                            class="btn btn-sm btn-outline-danger d-inline-flex align-items-center">
-                            <i class="fas fa-pen me-1"></i> تعديل
-                        </a> --}}
+                  <div class="d-flex flex-wrap gap-2">
 
-                        <!-- طباعة -->
-                        <button id="printQuoteBtn" class="btn btn-sm btn-outline-success d-inline-flex align-items-center">
-                            <i class="fas fa-print me-1"></i> طباعة
-                        </button>
+    <!-- تعديل -->
+    <a href="{{ route('questions.edit', $quote->id) }}"
+       class="btn btn-outline-primary btn-sm mr-1 mb-1 waves-effect waves-light">
+        <i class="fas fa-pen me-1"></i> تعديل
+    </a>
 
-                        <!-- PDF -->
+    <!-- طباعة -->
+    <button id="printQuoteBtn"
+            class="btn btn-outline-primary btn-sm mr-1 mb-1 waves-effect waves-light">
+        <i class="fas fa-print me-1"></i> طباعة
+    </button>
 
-                        <a href=""
-                            class="btn btn-sm btn-outline-info d-inline-flex align-items-center">
-                            <i class="fas fa-file-pdf me-1"></i> PDF
-                        </a>
+    <!-- PDF -->
+    <a href="#"
+       class="btn btn-outline-primary btn-sm mr-1 mb-1 waves-effect waves-light">
+        <i class="fas fa-file-pdf me-1"></i> PDF
+    </a>
 
-                        <!-- إرسال عبر -->
-                        <div class="btn-group">
-                            <div class="dropdown">
-                                <button
-                                    class="btn btn-sm btn-outline-success dropdown-toggle d-flex align-items-center custom-btn"
-                                    type="button" id="dropdownMenuButton200" data-toggle="dropdown" aria-haspopup="true"
-                                    aria-expanded="false">
-                                    <i class="fas fa me-1"></i> ارسال عبر
-                                </button>
-                                <div class="dropdown-menu custom-dropdown" aria-labelledby="dropdownMenuButton200">
-                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton2">
-                                        <li>
-                                            <a class="dropdown-item d-flex align-items-center" target="_blank"
-                                                href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $quote->client->phone) }}?text={{ urlencode(
-                                                    'مرحبًا ' .
-                                                        $quote->client->trade_name .
-                                                        ',' .
-                                                        "\n\n" .
-                                                        'يسعدنا إعلامكم بأن فاتورتكم أصبحت جاهزة. يمكنكم الاطلاع عليها من خلال الرابط التالي:' .
-                                                        "\n" .
+    <!-- إرسال عبر -->
+    <div class="dropdown">
+        <button class="btn btn-outline-primary btn-sm mr-1 mb-1 waves-effect waves-light dropdown-toggle"
+                type="button" id="dropdownMenuButton200" data-toggle="dropdown" aria-haspopup="true"
+                aria-expanded="false">
+            <i class="fas fa-share-alt me-1"></i> إرسال عبر
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton200">
+            <a class="dropdown-item d-flex align-items-center" target="_blank"
+               href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $quote->client->phone) }}?text={{ urlencode(
+                   'مرحبًا ' .
+                   $quote->client->trade_name .
+                   ',' . "\n\n" .
+                   'يسعدنا إعلامكم بأن فاتورتكم أصبحت جاهزة. يمكنكم الاطلاع عليها من خلال الرابط التالي:' . "\n\n" .
+                   'مع أطيب التحيات،' . "\n" .
+                   ($account_setting->trade_name ?? 'مؤسسة أعمال خاصة للتجارة'),
+               ) }}">
+                <i class="fab fa-whatsapp me-2 text-success"></i> واتساب
+            </a>
+        </div>
+    </div>
 
-                                                        "\n\n" .
-                                                        'مع أطيب التحيات،' .
-                                                        "\n" .
-                                                        ($account_setting->trade_name ?? 'مؤسسة أعمال خاصة للتجارة'),
-                                                ) }}">
-                                                <i class="fab fa-whatsapp me-2 text-success"></i> واتساب
-                                            </a>
+</div>
 
-                                        </li>
-
-
-
-
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- خيارات أخر>ى -->
-
-                    </div>
                 </div>
                 <div class="card">
                     <div class="card-body">

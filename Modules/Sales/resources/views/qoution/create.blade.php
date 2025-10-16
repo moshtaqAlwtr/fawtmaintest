@@ -52,26 +52,12 @@
 
                         <div class="d-flex">
                             <div class="btn-group mr-2" style="margin-left: 10px;">
-                                <button type="button" class="btn btn-outline-info btn-sm" onclick="saveAsDraft()" title="حفظ كمسودة">
-                                    <i class="fa fa-save"></i> مسودة
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="copyLastQuote()" title="نسخ آخر عرض سعر">
-                                    <i class="fa fa-copy"></i> نسخ
-                                </button>
-                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="clearAllItems()" title="مسح الكل">
-                                    <i class="fa fa-trash"></i> مسح
-                                </button>
-                                <button type="button" class="btn btn-outline-success btn-sm" onclick="showQuickPreview()" title="معاينة سريعة">
-                                    <i class="fa fa-eye"></i> معاينة
-                                </button>
+                               
                             </div>
                             <div>
-                                <a href="" class="btn btn-outline-danger">
-                                    <i class="fa fa-ban"></i>الغاء
-                                </a>
-                                <button type="submit" class="btn btn-outline-primary">
-                                    <i class="fa fa-save"></i>حفظ
-                                </button>
+                                   <button type="submit" class="btn btn-primary">حفظ</button>
+                        <button type="button" id="resetSearch" class="btn btn-outline-warning" onclick="clearAllItems()">مسح</button>
+                     
                             </div>
                         </div>
                     </div>
