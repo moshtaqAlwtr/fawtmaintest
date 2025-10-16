@@ -390,137 +390,149 @@
 
 
         <div class="card-body">
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-                <!-- زر تعديل -->
-                <a href="{{ route('invoices.edit', $invoice->id) }}" class="btn btn-outline-primary btn-sm">
-                    تعديل <i class="fa fa-edit ms-1"></i>
+          <div class="d-flex align-items-center flex-wrap gap-2">
+
+    <!-- تعديل -->
+    <a href="{{ route('invoices.edit', $invoice->id) }}"
+       class="btn btn-outline-primary btn-sm waves-effect waves-light">
+        <i class="fa fa-edit me-1"></i> تعديل
+    </a>
+
+    <!-- نسخ -->
+    <button type="button" class="btn btn-outline-primary btn-sm waves-effect waves-light"
+            onclick="copyInvoice()">
+        <i class="fa fa-copy me-1"></i> نسخ
+    </button>
+
+    <!-- حذف -->
+    <button type="button" class="btn btn-outline-primary btn-sm waves-effect waves-light"
+            onclick="deleteInvoice()">
+        <i class="fa fa-trash-alt me-1"></i> حذف
+    </button>
+
+    <!-- طباعة -->
+    <div class="dropdown">
+        <button class="btn btn-outline-primary btn-sm waves-effect waves-light dropdown-toggle"
+                type="button" id="printDropdown" data-bs-toggle="dropdown">
+            <i class="fa fa-print me-1"></i> طباعة
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ route('invoices.generatePdf', $invoice->id) }}">
+                <i class="fa fa-file-pdf me-2 text-danger"></i> طباعة PDF
+            </a></li>
+            <li><a class="dropdown-item" href="{{ route('invoices.print', $invoice->id) }}" target="_blank">
+                <i class="fa fa-print me-2 text-primary"></i> طباعة مباشرة
+            </a></li>
+        </ul>
+    </div>
+
+    <!-- إضافة عملية دفع -->
+    <a href="{{ route('paymentsClient.create', ['id' => $invoice->id, 'type' => 'invoice']) }}"
+       class="btn btn-outline-primary btn-sm waves-effect waves-light">
+        <i class="fa fa-credit-card me-1"></i> إضافة عملية دفع
+    </a>
+
+    <!-- القسائم -->
+    <div class="dropdown">
+        <button class="btn btn-outline-primary btn-sm waves-effect waves-light dropdown-toggle"
+                type="button" data-bs-toggle="dropdown">
+            <i class="fa fa-tags me-1"></i> القسائم
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ route('invoices.label', $invoice->id) }}">
+                <i class="fa fa-file-pdf me-2 text-primary"></i> تحميل ملصق الطرد
+            </a></li>
+            <li><a class="dropdown-item" href="{{ route('invoices.picklist', $invoice->id) }}">
+                <i class="fa fa-list me-2 text-primary"></i> قائمة الاستلام
+            </a></li>
+            <li><a class="dropdown-item" href="{{ route('invoices.shipping_label', $invoice->id) }}">
+                <i class="fa fa-truck me-2 text-primary"></i> ملصق التوصيل
+            </a></li>
+        </ul>
+    </div>
+
+    <!-- إرسال عبر -->
+    <div class="dropdown">
+        <button class="btn btn-outline-primary btn-sm waves-effect waves-light dropdown-toggle"
+                type="button" data-bs-toggle="dropdown">
+            <i class="fa fa-share me-1"></i> إرسال عبر
+        </button>
+        <ul class="dropdown-menu">
+            <li>
+                <a class="dropdown-item" target="_blank"
+                   href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $invoice->client->phone) }}?text={{ urlencode(
+                       'مرحبًا ' . $invoice->client->trade_name . ',' . "\n\n" .
+                       'يسعدنا إعلامكم بأن فاتورتكم أصبحت جاهزة. يمكنكم الاطلاع عليها من خلال الرابط التالي:' . "\n" .
+                       route('invoices.print', ['id' => $invoice->id, 'embed' => true]) . "\n\n" .
+                       'مع أطيب التحيات،' . "\n" .
+                       ($account_setting->trade_name ?? 'مؤسسة أعمال خاصة للتجارة'),
+                   ) }}">
+                    <i class="fab fa-whatsapp me-2 text-success"></i> واتساب
                 </a>
-                <div class="vr"></div>
+            </li>
+        </ul>
+    </div>
 
-                <!-- زر نسخ -->
-                <button type="button" class="btn btn-outline-info btn-sm" onclick="copyInvoice()">
-                    نسخ <i class="fa fa-copy ms-1"></i>
-                </button>
-                <div class="vr"></div>
+    <!-- اتفاقية تقسيط -->
+    <a href="{{ route('installments.create', ['id' => $invoice->id]) }}"
+       class="btn btn-outline-primary btn-sm waves-effect waves-light">
+        <i class="fa fa-handshake me-1"></i> اتفاقية تقسيط
+    </a>
 
-                <!-- زر حذف -->
-                <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteInvoice()">
-                    حذف <i class="fa fa-trash-alt ms-1"></i>
-                </button>
-                <div class="vr"></div>
+    <!-- مرتجع -->
+    <div class="dropdown">
+        <button class="btn btn-outline-primary btn-sm waves-effect waves-light dropdown-toggle"
+                type="button" data-bs-toggle="dropdown">
+            <i class="fa fa-undo me-1"></i> مرتجع
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item"
+                   href="{{ route('ReturnIInvoices.create', ['id' => $invoice->id]) }}">
+                <i class="fa fa-file-invoice me-2 text-primary"></i> إصدار فاتورة راجعة
+            </a></li>
+            <li><a class="dropdown-item"
+                   href="{{ route('CreditNotes.create', ['id' => $invoice->id]) }}">
+                <i class="fa fa-credit-card me-2 text-primary"></i> إصدار إشعار دائن
+            </a></li>
+        </ul>
+    </div>
 
-                <!-- زر طباعة -->
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100" type="button" id="printDropdown"
-                        data-bs-toggle="dropdown">
-                        طباعة <i class="fa fa-print ms-1"></i>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ route('invoices.generatePdf', $invoice->id) }}">
-                                <i class="fa fa-file-pdf me-2 text-danger"></i>PDF طباعة</a></li>
-                        <li><a class="dropdown-item" href="{{ route('invoices.print', $invoice->id) }}" target="_blank">
-                                <i class="fa fa-print me-2 text-primary"></i>طباعة مباشرة</a></li>
-                    </ul>
-                </div>
+    <!-- الملاحظات -->
+    <div class="dropdown">
+        <button class="btn btn-outline-primary btn-sm waves-effect waves-light dropdown-toggle"
+                type="button" data-bs-toggle="dropdown">
+            <i class="fa fa-paperclip me-1"></i> الملاحظات
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" onclick="addNoteOrAttachment()">
+                <i class="fa fa-plus me-2 text-success"></i> إضافة ملاحظة جديدة
+            </a></li>
+            <li><a class="dropdown-item" href="#" onclick="viewAllNotes()">
+                <i class="fa fa-list me-2 text-info"></i> عرض جميع الملاحظات
+            </a></li>
+        </ul>
+    </div>
 
-                <!-- زر إضافة عملية دفع -->
-                <a href="{{ route('paymentsClient.create', ['id' => $invoice->id, 'type' => 'invoice']) }}"
-                    class="btn btn-outline-primary btn-sm">
-                    إضافة عملية دفع <i class="fa fa-credit-card ms-1"></i>
-                </a>
+    <!-- خيارات أخرى -->
+    <div class="dropdown">
+        <button class="btn btn-outline-primary btn-sm waves-effect waves-light dropdown-toggle"
+                type="button" data-bs-toggle="dropdown">
+            <i class="fa fa-cog me-1"></i> خيارات أخرى
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ route('appointments.create') }}">
+                <i class="fa fa-calendar-alt me-2 text-primary"></i> ترتيب موعد
+            </a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger"
+                   href="{{ route('invoices.destroy', ['id' => $invoice->id]) }}">
+                <i class="fa fa-trash-alt me-2"></i> حذف
+            </a></li>
+        </ul>
+    </div>
 
-                <!-- زر القسائم -->
-                <div class="dropdown">
-                    <button class="btn btn-outline-info btn-sm dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
-                        القسائم <i class="fa fa-tags ms-1"></i>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ route('invoices.label', $invoice->id) }}">
-                                <i class="fa fa-file-pdf me-2 text-primary"></i>تحميل ملصق الطرد</a></li>
-                        <li><a class="dropdown-item" href="{{ route('invoices.picklist', $invoice->id) }}">
-                                <i class="fa fa-list me-2 text-primary"></i>قائمة الاستلام</a></li>
-                        <li><a class="dropdown-item" href="{{ route('invoices.shipping_label', $invoice->id) }}">
-                                <i class="fa fa-truck me-2 text-primary"></i>ملصق التوصيل</a></li>
-                    </ul>
-                </div>
+</div>
 
-                <!-- زر إرسال عبر -->
-                <div class="dropdown">
-                    <button class="btn btn-outline-success btn-sm dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
-                        إرسال عبر <i class="fa fa-share ms-1"></i>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li>
-                            <a class="dropdown-item" target="_blank"
-                                href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $invoice->client->phone) }}?text={{ urlencode(
-                                    'مرحبًا ' .
-                                        $invoice->client->trade_name .
-                                        ',' .
-                                        "\n\n" .
-                                        'يسعدنا إعلامكم بأن فاتورتكم أصبحت جاهزة. يمكنكم الاطلاع عليها من خلال الرابط التالي:' .
-                                        "\n" .
-                                        route('invoices.print', ['id' => $invoice->id, 'embed' => true]) .
-                                        "\n\n" .
-                                        'مع أطيب التحيات،' .
-                                        "\n" .
-                                        ($account_setting->trade_name ?? 'مؤسسة أعمال خاصة للتجارة'),
-                                ) }}">
-                                <i class="fab fa-whatsapp me-2 text-success"></i>واتساب
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- زر اتفاقية تقسيط -->
-                <a href="{{ route('installments.create', ['id' => $invoice->id]) }}"
-                    class="btn btn-outline-secondary btn-sm">
-                    اتفاقية تقسيط <i class="fa fa-handshake ms-1"></i>
-                </a>
-
-                <!-- زر المرتجع -->
-                <div class="dropdown">
-                    <button class="btn btn-outline-warning btn-sm dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
-                        مرتجع <i class="fa fa-undo ms-1"></i>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item"
-                                href="{{ route('ReturnIInvoices.create', ['id' => $invoice->id]) }}">
-                                <i class="fa fa-file-invoice me-2 text-primary"></i>إصدار فاتورة راجعة</a></li>
-                        <li><a class="dropdown-item" href="{{ route('CreditNotes.create', ['id' => $invoice->id]) }}">
-                                <i class="fa fa-credit-card me-2 text-primary"></i>إصدار إشعار دائن</a></li>
-                    </ul>
-                </div>
-
-                <!-- زر إضافة ملاحظة أو مرفق -->
-                <div class="dropdown">
-                    <button class="btn btn-outline-dark btn-sm dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
-                        الملاحظات <i class="fa fa-paperclip ms-1"></i>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#" onclick="addNoteOrAttachment()">
-                                <i class="fa fa-plus me-2 text-success"></i>إضافة ملاحظة جديدة</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="viewAllNotes()">
-                                <i class="fa fa-list me-2 text-info"></i>عرض جميع الملاحظات</a></li>
-                    </ul>
-                </div>
-
-                <!-- خيارات أخرى -->
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
-                        خيارات أخرى <i class="fa fa-cog ms-1"></i>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ route('appointments.create') }}">
-                                <i class="fa fa-calendar-alt me-2 text-primary"></i>ترتيب موعد</a></li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li><a class="dropdown-item text-danger"
-                                href="{{ route('invoices.destroy', ['id' => $invoice->id]) }}">
-                                <i class="fa fa-trash-alt me-2"></i>حذف</a></li>
-                    </ul>
-                </div>
-            </div>
 </div>
 <div class="card">
 

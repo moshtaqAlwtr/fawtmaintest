@@ -5,339 +5,348 @@
 @stop
 
 @section('css')
-<style>
-    .form-control {
-        margin-bottom: 10px;
-    }
-
-    #loading-indicator {
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 0.375rem;
-    }
-
-    .spinner-border {
-        width: 2rem;
-        height: 2rem;
-    }
-
-    @media (max-width: 768px) {
-        .content-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .content-header-title {
-            font-size: 1.5rem;
-        }
-
-        .btn {
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        .card {
-            margin: 10px;
-            padding: 10px;
-        }
-
-        .table {
-            font-size: 0.8rem;
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        .table th,
-        .table td {
-            white-space: nowrap;
-        }
-
-        .form-check {
-            margin-bottom: 10px;
-        }
-
+    <style>
         .form-control {
-            width: 100%;
+            margin-bottom: 10px;
         }
 
-        .dropdown-menu {
-            min-width: 200px;
+        #loading-indicator {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 0.375rem;
         }
-    }
 
-    @media (max-width: 480px) {
-        .table th,
-        .table td {
-            font-size: 0.7rem;
+        .spinner-border {
+            width: 2rem;
+            height: 2rem;
         }
-    }
-</style>
+
+        @media (max-width: 768px) {
+            .content-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .content-header-title {
+                font-size: 1.5rem;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .card {
+                margin: 10px;
+                padding: 10px;
+            }
+
+            .table {
+                font-size: 0.8rem;
+                width: 100%;
+                overflow-x: auto;
+            }
+
+            .table th,
+            .table td {
+                white-space: nowrap;
+            }
+
+            .form-check {
+                margin-bottom: 10px;
+            }
+
+            .form-control {
+                width: 100%;
+            }
+
+            .dropdown-menu {
+                min-width: 200px;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            .table th,
+            .table td {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
 @endsection
 
 @section('content')
-<div class="content-header row">
-    <div class="content-header-left col-md-9 col-12 mb-2">
-        <div class="row breadcrumbs-top">
-            <div class="col-12">
-                <h2 class="content-header-title float-left mb-0">ادارة الفواتير</h2>
-                <div class="breadcrumb-wrapper col-12">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسيه</a></li>
-                        <li class="breadcrumb-item active">عرض</li>
-                    </ol>
+    <div class="content-header row">
+        <div class="content-header-left col-md-9 col-12 mb-2">
+            <div class="row breadcrumbs-top">
+                <div class="col-12">
+                    <h2 class="content-header-title float-left mb-0">ادارة الفواتير</h2>
+                    <div class="breadcrumb-wrapper col-12">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسيه</a></li>
+                            <li class="breadcrumb-item active">عرض</li>
+                        </ol>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-@if (session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
+    @if (session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
 
-@if (session('error'))
-    <div class="alert alert-danger">
-        {{ session('error') }}
-    </div>
-@endif
+    @if (session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
 
-@if ($errors->any())
-    <div class="alert alert-danger">
-        @foreach ($errors->all() as $error)
-            <p class="mb-0">{{ $error }}</p>
-        @endforeach
-    </div>
-@endif
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            @foreach ($errors->all() as $error)
+                <p class="mb-0">{{ $error }}</p>
+            @endforeach
+        </div>
+    @endif
 
-<div class="content-body">
-    <div class="container-fluid">
-        <!-- شريط الأدوات العلوي -->
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center gap-2">
-                        <!-- معلومات الترقيم -->
-                        <nav aria-label="Page navigation">
-                            <ul class="pagination pagination-sm mb-0">
-                                <li class="page-item mx-2">
-                                    <span class="text-muted pagination-info">صفحة 1 من 1</span>
-                                </li>
-                            </ul>
-                        </nav>
-                        <!-- عداد النتائج -->
-                        <span class="text-muted mx-2 results-info">0 نتيجة</span>
-                    </div>
+    <div class="content-body">
+        <div class="container-fluid">
+            <!-- شريط الأدوات العلوي -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <!-- معلومات الترقيم -->
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination pagination-sm mb-0">
+                                    <li class="page-item mx-2">
+                                        <span class="text-muted pagination-info">صفحة 1 من 1</span>
+                                    </li>
+                                </ul>
+                            </nav>
+                            <!-- عداد النتائج -->
+                            <span class="text-muted mx-2 results-info">0 نتيجة</span>
+                        </div>
 
-                    <div class="d-flex flex-wrap justify-content-between">
-                        <a href="{{ route('invoices.create') }}" class="btn btn-success btn-sm flex-fill me-1 mb-1">
-                            <i class="fas fa-plus-circle me-1"></i>فاتورة جديدة
-                        </a>
-                        <button class="btn btn-outline-primary btn-sm flex-fill mb-1">
+                        <div class="d-flex flex-wrap justify-content-between">
+                            <a href="{{ route('invoices.create') }}" class="btn btn-primary">
+                                <i class="fas fa-plus-circle me-1"></i>فاتورة جديدة
+                            </a>
+
+                            {{-- <button class="btn btn-outline-primary btn-sm flex-fill mb-1">
                             <i class="fas fa-cloud-upload-alt me-1"></i>استيراد
+                        </button> --}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- نموذج البحث -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center p-2">
+                    <div class="d-flex gap-2">
+                        <span class="hide-button-text">بحث وتصفية</span>
+                    </div>
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+
+                        <!-- إخفاء / إظهار -->
+                        <button class="btn btn-outline-primary btn-sm waves-effect waves-light"
+                            onclick="toggleSearchFields(this)">
+                            <i class="fa fa-times me-1"></i>
+                            <span class="hide-button-text">إخفاء</span>
                         </button>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- نموذج البحث -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center p-2">
-                <div class="d-flex gap-2">
-                    <span class="hide-button-text">بحث وتصفية</span>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <button class="btn btn-outline-secondary btn-sm" onclick="toggleSearchFields(this)">
-                        <i class="fa fa-times"></i>
-                        <span class="hide-button-text">اخفاء</span>
-                    </button>
-                    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse"
-                        data-bs-target="#advancedSearchForm" onclick="toggleSearchText(this)">
-                        <i class="fa fa-filter"></i>
-                        <span class="button-text">متقدم</span>
-                    </button>
-                    <button type="button" id="resetSearch" class="btn btn-outline-warning btn-sm">
-                        <i class="fa fa-refresh"></i>
-                        إعادة تعيين
-                    </button>
-                </div>
-            </div>
+                        <!-- بحث متقدم -->
+                        <button class="btn btn-outline-primary btn-sm waves-effect waves-light" data-bs-toggle="collapse"
+                            data-bs-target="#advancedSearchForm" onclick="toggleSearchText(this)">
+                            <i class="fa fa-filter me-1"></i>
+                            <span class="button-text">متقدم</span>
+                        </button>
 
-            <div class="card-body">
-                <form class="form" id="searchForm">
-                    @csrf
-                    <div class="row g-3">
-                        <!-- الحقول الأساسية -->
-                        <div class="col-md-4">
-                            <select name="client_id" class="form-control select2">
-                                <option value="">أي العميل</option>
-                                @foreach ($clients as $client)
-                                    <option value="{{ $client->id }}">
-                                        {{ $client->trade_name }} ({{ $client->code }})
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+                        <!-- إعادة تعيين -->
+                        <button type="button" id="resetSearch"
+                            class="btn btn-outline-primary btn-sm waves-effect waves-light">
+                            <i class="fa fa-refresh me-1"></i>
+                            إعادة تعيين
+                        </button>
 
-                        <div class="col-md-4">
-                            <input type="text" name="invoice_number" class="form-control"
-                                placeholder="رقم الفاتورة">
-                        </div>
-
-                        <div class="col-md-4">
-                            <select name="payment_status" class="form-control select2">
-                                <option value="">حالة الدفع</option>
-                                <option value="1">مدفوعة بالكامل</option>
-                                <option value="2">مدفوعة جزئيًا</option>
-                                <option value="3">غير مدفوعة بالكامل</option>
-                                <option value="4">مستلمة</option>
-                            </select>
-                        </div>
                     </div>
 
-                    <!-- البحث المتقدم -->
-                    <div class="collapse" id="advancedSearchForm">
-                        <div class="row g-3 mt-2">
-                            <div class="col-md-3">
-                                <input type="text" name="total_from" class="form-control"
-                                    placeholder="الإجمالي أكبر من">
-                            </div>
+                </div>
 
-                            <div class="col-md-3">
-                                <input type="text" name="total_to" class="form-control"
-                                    placeholder="الإجمالي أصغر من">
-                            </div>
-
-                            <div class="col-md-3">
-                                <input type="date" name="from_date" class="form-control"
-                                    placeholder="التاريخ من">
-                            </div>
-
-                            <div class="col-md-3">
-                                <input type="date" name="to_date" class="form-control"
-                                    placeholder="التاريخ إلى">
-                            </div>
-
-                            <div class="col-md-6">
-                                <select name="added_by_employee" class="form-control select2">
-                                    <option value="">أضيفت بواسطة</option>
-                                    @foreach ($employees as $employee)
-                                        <option value="{{ $employee->id }}">{{ $employee->name }}</option>
+                <div class="card-body">
+                    <form class="form" id="searchForm">
+                        @csrf
+                        <div class="row g-3">
+                            <!-- الحقول الأساسية -->
+                            <div class="col-md-4">
+                                <select name="client_id" class="form-control select2">
+                                    <option value="">أي العميل</option>
+                                    @foreach ($clients as $client)
+                                        <option value="{{ $client->id }}">
+                                            {{ $client->trade_name }} ({{ $client->code }})
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
 
-                            <div class="col-md-6">
-                                <select name="sales_person_user" class="form-control select2">
-                                    <option value="">مسؤول المبيعات</option>
-                                    @foreach ($employees_sales_person as $employee)
-                                        <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
-                                    @endforeach
+                            <div class="col-md-4">
+                                <input type="text" name="invoice_number" class="form-control" placeholder="رقم الفاتورة">
+                            </div>
+
+                            <div class="col-md-4">
+                                <select name="payment_status" class="form-control select2">
+                                    <option value="">حالة الدفع</option>
+                                    <option value="1">مدفوعة بالكامل</option>
+                                    <option value="2">مدفوعة جزئيًا</option>
+                                    <option value="3">غير مدفوعة بالكامل</option>
+                                    <option value="4">مستلمة</option>
                                 </select>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="form-actions mt-2">
-                        <button type="submit" class="btn btn-primary">بحث</button>
-                        <button type="button" id="resetSearch" class="btn btn-outline-warning">إلغاء</button>
-                    </div>
-                </form>
+                        <!-- البحث المتقدم -->
+                        <div class="collapse" id="advancedSearchForm">
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-3">
+                                    <input type="text" name="total_from" class="form-control"
+                                        placeholder="الإجمالي أكبر من">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <input type="text" name="total_to" class="form-control"
+                                        placeholder="الإجمالي أصغر من">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <input type="date" name="from_date" class="form-control" placeholder="التاريخ من">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <input type="date" name="to_date" class="form-control" placeholder="التاريخ إلى">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <select name="added_by_employee" class="form-control select2">
+                                        <option value="">أضيفت بواسطة</option>
+                                        @foreach ($employees as $employee)
+                                            <option value="{{ $employee->id }}">{{ $employee->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <select name="sales_person_user" class="form-control select2">
+                                        <option value="">مسؤول المبيعات</option>
+                                        @foreach ($employees_sales_person as $employee)
+                                            <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions mt-2">
+                            <button type="submit" class="btn btn-primary">بحث</button>
+                            <button type="button" id="resetSearch" class="btn btn-outline-warning">إلغاء</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
 
-        <!-- جدول النتائج -->
-        <div class="card">
-            <div class="card-body">
-                <div id="results-container">
-                    <!-- سيتم تحميل الجدول هنا عبر AJAX -->
+            <!-- جدول النتائج -->
+            <div class="card">
+                <div class="card-body">
+                    <div id="results-container">
+                        <!-- سيتم تحميل الجدول هنا عبر AJAX -->
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 @endsection
 
 @section('scripts')
-<meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-<script>
-$(document).ready(function() {
-    // تحميل البيانات الأولية
-    loadData();
-
-    // البحث عند إرسال النموذج
-    $('#searchForm').on('submit', function(e) {
-        e.preventDefault();
-        loadData();
-    });
-
-    // البحث الفوري عند تغيير قيم المدخلات
-    $('#searchForm input, #searchForm select').on('change input', function() {
-        clearTimeout(window.searchTimeout);
-        window.searchTimeout = setTimeout(function() {
+    <script>
+        $(document).ready(function() {
+            // تحميل البيانات الأولية
             loadData();
-        }, 500);
-    });
 
-    // إعادة تعيين الفلاتر
-    $('#resetSearch').on('click', function() {
-        $('#searchForm')[0].reset();
-        loadData();
-    });
+            // البحث عند إرسال النموذج
+            $('#searchForm').on('submit', function(e) {
+                e.preventDefault();
+                loadData();
+            });
 
-    // التعامل مع الترقيم
-    $(document).on('click', '.pagination a', function(e) {
-        e.preventDefault();
-        let url = $(this).attr('href');
-        if (url) {
-            let page = new URL(url).searchParams.get('page');
-            loadData(page);
-        }
-    });
+            // البحث الفوري عند تغيير قيم المدخلات
+            $('#searchForm input, #searchForm select').on('change input', function() {
+                clearTimeout(window.searchTimeout);
+                window.searchTimeout = setTimeout(function() {
+                    loadData();
+                }, 500);
+            });
 
-    // دالة تحميل البيانات
-    function loadData(page = 1) {
-        showLoading();
+            // إعادة تعيين الفلاتر
+            $('#resetSearch').on('click', function() {
+                $('#searchForm')[0].reset();
+                loadData();
+            });
 
-        let formData = $('#searchForm').serialize();
-        if (page > 1) {
-            formData += '&page=' + page;
-        }
-
-        $.ajax({
-            url: '{{ route("invoices.index") }}',
-            method: 'GET',
-            data: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            success: function(response) {
-                if (response.success) {
-                    $('#results-container').html(response.data);
-                    updatePaginationInfo(response);
-                    initializeEvents();
+            // التعامل مع الترقيم
+            $(document).on('click', '.pagination a', function(e) {
+                e.preventDefault();
+                let url = $(this).attr('href');
+                if (url) {
+                    let page = new URL(url).searchParams.get('page');
+                    loadData(page);
                 }
-            },
-            error: function(xhr, status, error) {
-                console.error('خطأ في تحميل البيانات:', error);
-                $('#results-container').html(
-                    '<div class="alert alert-danger text-center">' +
-                    '<p class="mb-0">حدث خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى.</p>' +
-                    '</div>'
-                );
-            },
-            complete: function() {
-                hideLoading();
-            }
-        });
-    }
+            });
 
-    function showLoading() {
-        $('#results-container').css('opacity', '0.6');
-        if ($('#loading-indicator').length === 0) {
-            $('#results-container').prepend(`
+            // دالة تحميل البيانات
+            function loadData(page = 1) {
+                showLoading();
+
+                let formData = $('#searchForm').serialize();
+                if (page > 1) {
+                    formData += '&page=' + page;
+                }
+
+                $.ajax({
+                    url: '{{ route('invoices.index') }}',
+                    method: 'GET',
+                    data: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#results-container').html(response.data);
+                            updatePaginationInfo(response);
+                            initializeEvents();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('خطأ في تحميل البيانات:', error);
+                        $('#results-container').html(
+                            '<div class="alert alert-danger text-center">' +
+                            '<p class="mb-0">حدث خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى.</p>' +
+                            '</div>'
+                        );
+                    },
+                    complete: function() {
+                        hideLoading();
+                    }
+                });
+            }
+
+            function showLoading() {
+                $('#results-container').css('opacity', '0.6');
+                if ($('#loading-indicator').length === 0) {
+                    $('#results-container').prepend(`
                 <div id="loading-indicator" class="text-center p-3">
                     <div class="spinner-border text-primary" role="status">
 
@@ -345,100 +354,100 @@ $(document).ready(function() {
 
                 </div>
             `);
-        }
-    }
-
-    function hideLoading() {
-        $('#loading-indicator').remove();
-        $('#results-container').css('opacity', '1');
-    }
-
-    function updatePaginationInfo(response) {
-        $('.pagination-info').text(`صفحة ${response.current_page} من ${response.last_page}`);
-        if (response.total > 0) {
-            $('.results-info').text(`${response.from}-${response.to} من ${response.total}`);
-        } else {
-            $('.results-info').text('لا توجد نتائج');
-        }
-    }
-
-    function initializeEvents() {
-        // أحداث الحذف
-        $('.delete-invoice').off('click').on('click', function(e) {
-            e.preventDefault();
-            const invoiceId = $(this).data('id');
-
-            if (confirm('هل أنت متأكد من حذف هذه الفاتورة؟')) {
-                deleteInvoice(invoiceId);
+                }
             }
-        });
 
-        // تحديد الكل
-        $('#selectAll').off('change').on('change', function() {
-            $('.invoice-checkbox').prop('checked', $(this).prop('checked'));
-        });
-
-        $('.invoice-checkbox').off('change').on('change', function() {
-            let totalCheckboxes = $('.invoice-checkbox').length;
-            let checkedCheckboxes = $('.invoice-checkbox:checked').length;
-            $('#selectAll').prop('checked', totalCheckboxes === checkedCheckboxes);
-        });
-    }
-
-    function deleteInvoice(invoiceId) {
-        const row = $(`.delete-invoice[data-id="${invoiceId}"]`).closest('tr');
-        row.css('opacity', '0.5');
-
-        $.ajax({
-            url: `/invoices/delete/${invoiceId}`,
-            type: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(response) {
-                alert('تم حذف الفاتورة بنجاح');
-                loadData();
-            },
-            error: function() {
-                row.css('opacity', '1');
-                alert('حدث خطأ أثناء حذف الفاتورة');
+            function hideLoading() {
+                $('#loading-indicator').remove();
+                $('#results-container').css('opacity', '1');
             }
+
+            function updatePaginationInfo(response) {
+                $('.pagination-info').text(`صفحة ${response.current_page} من ${response.last_page}`);
+                if (response.total > 0) {
+                    $('.results-info').text(`${response.from}-${response.to} من ${response.total}`);
+                } else {
+                    $('.results-info').text('لا توجد نتائج');
+                }
+            }
+
+            function initializeEvents() {
+                // أحداث الحذف
+                $('.delete-invoice').off('click').on('click', function(e) {
+                    e.preventDefault();
+                    const invoiceId = $(this).data('id');
+
+                    if (confirm('هل أنت متأكد من حذف هذه الفاتورة؟')) {
+                        deleteInvoice(invoiceId);
+                    }
+                });
+
+                // تحديد الكل
+                $('#selectAll').off('change').on('change', function() {
+                    $('.invoice-checkbox').prop('checked', $(this).prop('checked'));
+                });
+
+                $('.invoice-checkbox').off('change').on('change', function() {
+                    let totalCheckboxes = $('.invoice-checkbox').length;
+                    let checkedCheckboxes = $('.invoice-checkbox:checked').length;
+                    $('#selectAll').prop('checked', totalCheckboxes === checkedCheckboxes);
+                });
+            }
+
+            function deleteInvoice(invoiceId) {
+                const row = $(`.delete-invoice[data-id="${invoiceId}"]`).closest('tr');
+                row.css('opacity', '0.5');
+
+                $.ajax({
+                    url: `/invoices/delete/${invoiceId}`,
+                    type: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        alert('تم حذف الفاتورة بنجاح');
+                        loadData();
+                    },
+                    error: function() {
+                        row.css('opacity', '1');
+                        alert('حدث خطأ أثناء حذف الفاتورة');
+                    }
+                });
+            }
+
+            initializeEvents();
         });
-    }
 
-    initializeEvents();
-});
+        // دوال التحكم في البحث المتقدم
+        function toggleSearchText(button) {
+            const buttonText = button.querySelector('.button-text');
+            const advancedFields = document.querySelectorAll('.advanced-field');
 
-// دوال التحكم في البحث المتقدم
-function toggleSearchText(button) {
-    const buttonText = button.querySelector('.button-text');
-    const advancedFields = document.querySelectorAll('.advanced-field');
+            if (buttonText.textContent.trim() === 'متقدم') {
+                buttonText.textContent = 'بحث بسيط';
+                advancedFields.forEach(field => field.style.display = 'block');
+            } else {
+                buttonText.textContent = 'متقدم';
+                advancedFields.forEach(field => field.style.display = 'none');
+            }
+        }
 
-    if (buttonText.textContent.trim() === 'متقدم') {
-        buttonText.textContent = 'بحث بسيط';
-        advancedFields.forEach(field => field.style.display = 'block');
-    } else {
-        buttonText.textContent = 'متقدم';
-        advancedFields.forEach(field => field.style.display = 'none');
-    }
-}
+        function toggleSearchFields(button) {
+            const searchForm = document.getElementById('searchForm');
+            const buttonText = button.querySelector('.hide-button-text');
+            const icon = button.querySelector('i');
 
-function toggleSearchFields(button) {
-    const searchForm = document.getElementById('searchForm');
-    const buttonText = button.querySelector('.hide-button-text');
-    const icon = button.querySelector('i');
-
-    if (buttonText.textContent === 'اخفاء') {
-        searchForm.style.display = 'none';
-        buttonText.textContent = 'اظهار';
-        icon.classList.remove('fa-times');
-        icon.classList.add('fa-eye');
-    } else {
-        searchForm.style.display = 'block';
-        buttonText.textContent = 'اخفاء';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-times');
-    }
-}
-</script>
+            if (buttonText.textContent === 'اخفاء') {
+                searchForm.style.display = 'none';
+                buttonText.textContent = 'اظهار';
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-eye');
+            } else {
+                searchForm.style.display = 'block';
+                buttonText.textContent = 'اخفاء';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-times');
+            }
+        }
+    </script>
 @endsection
