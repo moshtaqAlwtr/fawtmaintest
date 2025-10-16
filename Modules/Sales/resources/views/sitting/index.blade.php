@@ -86,20 +86,7 @@
                     </div>
                 </div>
 
-                <!-- حقول إضافية -->
-                <div class="col-lg-4 col-sm-6 col-12">
-                    <div class="card hover-card">
-                        <div class="card-content">
-                            <div class="card-body setting">
-                                <a href="">
-                                    <i class="fas fa-plus-circle fa-8x p-3" style="color: primary;"></i>
-                                    <h5><strong>حقول أضافية</strong></h5>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+               
                 <!-- خيارات الشحن -->
                 <div class="col-lg-4 col-sm-6 col-12">
                     <div class="card hover-card">
