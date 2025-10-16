@@ -145,21 +145,34 @@
                 <div class="d-flex gap-2">
                     <span class="hide-button-text">بحث وتصفية</span>
                 </div>
-                <div class="d-flex align-items-center gap-2">
-                    <button class="btn btn-outline-secondary btn-sm" onclick="toggleSearchFields(this)">
-                        <i class="fa fa-times"></i>
-                        <span class="hide-button-text">اخفاء</span>
-                    </button>
-                    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse"
-                        data-bs-target="#advancedSearchForm" onclick="toggleSearchText(this)">
-                        <i class="fa fa-filter"></i>
-                        <span class="button-text">متقدم</span>
-                    </button>
-                    <button type="button" id="resetSearch" class="btn btn-outline-warning btn-sm">
-                        <i class="fa fa-refresh"></i>
-                        إعادة تعيين
-                    </button>
-                </div>
+              <div class="d-flex align-items-center flex-wrap gap-2">
+
+    <!-- إخفاء / إظهار -->
+    <button class="btn btn-outline-primary btn-sm waves-effect waves-light"
+            onclick="toggleSearchFields(this)">
+        <i class="fa fa-times me-1"></i>
+        <span class="hide-button-text">إخفاء</span>
+    </button>
+
+    <!-- بحث متقدم -->
+    <button class="btn btn-outline-primary btn-sm waves-effect waves-light"
+            data-bs-toggle="collapse"
+            data-bs-target="#advancedSearchForm"
+            onclick="toggleSearchText(this)">
+        <i class="fa fa-filter me-1"></i>
+        <span class="button-text">متقدم</span>
+    </button>
+
+    <!-- إعادة تعيين -->
+    <button type="button" id="resetSearch"
+            class="btn btn-outline-primary btn-sm waves-effect waves-light">
+        <i class="fa fa-refresh me-1"></i>
+        إعادة تعيين
+    </button>
+
+</div>
+
+
             </div>
 
             <div class="card-body">
