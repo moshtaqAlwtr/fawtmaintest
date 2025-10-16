@@ -9,6 +9,21 @@
 @endsection
 
 @section('content')
+<div class="content-header row">
+    <div class="content-header-left col-md-9 col-12 mb-2">
+        <div class="row breadcrumbs-top">
+            <div class="col-12">
+                <h2 class="content-header-title float-left mb-0">ادارة الاشعارات الدائنة</h2>
+                <div class="breadcrumb-wrapper col-12">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ route('CreditNotes.index') }}">الاشعارات الدائنة</a></li>
+                        <li class="breadcrumb-item active">اضافة</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
     <div class="content-body">
         <form id="credit-note-form" action="{{ route('CreditNotes.store') }}" method="post" onsubmit="return confirmSubmit(event)">
             @csrf

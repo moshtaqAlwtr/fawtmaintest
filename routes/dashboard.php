@@ -40,7 +40,7 @@ Route::group(
 // الصفحة الرئيسية
         Route::get('', function () {
                   return view('dashboard');
-               });
+               })->name('dashboard');
 
                // صفحة المبيعات الرئيسية
         Route::get('sales/dashboard', function (Request $request) {

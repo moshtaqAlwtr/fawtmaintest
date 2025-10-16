@@ -19,6 +19,21 @@
 @endsection
 
 @section('content')
+<div class="content-header row">
+    <div class="content-header-left col-md-9 col-12 mb-2">
+        <div class="row breadcrumbs-top">
+            <div class="col-12">
+                <h2 class="content-header-title float-left mb-0">ادارة الفواتير الدورية</h2>
+                <div class="breadcrumb-wrapper col-12">
+                   <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ route('periodic_invoices.index') }}">ادارة الفواتير الدورية</a></li>
+                        <li class="breadcrumb-item active">عرض</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
   @php
                                             $currency = $account_setting->currency ?? 'SAR';
                                             $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;

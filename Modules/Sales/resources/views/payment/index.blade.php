@@ -81,10 +81,10 @@
                 <div class="col-12">
                     <h2 class="content-header-title float-left mb-0">ادارة مدفوعات العملاء</h2>
                     <div class="breadcrumb-wrapper col-12">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="">الرئيسيه</a></li>
-                            <li class="breadcrumb-item active">عرض</li>
-                        </ol>
+                 <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسيه</a></li>
+                        <li class="breadcrumb-item active">عرض</li>
+                    </ol>
                     </div>
                 </div>
             </div>
