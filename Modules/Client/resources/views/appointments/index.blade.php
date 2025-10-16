@@ -1,4 +1,4 @@
-@extends('master')
+@extends('sales::master')
 @section('title')
     ادارة المواعيد
 @stop
@@ -189,7 +189,7 @@
                     </button>
 
                     <a href="{{ route('appointments.create') }}"
-                        class="btn btn-success d-flex align-items-center justify-content-center"
+                        class="btn btn-primary d-flex align-items-center justify-content-center"
                         style="height: 44px; padding: 0 16px; font-weight: bold; border-radius: 6px;">
                         <i class="fas fa-plus ms-2"></i>
                         أضف موعد جديد
@@ -198,162 +198,149 @@
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-content">
-                <div class="card-body">
-                    <h4 class="card-title">بحث</h4>
+        {{-- resources/views/appointments/partials/search_card.blade.php --}}
 
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center p-2">
+        <div class="d-flex gap-2">
+            <span class="hide-button-text">بحث وتصفية</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-secondary btn-sm" onclick="toggleSearchFields(this)">
+                <i class="fa fa-times"></i>
+                <span class="hide-button-text">اخفاء</span>
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse"
+                data-bs-target="#advancedSearchForm" onclick="toggleSearchText(this)">
+                <i class="fa fa-filter"></i>
+                <span class="button-text">متقدم</span>
+            </button>
+        </div>
+    </div>
 
-                    <div class="card-body">
-                        <form class="form" action="{{ route('appointments.index') }}" method="GET">
-                            <div class="form-body row">
-                                <div class="form-group col-md-4">
-                                    <label for=""> اختر الاجراء</label>
-                                    <select name="status" id="feedback2" class="form-control">
-                                        <option value="">-- اختر الحالة --</option>
-                                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>تم
-                                            جدولته</option>
-                                        <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>
-                                            تم</option>
-                                        <option value="ignored" {{ request('status') == 'ignored' ? 'selected' : '' }}>صرف
-                                            النظر عنه</option>
-                                        <option value="rescheduled"
-                                            {{ request('status') == 'rescheduled' ? 'selected' : '' }}>تم جدولته مجددا
-                                        </option>
-                                    </select>
-                                </div>
+    <div class="card-body">
+        <form class="form" id="searchForm">
+            @csrf
+            <div class="row g-3">
+                <!-- الحقول الأساسية -->
+                <div class="col-md-4">
+                    <label for="" class=""> اختر العميل</label>
+                    <select name="client" class="form-control select2">
+                        <option value="">اختر العميل</option>
+                        @foreach ($clients as $client)
+                            <option value="{{ $client->id }}"
+                                {{ request('client') == $client->id ? 'selected' : '' }}>
+                                {{ $client->trade_name }} ({{ $client->code }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
-                                <div class="col-md-4">
-                                    <label for="sales_person_user">مسؤول المبيعات (المستخدمين)</label>
-                                    <select name="sales_person_user" class="form-control" id="sales_person_user">
-                                        <option value="">مسؤول المبيعات</option>
-                                        @foreach ($employees as $user)
-                                            <option value="{{ $user->id }}"
-                                                {{ request('sales_person_user') == $user->id ? 'selected' : '' }}>
-                                                {{ $user->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                <div class="col-md-4">
+                    <label for="" class=""> حالة الموعد</label>
+                    <select name="appointment_status" class="form-control select2">
+                        <option value="">حالة الموعد</option>
+                        <option value="pending" {{ request('appointment_status') == 'pending' ? 'selected' : '' }}>
+                            قادم
+                        </option>
+                        <option value="completed" {{ request('appointment_status') == 'completed' ? 'selected' : '' }}>
+                            مكتمل
+                        </option>
+                        <option value="cancelled" {{ request('appointment_status') == 'cancelled' ? 'selected' : '' }}>
+                            ملغي
+                        </option>
+                        <option value="rescheduled" {{ request('appointment_status') == 'rescheduled' ? 'selected' : '' }}>
+                            معاد جدولته
+                        </option>
+                    </select>
+                </div>
 
-                                <div class="form-group col-md-4">
-                                    <label for="time" class="form-label">اختار الحالة </label>
-                                    <select class="form-control" name="status_id">
-                                        <option value="">-- اختر الحالة --</option>
-                                        @foreach ($statuses as $status)
-                                            <option value="{{ $status->id }}"
-                                                {{ request('status_id') == $status->id ? 'selected' : '' }}>
-                                                {{ $status->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
+                <div class="col-md-4">
+                    <label for="" class=""> نوع الموعد</label>
+                    <select name="appointment_type" class="form-control select2">
+                        <option value="">نوع الموعد</option>
+                        <option value="visit" {{ request('appointment_type') == 'visit' ? 'selected' : '' }}>
+                            زيارة
+                        </option>
+                        <option value="meeting" {{ request('appointment_type') == 'meeting' ? 'selected' : '' }}>
+                            اجتماع
+                        </option>
+                        <option value="call" {{ request('appointment_type') == 'call' ? 'selected' : '' }}>
+                            مكالمة
+                        </option>
+                        <option value="followup" {{ request('appointment_type') == 'followup' ? 'selected' : '' }}>
+                            متابعة
+                        </option>
+                    </select>
+                </div>
+            </div>
 
-                            <div class="collapse" id="advancedSearchForm">
-                                <div class="form-body row d-flex align-items-center g-0">
-                                    <div class="form-group col-md-2">
-                                        <select name="action_type" class="form-control">
-                                            <option value="">نوع الإجراء</option>
-                                            @foreach ($actionTypes as $type)
-                                                <option value="{{ $type }}"
-                                                    {{ request('action_type') == $type ? 'selected' : '' }}>
-                                                    {{ $type }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <div class="form-group col-md-2">
-                                        <input type="date" class="form-control" placeholder="من" name="from_date"
-                                            value="{{ request('from_date') }}">
-                                    </div>
-
-                                    <div class="form-group col-md-2">
-                                        <input type="date" class="form-control" placeholder="إلى" name="to_date"
-                                            value="{{ request('to_date') }}">
-                                    </div>
-
-                                    <div class="form-group col-md-3">
-                                        <select name="client_id" class="form-control">
-                                            <option value="">العميل</option>
-                                            @if (isset($clients) && !empty($clients) && count($clients) > 0)
-                                                @foreach ($clients as $client)
-                                                    <option value="{{ $client->id }}"
-                                                        {{ request('client_id') == $client->id ? 'selected' : '' }}>
-                                                        {{ $client->trade_name }} {{ $client->last_name }}
-                                                    </option>
-                                                @endforeach
-                                            @else
-                                                <option value="">لا توجد عملاء حاليا</option>
-                                            @endif
-                                        </select>
-                                    </div>
-
-                                    <div class="form-group col-md-3">
-                                        <select name="employee_id" class="form-control">
-                                            <option value="">أضيفت بواسطة</option>
-                                            @if (isset($employees) && !empty($employees) && count($employees) > 0)
-                                                @foreach ($employees as $employee)
-                                                    <option value="{{ $employee->id }}"
-                                                        {{ request('employee_id') == $employee->id ? 'selected' : '' }}>
-                                                        {{ $employee->name }}
-                                                    </option>
-                                                @endforeach
-                                            @else
-                                                <option value="">لا توجد موظفين حاليا</option>
-                                            @endif
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-primary mr-1 waves-effect waves-light">بحث</button>
-                                <a class="btn btn-outline-secondary ml-2 mr-2" data-toggle="collapse"
-                                    data-target="#advancedSearchForm">
-                                    <i class="bi bi-sliders"></i> بحث متقدم
-                                </a>
-                                <a href="{{ route('appointments.index') }}"
-                                    class="btn btn-outline-warning waves-effect waves-light">إلغاء</a>
-                            </div>
-                        </form>
+            <!-- البحث المتقدم -->
+            <div class="collapse" id="advancedSearchForm">
+                <div class="row g-3 mt-2">
+                    <div class="col-md-4">
+                        <label for="" class=""> الموظف</label>
+                        <select name="employee" class="form-control">
+                            <option value="">الموظف</option>
+                            @foreach ($employees as $employee)
+                                <option value="{{ $employee->id }}"
+                                    {{ request('employee') == $employee->id ? 'selected' : '' }}>
+                                    {{ $employee->name }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
 
 
 
 
+                    <div class="col-md-4">
+                        <label for="" class=""> تاريخ الموعد من </label>
+                        <input type="date" name="date_from" class="form-control" placeholder="التاريخ من"
+                            value="{{ request('date_from') }}">
+                    </div>
 
+                    <div class="col-md-4">
+                        <label for="" class=""> تاريخ الموعد إلى </label>
+                        <input type="date" name="date_to" class="form-control" placeholder="التاريخ إلى"
+                            value="{{ request('date_to') }}">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="" class=""> الأولوية</label>
+                        <select name="priority" class="form-control">
+                            <option value="">الأولوية</option>
+                            <option value="high" {{ request('priority') == 'high' ? 'selected' : '' }}>
+                                عالية
+                            </option>
+                            <option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}>
+                                متوسطة
+                            </option>
+                            <option value="low" {{ request('priority') == 'low' ? 'selected' : '' }}>
+                                منخفضة
+                            </option>
+                        </select>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <div class="form-actions mt-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search me-1"></i>
+                    بحث
+                </button>
+                <button type="button" class="btn btn-outline-warning" id="resetFilters">
+                    <i class="fas fa-undo me-1"></i>
+                    إلغاء
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
         <div class="card">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-row-reverse">
-
-                    <!-- التبويبات على اليمين -->
-                    <ul class="nav nav-tabs ms-auto" id="myTab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="appointments-tab" data-bs-toggle="tab"
-                                data-bs-target="#appointments" type="button" role="tab"
-                                aria-controls="appointments" aria-selected="true">
-                                الحجوزات ({{ $appointments->where('status', 1)->count() ?? 0 }})
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="supply-orders-tab" data-bs-toggle="tab"
-                                data-bs-target="#supply-orders" type="button" role="tab"
-                                aria-controls="supply-orders" aria-selected="false">
-                                أوامر التوريد ({{ $appointments->where('status', 2)->count() ?? 0 }})
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="clients-tab" data-bs-toggle="tab" data-bs-target="#clients"
-                                type="button" role="tab" aria-controls="clients" aria-selected="false">
-                                العملاء ({{ $clientsCount ?? 0 }})
-                            </button>
-                        </li>
-                    </ul>
 
                     <!-- أزرار عرض القائمة والشبكة والتقويم على اليسار -->
                     <div class="btn-group me-2" role="group" aria-label="View Toggle">

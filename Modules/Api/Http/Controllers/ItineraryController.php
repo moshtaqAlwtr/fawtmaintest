@@ -16,7 +16,7 @@ class ItineraryController extends Controller
     /**
      * Display a listing of the resource.
      */
-   public function apiItineraryFull()
+public function apiItineraryFull()
 {
     $itineraries = EmployeeClientVisit::with(['employee', 'client', 'client.status_client'])
         ->orderBy('year', 'desc')
@@ -27,8 +27,14 @@ class ItineraryController extends Controller
     $weeklyData = [];
     $totalPlannedVisits = 0;
     $totalCompletedVisits = 0;
-    $uniqueWeeks = [];
 
+    // ✅ نحسب أول زيارة لكل عميل مرة وحدة لتقليل الاستعلامات
+    $firstVisitIds = EmployeeClientVisit::selectRaw('MIN(id) as id, client_id')
+        ->groupBy('client_id')
+        ->pluck('id')
+        ->toArray();
+
+    // تجميع الزيارات حسب الأسبوع
     $grouped = $itineraries->groupBy(fn($v) => $v->year . '-W' . str_pad($v->week_number, 2, '0', STR_PAD_LEFT));
 
     foreach ($grouped as $weekKey => $weekVisits) {
@@ -41,7 +47,7 @@ class ItineraryController extends Controller
         $weekEnd = clone $weekStart;
         $weekEnd->modify('+6 days');
 
-        $employees = $weekVisits->groupBy('employee_id')->map(function ($employeeVisits, $employeeId) use ($days, &$totalPlannedVisits, &$totalCompletedVisits) {
+        $employees = $weekVisits->groupBy('employee_id')->map(function ($employeeVisits, $employeeId) use ($days, &$totalPlannedVisits, &$totalCompletedVisits, $firstVisitIds) {
             $employee = $employeeVisits->first()->employee;
             $employeeStats = [
                 'id' => $employee->id,
@@ -57,11 +63,11 @@ class ItineraryController extends Controller
                 $dayVisits = $employeeVisits->where('day_of_week', $day);
                 $dayCount = $dayVisits->count();
                 $completed = $dayVisits->where('status', 'active')->count();
-                $newClients = $dayVisits->filter(fn($v) => $v->client?->is_new_for_visit_date)->count();
 
-                $visitsList = $dayVisits->map(function ($v) {
+                // 🟢 تحديد إذا كانت الزيارة الأولى للعميل
+                $dayVisitsProcessed = $dayVisits->map(function ($v) use ($firstVisitIds) {
+                    $isNew = in_array($v->id, $firstVisitIds);
                     $statusText = $v->status === 'active' ? 'تمت الزيارة' : 'لم تتم الزيارة';
-                    $isNew = $v->client?->is_new_for_visit_date;
                     $clientStatus = $v->client?->status_client;
 
                     return [
@@ -78,11 +84,13 @@ class ItineraryController extends Controller
                     ];
                 })->values();
 
+                $newClients = $dayVisitsProcessed->where('is_new', true)->count();
+
                 $employeeStats['days'][$day] = [
                     'visit_count' => $dayCount,
                     'completed' => $completed,
                     'new_clients' => $newClients,
-                    'visits' => $visitsList
+                    'visits' => $dayVisitsProcessed
                 ];
 
                 $employeeStats['total_visits'] += $dayCount;

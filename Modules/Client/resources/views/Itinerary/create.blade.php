@@ -2,1052 +2,1379 @@
 
 @section('title', 'تخطيط خط السير للمناديب')
 
-@section('styles')
+@section('content')
 <style>
-    :root {
-        --primary: #0056b3;
-        --primary-light: #e8f1fd;
-        --primary-hover: #004494;
-        --primary-gradient: linear-gradient(135deg, #0056b3, #003b7a);
-        --primary-shadow: rgba(0, 86, 179, 0.2);
-    }
 
-    body {
-        background-color: #f8f9fc;
-        font-family: 'Cairo', sans-serif;
-    }
+        :root {
+            --primary: #5651e5;
+            /* Primary purple color */
+            --primary-light: #eeedff;
+            /* Light purple for backgrounds */
+            --primary-hover: #433ad0;
+            /* Darker purple for hover */
+            --primary-gradient: linear-gradient(135deg, #5651e5, #433ad0);
+            --primary-shadow: rgba(86, 81, 229, 0.2);
+            --secondary: #7e78f5;
+            /* Secondary purple tone */
+            --accent: #e5e3ff;
+            /* Accent color for highlights */
+            --success: #4caf50;
+            /* Success green */
+            --warning: #ff9800;
+            /* Warning orange */
+            --danger: #f44336;
+            /* Danger red */
+            --light: #f8f9fc;
+            /* Light background */
+            --dark: #333;
+            /* Dark text */
+            --gray: #6c757d;
+            /* Gray for muted text */
+            --card-radius: 15px;
+            /* Consistent card radius */
+            --btn-radius: 10px;
+            /* Button radius */
+        }
 
-    .itinerary-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
+        body {
+            background-color: var(--light);
+            font-family: 'Cairo', sans-serif;
+        }
 
-    .itinerary-header h2 {
-        color: var(--primary);
-        font-weight: 700;
-        margin-bottom: 0;
-    }
-
-    .itinerary-actions {
-        display: flex;
-        gap: 10px;
-    }
-
-    .main-card {
-        border: none;
-        border-radius: 15px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-        margin-bottom: 2rem;
-    }
-
-    .card {
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        transition: all 0.3s ease;
-        margin-bottom: 1.5rem;
-        overflow: hidden;
-    }
-
-    .card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px var(--primary-shadow);
-    }
-
-    .card-header {
-        background: var(--primary-gradient);
-        color: white;
-        font-weight: 600;
-        border: none;
-        padding: 1rem 1.25rem;
-    }
-
-    .card-header i {
-        margin-left: 10px;
-    }
-
-    .btn-primary {
-        background: var(--primary-gradient);
-        border: none;
-        font-weight: 600;
-    }
-
-    .btn-primary:hover, .btn-primary:focus {
-        background: linear-gradient(135deg, #004494, #00306a);
-        box-shadow: 0 4px 10px var(--primary-shadow);
-        transform: translateY(-2px);
-    }
-
-    .btn-info {
-        background: linear-gradient(135deg, #17a2b8, #138496);
-        border: none;
-        font-weight: 600;
-    }
-
-    .btn-warning {
-        background: linear-gradient(135deg, #ffc107, #e0a800);
-        border: none;
-        font-weight: 600;
-        color: #212529;
-    }
-
-    .btn-success {
-        background: linear-gradient(135deg, #28a745, #1e7e34);
-        border: none;
-        font-weight: 600;
-    }
-
-    .form-control {
-        border-radius: 8px;
-        padding: 0.6rem 1rem;
-        border: 2px solid #e9ecef;
-        transition: all 0.3s;
-    }
-
-    .form-control:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 0.2rem var(--primary-shadow);
-    }
-
-    /* تخطيط أيام الأسبوع */
-    .day-assignment {
-        background-color: white;
-        border-radius: 12px;
-        margin-bottom: 1.2rem;
-        padding: 1.2rem;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
-        transition: all 0.3s;
-        border-right: 4px solid var(--primary);
-    }
-
-    .day-assignment:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 15px var(--primary-shadow);
-    }
-
-    .day-title {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 1rem;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .day-name {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--primary);
-    }
-
-    .client-count-badge {
-        background: var(--primary-gradient);
-        color: white;
-        font-size: 0.8rem;
-        padding: 0.2rem 0.8rem;
-        border-radius: 20px;
-        font-weight: 600;
-        margin-right: 10px;
-    }
-
-    .day-action-buttons {
-        display: flex;
-        gap: 5px;
-    }
-
-    .btn-day-action {
-        padding: 0.3rem 0.6rem;
-        font-size: 0.8rem;
-        border-radius: 6px;
-    }
-
-    .selected-clients-list {
-        background-color: #f8f9fc;
-        border-radius: 10px;
-        padding: 1rem;
-        min-height: 120px;
-        max-height: 300px;
-        overflow-y: auto;
-    }
-
-    .selected-client-card {
-        background-color: white;
-        border-radius: 8px;
-        padding: 0.8rem 1rem;
-        margin-bottom: 0.8rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
-        border-right: 3px solid var(--primary);
-        animation: slideIn 0.3s ease;
-    }
-
-    .selected-client-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px var(--primary-shadow);
-    }
-
-    .selected-client-info .client-name {
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 4px;
-    }
-
-    .selected-client-info .client-meta {
-        font-size: 0.8rem;
-        color: #6c757d;
-    }
-
-    .activity-icons {
-        display: flex;
-        gap: 10px;
-        margin-top: 5px;
-    }
-
-    .activity-icons i {
-        font-size: 0.9rem;
-    }
-
-    .activity-icons .text-success {
-        color: var(--primary) !important;
-    }
-
-    .remove-client-btn {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--primary);
-        color: white;
-        border: none;
-        transition: all 0.3s;
-    }
-
-    .remove-client-btn:hover {
-        transform: scale(1.1);
-        background: #dc3545;
-    }
-
-    .empty-day-message {
-        text-align: center;
-        color: #6c757d;
-        padding: 2rem;
-        border: 2px dashed #dee2e6;
-        border-radius: 8px;
-    }
-
-    /* قائمة العملاء المتاحين */
-    .available-clients-list {
-        max-height: 60vh;
-        overflow-y: auto;
-        background-color: #f8f9fc;
-        border-radius: 10px;
-        padding: 1rem;
-    }
-
-    .available-client-card {
-        background-color: white;
-        border-radius: 8px;
-        padding: 0.8rem 1rem;
-        margin-bottom: 0.8rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
-        cursor: grab;
-        border-right: 3px solid var(--primary);
-        transition: all 0.3s;
-    }
-
-    .available-client-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px var(--primary-shadow);
-    }
-
-    .available-client-card.client-assigned {
-        background-color: var(--primary-light);
-        opacity: 0.8;
-    }
-
-    /* حالة السحب والإفلات */
-    .day-assignment.drop-zone-active {
-        background-color: var(--primary-light);
-        border-right-width: 6px;
-    }
-
-    /* قابلية السحب */
-    .sortable-ghost {
-        opacity: 0.4;
-    }
-
-    .sortable-chosen {
-        background-color: var(--primary-light);
-    }
-
-    .sortable-drag {
-        cursor: grabbing;
-    }
-
-    /* تنسيقات للجوال */
-    @media (max-width: 768px) {
+        /* Header Styles */
         .itinerary-header {
-            flex-direction: column;
-            align-items: flex-start;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .itinerary-header h2 {
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 0;
+            position: relative;
+        }
+
+        .itinerary-header h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            right: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
         }
 
         .itinerary-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Card Styles */
+        .main-card {
+            border: none;
+            border-radius: var(--card-radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 8px;
+            height: 40%;
+            background: var(--primary-gradient);
+            border-radius: 0 var(--card-radius) 0 0;
+        }
+
+        .card {
+            border: none;
+            border-radius: var(--card-radius);
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            background: white;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px var(--primary-shadow);
+        }
+
+        .card-header {
+            background: var(--primary-light);
+            color: black;
+            font-weight: 600;
+            border: none;
+            padding: 1rem 1.25rem;
+            position: relative;
+        }
+
+        .card-header i {
+            margin-left: 10px;
+        }
+
+        /* Button Styles */
+        .btn {
+            border-radius: var(--btn-radius);
+            padding: 0.6rem 1.2rem;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
             width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.4s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .btn-primary:hover,
+        .btn-primary:focus {
+            background: linear-gradient(135deg, var(--primary-hover), #3830c0);
+            box-shadow: 0 5px 15px var(--primary-shadow);
+            transform: translateY(-2px);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #5651e5, #7e78f5);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: linear-gradient(135deg, #433ad0, #6c66e3);
+            box-shadow: 0 5px 15px var(--primary-shadow);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning), #e69500);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #e69500, #cc8400);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #3d9140);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #3d9140, #2e6d30);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #d32f2f);
+            color: white;
+        }
+
+        /* Form Controls */
+        .form-control {
+            border-radius: 8px;
+            padding: 0.7rem 1rem;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem var(--primary-shadow);
+        }
+
+        .select2-container--default .select2-selection--single {
+            border-radius: 8px;
+            height: 45px;
+            border: 2px solid #e9ecef;
+            display: flex;
+            align-items: center;
+        }
+
+        .select2-container--default .select2-selection--single:focus {
+            border-color: var(--primary);
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: var(--primary);
+        }
+
+        /* Day Assignment Styles */
+        .day-assignment {
+            background-color: white;
+            border-radius: var(--card-radius);
+            margin-bottom: 1.5rem;
+            padding: 1.4rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s;
+            border-right: 4px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .day-assignment::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 40%;
+            height: 4px;
+            background: var(--primary-gradient);
+            border-radius: 4px 0 0 0;
+        }
+
+        .day-assignment:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px var(--primary-shadow);
+        }
+
+        .day-assignment.drop-zone-active {
+            background-color: var(--primary-light);
+            border-right-width: 6px;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px var(--primary-shadow);
+        }
+
+        .day-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .day-name {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            position: relative;
+        }
+
+        .client-count-badge {
+            background: var(--primary-gradient);
+            color: white;
+            font-size: 0.85rem;
+            padding: 0.3rem 0.9rem;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-right: 10px;
+            box-shadow: 0 3px 8px var(--primary-shadow);
+        }
+
+        .day-action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-day-action {
+            padding: 0.35rem 0.7rem;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-day-action i {
+            font-size: 0.8rem;
+        }
+
+        /* Client Selection */
+        .client-select-wrapper {
+            position: relative;
+        }
+
+        .client-select-wrapper::before {
+            content: '\f0d7';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* Selected Clients List */
+        .selected-clients-list {
+            background-color: var(--light);
+            border-radius: 12px;
+            padding: 1.2rem;
+            min-height: 120px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .selected-client-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            border-right: 3px solid var(--primary);
+            animation: slideIn 0.3s ease;
+            transition: all 0.3s ease;
         }
 
-        .btn {
-            padding: 0.5rem 0.8rem;
+        .selected-client-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px var(--primary-shadow);
+        }
+
+        .selected-client-info .client-name {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .selected-client-info .client-meta {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        .activity-icons {
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .activity-icons i {
             font-size: 0.9rem;
+            color: var(--primary);
         }
-    }
 
-    @keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateX(20px);
+        .remove-client-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+            border: none;
+            transition: all 0.3s;
         }
-        to {
-            opacity: 1;
-            transform: translateX(0);
+
+        .remove-client-btn:hover {
+            transform: scale(1.1) rotate(90deg);
+            background: var(--danger);
         }
-    }
+
+        .empty-day-message {
+            text-align: center;
+            color: var(--gray);
+            padding: 2rem;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Available Clients List */
+        .available-clients-list {
+            max-height: 60vh;
+            overflow-y: auto;
+            background-color: var(--light);
+            border-radius: 12px;
+            padding: 1.2rem;
+        }
+
+        .available-client-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            cursor: grab;
+            border-right: 3px solid var(--primary);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .available-client-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: 0;
+            background: var(--primary-light);
+            z-index: -1;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .available-client-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px var(--primary-shadow);
+        }
+
+        .available-client-card:hover::before {
+            width: 100%;
+        }
+
+        .available-client-card.client-assigned {
+            background-color: var(--primary-light);
+            opacity: 0.8;
+            border-right-color: var(--gray);
+        }
+
+        /* Search Box */
+        .input-group-text {
+            background-color: transparent;
+            border-radius: 8px 0 0 8px;
+        }
+
+        #client-search {
+            border-radius: 0 8px 8px 0;
+            box-shadow: none;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            color: var(--primary) !important;
+            width: 3rem;
+            height: 3rem;
+        }
+
+        /* Sweet Alert Customizations */
+        .swal2-popup {
+            border-radius: var(--card-radius) !important;
+            font-family: 'Cairo', sans-serif !important;
+        }
+
+        .swal2-title {
+            color: var(--primary) !important;
+        }
+
+        .swal2-styled.swal2-confirm {
+            background: var(--primary-gradient) !important;
+            border-radius: var(--btn-radius) !important;
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 992px) {
+            .itinerary-header {
+                margin-bottom: 2rem;
+            }
+
+            .day-assignment {
+                padding: 1.2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .itinerary-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .itinerary-actions {
+                width: 100%;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .btn {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            .day-title {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .day-action-buttons {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+
 </style>
-@endsection
-
-@section('content')
-<div class="container-fluid py-4">
-    <div class="main-card card">
+    <div class="card">
         <div class="card-body">
-            <!-- رأس الصفحة -->
-            <div class="itinerary-header">
-                <div>
-                    <h2><i class="fas fa-route"></i> تخطيط خط السير الأسبوعي</h2>
-                    <h6 id="week-info" class="text-muted mt-2"></h6>
-                </div>
-                <div class="itinerary-actions">
-                    <button id="auto-distribute" class="btn btn-info">
-                        <i class="fas fa-magic"></i> توزيع تلقائي
-                    </button>
-                    <button id="clear-all" class="btn btn-warning">
-                        <i class="fas fa-eraser"></i> مسح الكل
-                    </button>
-                    <button id="save-itinerary" class="btn btn-success">
-                        <i class="fas fa-save"></i> حفظ خط السير
-                    </button>
-                </div>
-            </div>
-
-            <div class="row">
-                <!-- الإعدادات وقائمة العملاء -->
-                <div class="col-lg-4">
-                    <!-- بطاقة الإعدادات والفلاتر -->
-                    <div class="card">
-                        <div class="card-header">
-                            <i class="fas fa-cogs"></i> الإعدادات والفلاتر
-                        </div>
-                        <div class="card-body">
-                            <div class="form-group">
-                                <label for="employee-select" class="font-weight-bold">اختر المندوب</label>
-                                <select id="employee-select" class="form-control select2"
-                                    {{ auth()->user()->role === 'employee' ? 'disabled' : '' }}>
-                                    @if (auth()->user()->role !== 'employee')
-                                        <option value="">-- اختر مندوب --</option>
-                                    @endif
-                                    @foreach ($employees as $employee)
-                                        <option value="{{ $employee->id }}"
-                                            {{ auth()->user()->id == $employee->id ? 'selected' : '' }}>
-                                            {{ $employee->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="form-row">
-                                <div class="form-group col-md-6">
-                                    <label for="year-select" class="font-weight-bold">السنة</label>
-                                    <select id="year-select" class="form-control">
-                                        @for ($year = date('Y') - 2; $year <= date('Y') + 2; $year++)
-                                            <option value="{{ $year }}"
-                                                {{ $year == date('Y') ? 'selected' : '' }}>{{ $year }}
-                                            </option>
-                                        @endfor
-                                    </select>
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <label for="week-select" class="font-weight-bold">الأسبوع</label>
-                                    <select id="week-select" class="form-control select2">
-                                        @for ($i = 1; $i <= 52; $i++)
-                                            <option value="{{ $i }}">الأسبوع {{ $i }}</option>
-                                        @endfor
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="form-group mb-0">
-                                <label for="group-select" class="font-weight-bold">اختر مجموعة العملاء</label>
-                                <select id="group-select" class="form-control select2"
-                                    {{ auth()->user()->role === 'employee' && $groups->isEmpty() ? 'disabled' : '' }}>
-                                    <option value="">-- اختر مجموعة --</option>
-                                    @if (auth()->user()->role === 'employee')
-                                        @foreach ($groups as $group)
-                                            <option value="{{ $group->id }}">{{ $group->name }}</option>
-                                        @endforeach
-                                    @endif
-                                </select>
-                            </div>
-                        </div>
+            <div class="container-fluid">
+                <div class="itinerary-header">
+                    <h2><i class="fas fa-route text-primary"></i> تخطيط خط السير الأسبوعي</h2>
+                    <h6 id="week-info" class="text-muted"></h6>
+                    <div>
+                        <button id="auto-distribute" class="btn btn-info shadow-sm mr-2">
+                            <i class="fas fa-magic"></i> توزيع تلقائي
+                        </button>
+                        <button id="clear-all" class="btn btn-warning shadow-sm mr-2">
+                            <i class="fas fa-eraser"></i> مسح الكل
+                        </button>
+                        <button id="save-itinerary" class="btn btn-primary shadow-sm">
+                            <i class="fas fa-save"></i> حفظ خط السير
+                        </button>
                     </div>
+                </div>
 
-                    <!-- بطاقة العملاء المتاحين -->
-                    <div class="card">
-                        <div class="card-header">
-                            <i class="fas fa-users"></i> العملاء المتاحين
-                        </div>
-                        <div class="card-body">
-                            <div class="form-group">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text bg-white border-left-0">
-                                            <i class="fas fa-search text-muted"></i>
-                                        </span>
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-cogs"></i> الإعدادات والفلاتر</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label for="employee-select" class="font-weight-bold">اختر المندوب</label>
+                                    <select id="employee-select" class="form-control client-select select2"
+                                        {{ auth()->user()->role === 'employee' ? 'disabled' : '' }}>
+                                        @if (auth()->user()->role !== 'employee')
+                                            <option value="">-- اختر مندوب --</option>
+                                        @endif
+                                        @foreach ($employees as $employee)
+                                            <option value="{{ $employee->id }}"
+                                                {{ auth()->user()->id == $employee->id ? 'selected' : '' }}>
+                                                {{ $employee->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="year-select" class="font-weight-bold">السنة</label>
+                                        <select id="year-select" class="form-control client-select">
+                                            @for ($year = date('Y') - 2; $year <= date('Y') + 2; $year++)
+                                                <option value="{{ $year }}"
+                                                    {{ $year == $currentYear ? 'selected' : '' }}>{{ $year }}
+                                                </option>
+                                            @endfor
+                                        </select>
                                     </div>
-                                    <input type="text" id="client-search" class="form-control border-right-0"
+                                    <div class="form-group col-md-6">
+                                        <label for="week-select" class="font-weight-bold">الأسبوع</label>
+                                        <select id="week-select" class="form-control client-select select2">
+                                            @for ($i = 1; $i <= 52; $i++)
+                                                <option value="{{ $i }}" {{ $i == $currentWeek ? 'selected' : '' }}>الأسبوع {{ $i }}</option>
+                                            @endfor
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="group-select" class="font-weight-bold">اختر مجموعة العملاء</label>
+                                    <select id="group-select" class="form-control client-select select2"
+                                        {{ auth()->user()->role === 'employee' && $groups->isEmpty() ? 'disabled' : '' }}>
+                                        <option value="">-- اختر مجموعة --</option>
+                                        @if (auth()->user()->role === 'employee')
+                                            @foreach ($groups as $group)
+                                                <option value="{{ $group->id }}">{{ $group->name }}</option>
+                                            @endforeach
+                                        @endif
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-users"></i> العملاء المتاحين</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <input type="text" id="client-search" class="form-control"
                                         placeholder="ابحث عن عميل بالاسم أو الكود...">
                                 </div>
-                            </div>
-
-                            <div id="available-clients-container" style="position: relative;">
-                                <div class="loading-spinner spinner-border text-primary" role="status"
-                                    style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                                    <span class="sr-only">جاري التحميل...</span>
-                                </div>
-
-                                <div id="available-clients-list" class="available-clients-list">
-                                    <div class="text-center text-muted py-5">
-                                        <i class="fas fa-users fa-2x mb-3 d-block"></i>
-                                        الرجاء اختيار مندوب ومجموعة لعرض العملاء
+                                <div id="available-clients-container" style="position: relative;">
+                                    <div class="loading-spinner spinner-border text-primary" role="status"
+                                        style="display: none;">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                    <div id="available-clients-list" class="available-clients-list"
+                                        style="min-height: 200px; background-color: #f8f9fa; border-radius: 8px; padding: 15px; overflow-y: auto; max-height: 50vh;">
+                                        <p class="text-center text-muted mt-4">الرجاء اختيار مندوب ومجموعة لعرض العملاء.</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- تخطيط أيام الأسبوع -->
-                <div class="col-lg-8">
-                    <div class="client-assignment-container">
-                        @php
-                            $days = [
-                                'saturday' => ['name' => 'السبت', 'icon' => 'fa-calendar-day'],
-                                'sunday' => ['name' => 'الأحد', 'icon' => 'fa-sun'],
-                                'monday' => ['name' => 'الاثنين', 'icon' => 'fa-briefcase'],
-                                'tuesday' => ['name' => 'الثلاثاء', 'icon' => 'fa-calendar-check'],
-                                'wednesday' => ['name' => 'الأربعاء', 'icon' => 'fa-calendar-alt'],
-                                'thursday' => ['name' => 'الخميس', 'icon' => 'fa-calendar-week'],
-                                'friday' => ['name' => 'الجمعة', 'icon' => 'fa-mosque'],
-                            ];
-                        @endphp
+                    <div class="col-lg-8">
+                        <div class="client-assignment-container">
+                            @php
+                                $days = [
+                                    'saturday' => ['name' => 'السبت', 'icon' => 'fa-calendar-day'],
+                                    'sunday' => ['name' => 'الأحد', 'icon' => 'fa-sun'],
+                                    'monday' => ['name' => 'الاثنين', 'icon' => 'fa-briefcase'],
+                                    'tuesday' => ['name' => 'الثلاثاء', 'icon' => 'fa-calendar-check'],
+                                    'wednesday' => ['name' => 'الأربعاء', 'icon' => 'fa-calendar-alt'],
+                                    'thursday' => ['name' => 'الخميس', 'icon' => 'fa-calendar-week'],
+                                    'friday' => ['name' => 'الجمعة', 'icon' => 'fa-mosque'],
+                                ];
+                            @endphp
 
-                        @foreach ($days as $dayEn => $dayInfo)
-                            <div class="day-assignment" data-day="{{ $dayEn }}">
-                                <div class="day-title">
-                                    <div class="day-name">
+                            @foreach ($days as $dayEn => $dayInfo)
+                                <div class="day-assignment" data-day="{{ $dayEn }}">
+                                    <div class="day-title">
                                         <i class="fas {{ $dayInfo['icon'] }}"></i>
                                         {{ $dayInfo['name'] }}
                                         <span class="client-count-badge" id="count-{{ $dayEn }}">0 عميل</span>
+
+                                        <div class="day-action-buttons">
+                                            <button class="btn btn-sm btn-outline-primary btn-day-action add-all-btn"
+                                                data-day="{{ $dayEn }}" title="إضافة كل العملاء المتاحين">
+                                                <i class="fas fa-plus-circle"></i> الكل
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success btn-day-action add-5-btn"
+                                                data-day="{{ $dayEn }}" title="إضافة أول 5 عملاء">
+                                                <i class="fas fa-forward"></i> 5
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger btn-day-action clear-day-btn"
+                                                data-day="{{ $dayEn }}" title="مسح اليوم">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
                                     </div>
 
-                                    <div class="day-action-buttons">
-                                        <button class="btn btn-sm btn-primary btn-day-action add-all-btn"
-                                            data-day="{{ $dayEn }}" title="إضافة كل العملاء المتاحين">
-                                            <i class="fas fa-plus-circle"></i> الكل
-                                        </button>
-                                        <button class="btn btn-sm btn-info btn-day-action add-5-btn"
-                                            data-day="{{ $dayEn }}" title="إضافة أول 5 عملاء">
-                                            <i class="fas fa-forward"></i> 5
-                                        </button>
-                                        <button class="btn btn-sm btn-danger btn-day-action clear-day-btn"
-                                            data-day="{{ $dayEn }}" title="مسح اليوم">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                    <div class="client-select-wrapper">
+                                        <select class="client-select day-client-select select2"
+                                            data-day="{{ $dayEn }}" disabled>
+                                            <option value="">-- اختر عميل لإضافته --</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="selected-clients-list" id="clients-{{ $dayEn }}">
+                                        <div class="empty-day-message">
+                                            <i class="fas fa-calendar-plus text-muted"></i>
+                                            لم يتم تعيين عملاء لهذا اليوم بعد
+                                        </div>
                                     </div>
                                 </div>
-
-                                <div class="client-select-wrapper mt-2 mb-3">
-                                    <select class="form-control client-select day-client-select select2"
-                                        data-day="{{ $dayEn }}" disabled>
-                                        <option value="">-- اختر عميل لإضافته --</option>
-                                    </select>
-                                </div>
-
-                                <div class="selected-clients-list" id="clients-{{ $dayEn }}">
-                                    <div class="empty-day-message">
-                                        <i class="fas fa-calendar-plus text-muted mb-3 fa-2x d-block"></i>
-                                        لم يتم تعيين عملاء لهذا اليوم بعد
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 @endsection
 
 @section('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
-<script>
-    $(document).ready(function() {
-        let currentYear = {{ date('Y') }};
-        let currentWeek = getCurrentWeek();
-        let availableClients = [];
-        let dayAssignments = {
-            saturday: [],
-            sunday: [],
-            monday: [],
-            tuesday: [],
-            wednesday: [],
-            thursday: [],
-            friday: []
-        };
+    <script>
+        $(document).ready(function() {
+            let currentYear = {{ $currentYear }};
+            let currentWeek = {{ $currentWeek }};
+            let availableClients = [];
+            let dayAssignments = {
+                saturday: [],
+                sunday: [],
+                monday: [],
+                tuesday: [],
+                wednesday: [],
+                thursday: [],
+                friday: []
+            };
 
-        const employeeSelect = $('#employee-select');
-        const yearSelect = $('#year-select');
-        const weekSelect = $('#week-select');
-        const groupSelect = $('#group-select');
-        const availableClientsList = $('#available-clients-list');
-        const spinner = $('#available-clients-container .loading-spinner');
+            const employeeSelect = $('#employee-select');
+            const yearSelect = $('#year-select');
+            const weekSelect = $('#week-select');
+            const groupSelect = $('#group-select');
+            const availableClientsList = $('#available-clients-list');
+            const spinner = $('#available-clients-container .loading-spinner');
 
-        // تهيئة الصفحة
-        initializeWeekSelect();
-        updateWeekInfo();
-        initializeDragAndDrop();
-        initializeSortable();
+            // Remove the call to initializeWeekSelect() since we're setting the values from PHP
+            updateWeekInfo();
+            initializeDragAndDrop();
 
-        // Event Listeners
-        employeeSelect.on('change', handleEmployeeChange);
-        yearSelect.on('change', handleYearChange);
-        weekSelect.on('change', handleWeekChange);
-        groupSelect.on('change', handleGroupChange);
-        $(document).on('change', '.day-client-select', handleClientSelection);
-        $(document).on('click', '.remove-client-btn', handleRemoveClient);
-        $(document).on('click', '.add-all-btn', handleAddAllClients);
-        $(document).on('click', '.add-5-btn', handleAdd5Clients);
-        $(document).on('click', '.clear-day-btn', handleClearDay);
-        $('#save-itinerary').on('click', saveItinerary);
-        $('#auto-distribute').on('click', handleAutoDistribute);
-        $('#clear-all').on('click', handleClearAll);
-        $('#client-search').on('keyup', handleClientSearch);
+            // Event Listeners
+            employeeSelect.on('change', handleEmployeeChange);
+            yearSelect.on('change', handleYearChange);
+            weekSelect.on('change', handleWeekChange);
+            groupSelect.on('change', handleGroupChange);
+            $(document).on('change', '.day-client-select', handleClientSelection);
+            $(document).on('click', '.remove-client-btn', handleRemoveClient);
+            $(document).on('click', '.add-all-btn', handleAddAllClients);
+            $(document).on('click', '.add-5-btn', handleAdd5Clients);
+            $(document).on('click', '.clear-day-btn', handleClearDay);
+            $('#save-itinerary').on('click', saveItinerary);
+            $('#auto-distribute').on('click', handleAutoDistribute);
+            $('#clear-all').on('click', handleClearAll);
+            $('#client-search').on('keyup', handleClientSearch);
 
-        function handleEmployeeChange() {
-            const employeeId = $(this).val();
-            resetUI();
-            if (employeeId) {
-                fetchGroupsForEmployee(employeeId);
+            function handleEmployeeChange() {
+                const employeeId = $(this).val();
+                resetUI();
+                if (employeeId) {
+                    fetchGroupsForEmployee(employeeId);
+                    loadItineraryForWeek();
+                }
+            }
+
+            function handleYearChange() {
+                currentYear = $(this).val();
+                updateWeekInfo();
                 loadItineraryForWeek();
             }
-        }
 
-        function handleYearChange() {
-            currentYear = $(this).val();
-            updateWeekInfo();
-            loadItineraryForWeek();
-        }
-
-        function handleWeekChange() {
-            currentWeek = $(this).val();
-            updateWeekInfo();
-            loadItineraryForWeek();
-        }
-
-        function handleGroupChange() {
-            const groupId = $(this).val();
-            if (groupId) {
-                fetchClientsForGroup(groupId);
-            } else {
-                availableClientsList.html(`
-                    <div class="text-center text-muted py-5">
-                        <i class="fas fa-users fa-2x mb-3 d-block"></i>
-                        الرجاء اختيار مجموعة لعرض العملاء
-                    </div>
-                `);
-                $('.day-client-select').prop('disabled', true);
+            function handleWeekChange() {
+                currentWeek = $(this).val();
+                updateWeekInfo();
+                loadItineraryForWeek();
             }
-        }
 
-        function handleClientSelection() {
-            const day = $(this).data('day');
-            const clientId = $(this).val();
-            if (clientId) {
-                const client = availableClients.find(c => c.id == clientId);
-                if (client && !dayAssignments[day].find(c => c.id == clientId)) {
-                    addClientToDay(day, client);
-                    $(this).val('').trigger('change.select2');
+            function handleGroupChange() {
+                const groupId = $(this).val();
+                if (groupId) {
+                    fetchClientsForGroup(groupId);
+                } else {
+                    availableClientsList.html(
+                        '<p class="text-center text-muted">الرجاء اختيار مجموعة لعرض العملاء.</p>');
+                    $('.day-client-select').prop('disabled', true);
                 }
             }
-        }
 
-        function handleRemoveClient() {
-            const day = $(this).data('day');
-            const clientId = $(this).data('client-id');
-            removeClientFromDay(day, clientId);
-        }
-
-        function handleAddAllClients() {
-            const day = $(this).data('day');
-            const availableForDay = availableClients.filter(client =>
-                !dayAssignments[day].find(assigned => assigned.id == client.id)
-            );
-
-            if (availableForDay.length === 0) {
-                showAlert('info', 'تنبيه', 'لا يوجد عملاء متاحين للإضافة');
-                return;
-            }
-
-            showConfirm(
-                'تأكيد الإضافة',
-                `هل تريد إضافة ${availableForDay.length} عميل لـ ${getDayNameAr(day)}؟`,
-                'نعم، أضف الكل'
-            ).then((result) => {
-                if (result.isConfirmed) {
-                    availableForDay.forEach(client => addClientToDay(day, client));
-                    showAlert('success', 'تم!', `تمت إضافة ${availableForDay.length} عميل بنجاح`);
-                }
-            });
-        }
-
-        function handleAdd5Clients() {
-            const day = $(this).data('day');
-            const availableForDay = availableClients.filter(client =>
-                !dayAssignments[day].find(assigned => assigned.id == client.id)
-            ).slice(0, 5);
-
-            if (availableForDay.length === 0) {
-                showAlert('info', 'تنبيه', 'لا يوجد عملاء متاحين للإضافة');
-                return;
-            }
-
-            availableForDay.forEach(client => addClientToDay(day, client));
-            showAlert('success', 'تم!', `تمت إضافة ${availableForDay.length} عميل`);
-        }
-
-        function handleClearDay() {
-            const day = $(this).data('day');
-            if (dayAssignments[day].length === 0) {
-                showAlert('info', 'تنبيه', 'لا يوجد عملاء في هذا اليوم');
-                return;
-            }
-
-            showConfirm(
-                'تأكيد المسح',
-                `هل تريد مسح ${dayAssignments[day].length} عميل من ${getDayNameAr(day)}؟`,
-                'نعم، امسح',
-                'danger'
-            ).then((result) => {
-                if (result.isConfirmed) {
-                    dayAssignments[day] = [];
-                    updateDayDisplay(day);
-                    updateDayClientSelects();
-                    updateAvailableClientsList();
-                    showAlert('success', 'تم!', 'تم مسح العملاء بنجاح');
-                }
-            });
-        }
-
-        function handleAutoDistribute() {
-            if (availableClients.length === 0) {
-                showAlert('warning', 'تنبيه', 'لا يوجد عملاء متاحين للتوزيع');
-                return;
-            }
-
-            Swal.fire({
-                title: 'التوزيع التلقائي',
-                html: `
-                    <div class="text-right">
-                        <p>سيتم توزيع ${availableClients.length} عميل على أيام الأسبوع</p>
-                        <div class="form-group mt-3">
-                            <label>استثناء يوم:</label>
-                            <select id="exclude-day" class="form-control">
-                                <option value="">لا يوجد</option>
-                                <option value="friday">الجمعة (إجازة)</option>
-                                <option value="saturday">السبت</option>
-                            </select>
-                        </div>
-                    </div>
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'ابدأ التوزيع',
-                cancelButtonText: 'إلغاء',
-                confirmButtonColor: '#0056b3',
-                reverseButtons: true,
-                preConfirm: () => {
-                    return $('#exclude-day').val();
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    distributeClientsAutomatically(result.value);
-                }
-            });
-        }
-
-        function distributeClientsAutomatically(excludeDay) {
-            Object.keys(dayAssignments).forEach(day => {
-                dayAssignments[day] = [];
-            });
-
-            const availableDays = Object.keys(dayAssignments).filter(day => day !== excludeDay);
-            availableClients.forEach((client, index) => {
-                const dayIndex = index % availableDays.length;
-                const day = availableDays[dayIndex];
-                dayAssignments[day].push(client);
-            });
-
-            updateAllDayDisplays();
-            updateDayClientSelects();
-            updateAvailableClientsList();
-            showAlert('success', 'تم!', 'تم توزيع العملاء بنجاح على أيام الأسبوع');
-        }
-
-        function handleClearAll() {
-            const totalClients = Object.values(dayAssignments).reduce((sum, day) => sum + day.length, 0);
-            if (totalClients === 0) {
-                showAlert('info', 'تنبيه', 'لا يوجد عملاء لمسحهم');
-                return;
-            }
-
-            showConfirm(
-                'تأكيد مسح الكل',
-                `هل تريد مسح جميع العملاء (${totalClients} عميل) من كل الأيام؟`,
-                'نعم، امسح الكل',
-                'danger'
-            ).then((result) => {
-                if (result.isConfirmed) {
-                    Object.keys(dayAssignments).forEach(day => {
-                        dayAssignments[day] = [];
-                    });
-                    updateAllDayDisplays();
-                    updateDayClientSelects();
-                    updateAvailableClientsList();
-                    showAlert('success', 'تم!', 'تم مسح جميع العملاء بنجاح');
-                }
-            });
-        }
-
-        function initializeSortable() {
-            // جعل قوائم العملاء المحددين قابلة للسحب والترتيب
-            Object.keys(dayAssignments).forEach(day => {
-                const el = document.getElementById(`clients-${day}`);
-                new Sortable(el, {
-                    group: 'clients',
-                    animation: 150,
-                    ghostClass: 'sortable-ghost',
-                    chosenClass: 'sortable-chosen',
-                    dragClass: 'sortable-drag',
-                    handle: '.selected-client-card',
-                    onEnd: function(evt) {
-                        // تحديث مصفوفة العملاء بناءً على الترتيب الجديد
-                        const dayFrom = evt.from.id.replace('clients-', '');
-                        const dayTo = evt.to.id.replace('clients-', '');
-
-                        // إذا تم السحب إلى يوم مختلف
-                        if (dayFrom !== dayTo) {
-                            const clientId = evt.item.dataset.clientId;
-                            const client = dayAssignments[dayFrom].find(c => c.id == clientId);
-
-                            // إزالة العميل من اليوم المصدر
-                            removeClientFromDay(dayFrom, clientId, false);
-
-                            // إضافة العميل إلى اليوم الهدف في الموضع الجديد
-                            if (!dayAssignments[dayTo].find(c => c.id == clientId)) {
-                                dayAssignments[dayTo].splice(evt.newIndex, 0, client);
-                            }
-
-                            // تحديث عرض الأيام
-                            updateDayDisplay(dayFrom);
-                            updateDayDisplay(dayTo);
-                            updateDayClientSelects();
-                            updateAvailableClientsList();
-                        } else {
-                            // إعادة ترتيب العملاء في نفس اليوم
-                            const newOrder = Array.from(evt.to.children)
-                                .filter(el => el.classList.contains('selected-client-card'))
-                                .map(el => parseInt(el.dataset.clientId));
-
-                            if (newOrder.length) {
-                                // إعادة ترتيب المصفوفة
-                                const tempClients = [...dayAssignments[dayTo]];
-                                dayAssignments[dayTo] = [];
-
-                                newOrder.forEach(clientId => {
-                                    const client = tempClients.find(c => c.id == clientId);
-                                    if (client) {
-                                        dayAssignments[dayTo].push(client);
-                                    }
-                                });
-                            }
-                        }
+            function handleClientSelection() {
+                const day = $(this).data('day');
+                const clientId = $(this).val();
+                if (clientId) {
+                    const client = availableClients.find(c => c.id == clientId);
+                    if (client && !dayAssignments[day].find(c => c.id == clientId)) {
+                        addClientToDay(day, client);
+                        $(this).val('');
                     }
-                });
-            });
-        }
+                }
+            }
 
-        function initializeDragAndDrop() {
-            let draggedClient = null;
-
-            // تهيئة السحب والإفلات للعملاء المتاحين
-            $(document).on('dragstart', '.available-client-card', function(e) {
+            function handleRemoveClient() {
+                const day = $(this).data('day');
                 const clientId = $(this).data('client-id');
-                draggedClient = availableClients.find(c => c.id == clientId);
-                $(this).addClass('dragging');
-                e.originalEvent.dataTransfer.effectAllowed = 'copy';
-            });
-
-            $(document).on('dragend', '.available-client-card', function() {
-                $(this).removeClass('dragging');
-                draggedClient = null;
-                $('.day-assignment').removeClass('drop-zone-active');
-            });
-
-            $('.day-assignment').on('dragover', function(e) {
-                e.preventDefault();
-                $(this).addClass('drop-zone-active');
-                e.originalEvent.dataTransfer.dropEffect = 'copy';
-            });
-
-            $('.day-assignment').on('dragleave', function() {
-                $(this).removeClass('drop-zone-active');
-            });
-
-            $('.day-assignment').on('drop', function(e) {
-                e.preventDefault();
-                $(this).removeClass('drop-zone-active');
-
-                if (draggedClient) {
-                    const day = $(this).data('day');
-                    if (!dayAssignments[day].find(c => c.id == draggedClient.id)) {
-                        addClientToDay(day, draggedClient);
-                    }
-                }
-            });
-        }
-
-        function loadItineraryForWeek() {
-            const employeeId = employeeSelect.val();
-            if (!employeeId) return;
-
-            resetDayAssignments();
-
-            // إظهار تحميل
-            showLoading(true);
-
-            $.ajax({
-                url: `/api/employees/${employeeId}/itinerary`,
-                method: 'GET',
-                data: {
-                    year: currentYear,
-                    week: currentWeek
-                },
-                success: function(itinerary) {
-                    showLoading(false);
-                    if (itinerary?.length > 0) {
-                        itinerary.forEach(visit => {
-                            const day = visit.day_of_week;
-                            if (visit.client && dayAssignments[day]) {
-                                if (!dayAssignments[day].find(c => c.id == visit.client.id)) {
-                                    dayAssignments[day].push(visit.client);
-                                }
-                            }
-                        });
-                    }
-                    updateAllDayDisplays();
-                },
-                error: function(xhr) {
-                    showLoading(false);
-                    console.error('خطأ في جلب البيانات:', xhr.responseJSON);
-                    showError('خطأ', 'فشل في تحميل خط السير');
-                    updateAllDayDisplays();
-                }
-            });
-        }
-
-        function fetchClientsForGroup(groupId) {
-            showLoading(true);
-            $('.day-client-select').prop('disabled', true);
-
-            $.ajax({
-                url: `/api/groups/${groupId}/clients`,
-                method: 'GET',
-                success: function(clients) {
-                    showLoading(false);
-                    availableClients = mergeClients(clients, dayAssignments);
-                    updateAvailableClientsList();
-                    updateDayClientSelects();
-
-                    if (availableClients.length > 0) {
-                        $('.day-client-select').prop('disabled', false);
-                    } else {
-                        availableClientsList.html(`
-                            <div class="text-center text-muted py-5">
-                                <i class="fas fa-exclamation-circle fa-2x mb-3 d-block"></i>
-                                لا يوجد عملاء متاحين في هذه المجموعة
-                            </div>
-                        `);
-                    }
-                },
-                error: function(xhr) {
-                    showLoading(false);
-                    showError('خطأ', xhr.responseJSON?.message || 'فشل في جلب العملاء');
-                }
-            });
-        }
-
-        function saveItinerary() {
-            const employeeId = employeeSelect.val();
-            if (!employeeId) {
-                showAlert('error', 'خطأ', 'الرجاء اختيار مندوب أولاً');
-                return;
+                removeClientFromDay(day, clientId);
             }
 
-            // تحضير البيانات للإرسال
-            const visits = {};
-            Object.keys(dayAssignments).forEach(day => {
-                visits[day] = dayAssignments[day]
-                    .filter(client => client && client.id)
-                    .map(client => client.id);
-            });
-
-            showConfirm(
-                'تأكيد الحفظ',
-                'هل أنت متأكد من حفظ خط السير؟',
-                'نعم، احفظ'
-            ).then((result) => {
-                if (result.isConfirmed) {
-                    executeSave(employeeId, visits);
-                }
-            });
-        }
-
-        function executeSave(employeeId, visits) {
-            const saveBtn = $('#save-itinerary');
-            const originalText = saveBtn.html();
-            saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...');
-
-            $.ajax({
-                url: '{{ route("itinerary.store") }}',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    employee_id: employeeId,
-                    year: currentYear,
-                    week_number: currentWeek,
-                    visits: visits,
-                    _token: '{{ csrf_token() }}'
-                }),
-                success: function(response) {
-                    saveBtn.prop('disabled', false).html(originalText);
-                    if (response.success) {
-                        showAlert('success', 'تم الحفظ', response.message);
-                    } else {
-                        showAlert('error', 'خطأ', response.message);
-                    }
-                },
-                error: function(xhr) {
-                    saveBtn.prop('disabled', false).html(originalText);
-                    const errorMsg = xhr.responseJSON?.message || 'فشل في الاتصال بالخادم';
-                    showAlert('error', 'خطأ في الحفظ', errorMsg);
-                    console.error('تفاصيل الخطأ:', xhr.responseJSON);
-                }
-            });
-        }
-
-        function addClientToDay(day, client) {
-            if (!dayAssignments[day].find(c => c.id == client.id)) {
-                dayAssignments[day].push(client);
-                updateDayDisplay(day);
-                updateDayClientSelects();
-                updateAvailableClientsList();
-            }
-        }
-
-        function removeClientFromDay(day, clientId, updateUI = true) {
-            dayAssignments[day] = dayAssignments[day].filter(c => c.id != clientId);
-            if (updateUI) {
-                updateDayDisplay(day);
-                updateDayClientSelects();
-                updateAvailableClientsList();
-            }
-        }
-
-        function updateDayDisplay(day) {
-            const container = $(`#clients-${day}`);
-            const countBadge = $(`#count-${day}`);
-
-            container.empty();
-            countBadge.text(`${dayAssignments[day].length} عميل`);
-
-            if (dayAssignments[day].length === 0) {
-                container.html(`
-                    <div class="empty-day-message">
-                        <i class="fas fa-calendar-plus text-muted mb-3 fa-2x d-block"></i>
-                        لم يتم تعيين عملاء لهذا اليوم بعد
-                    </div>
-                `);
-            } else {
-                dayAssignments[day].forEach(client => {
-                    container.append(createSelectedClientCard(client, day));
-                });
-            }
-
-            $('[data-toggle="tooltip"]').tooltip();
-        }
-
-        function updateAllDayDisplays() {
-            Object.keys(dayAssignments).forEach(day => {
-                updateDayDisplay(day);
-            });
-        }
-
-        function resetDayAssignments() {
-            Object.keys(dayAssignments).forEach(day => {
-                dayAssignments[day] = [];
-            });
-        }
-
-        function updateDayClientSelects() {
-            $('.day-client-select').each(function() {
+            function handleAddAllClients() {
                 const day = $(this).data('day');
                 const availableForDay = availableClients.filter(client =>
                     !dayAssignments[day].find(assigned => assigned.id == client.id)
                 );
 
-                let options = '<option value="">-- اختر عميل لإضافته --</option>';
-                availableForDay.forEach(client => {
-                    options += `<option value="${client.id}">${client.trade_name} - ${client.code}</option>`;
+                if (availableForDay.length === 0) {
+                    Swal.fire('تنبيه', 'لا يوجد عملاء متاحين للإضافة', 'info');
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'تأكيد الإضافة',
+                    text: `هل تريد إضافة ${availableForDay.length} عميل لـ ${getDayNameAr(day)}؟`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'نعم، أضف الكل',
+                    cancelButtonText: 'إلغاء'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        availableForDay.forEach(client => addClientToDay(day, client));
+                        Swal.fire('تم!', `تمت إضافة ${availableForDay.length} عميل بنجاح`, 'success');
+                    }
+                });
+            }
+
+            function handleAdd5Clients() {
+                const day = $(this).data('day');
+                const availableForDay = availableClients.filter(client =>
+                    !dayAssignments[day].find(assigned => assigned.id == client.id)
+                ).slice(0, 5);
+
+                if (availableForDay.length === 0) {
+                    Swal.fire('تنبيه', 'لا يوجد عملاء متاحين للإضافة', 'info');
+                    return;
+                }
+
+                availableForDay.forEach(client => addClientToDay(day, client));
+                Swal.fire('تم!', `تمت إضافة ${availableForDay.length} عميل`, 'success');
+            }
+
+            function handleClearDay() {
+                const day = $(this).data('day');
+                if (dayAssignments[day].length === 0) {
+                    Swal.fire('تنبيه', 'لا يوجد عملاء في هذا اليوم', 'info');
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'تأكيد المسح',
+                    text: `هل تريد مسح ${dayAssignments[day].length} عميل من ${getDayNameAr(day)}؟`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'نعم، امسح',
+                    cancelButtonText: 'إلغاء',
+                    confirmButtonColor: '#dc3545'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        dayAssignments[day] = [];
+                        updateDayDisplay(day);
+                        updateDayClientSelects();
+                        updateAvailableClientsList();
+                        Swal.fire('تم!', 'تم مسح العملاء بنجاح', 'success');
+                    }
+                });
+            }
+
+            function handleAutoDistribute() {
+                if (availableClients.length === 0) {
+                    Swal.fire('تنبيه', 'لا يوجد عملاء متاحين للتوزيع', 'warning');
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'التوزيع التلقائي',
+                    html: `
+                        <p>سيتم توزيع ${availableClients.length} عميل على أيام الأسبوع</p>
+                        <label class="mt-3">استثناء يوم:</label>
+                        <select id="exclude-day" class="form-control">
+                            <option value="">لا يوجد</option>
+                            <option value="friday">الجمعة (إجازة)</option>
+                            <option value="saturday">السبت</option>
+                        </select>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'ابدأ التوزيع',
+                    cancelButtonText: 'إلغاء',
+                    preConfirm: () => {
+                        return $('#exclude-day').val();
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        distributeClientsAutomatically(result.value);
+                    }
+                });
+            }
+
+            function distributeClientsAutomatically(excludeDay) {
+                Object.keys(dayAssignments).forEach(day => {
+                    dayAssignments[day] = [];
                 });
 
-                $(this).html(options).prop('disabled', availableForDay.length === 0);
-            });
+                const availableDays = Object.keys(dayAssignments).filter(day => day !== excludeDay);
+                availableClients.forEach((client, index) => {
+                    const dayIndex = index % availableDays.length;
+                    const day = availableDays[dayIndex];
+                    dayAssignments[day].push(client);
+                });
 
-            // تحديث Select2 بعد تغيير الخيارات
-            $('.select2').select2();
-        }
+                updateAllDayDisplays();
+                updateDayClientSelects();
+                updateAvailableClientsList();
+                Swal.fire('تم!', 'تم توزيع العملاء بنجاح على أيام الأسبوع', 'success');
+            }
+
+            function handleClearAll() {
+                const totalClients = Object.values(dayAssignments).reduce((sum, day) => sum + day.length, 0);
+                if (totalClients === 0) {
+                    Swal.fire('تنبيه', 'لا يوجد عملاء لمسحهم', 'info');
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'تأكيد مسح الكل',
+                    text: `هل تريد مسح جميع العملاء (${totalClients} عميل) من كل الأيام؟`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'نعم، امسح الكل',
+                    cancelButtonText: 'إلغاء',
+                    confirmButtonColor: '#dc3545'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Object.keys(dayAssignments).forEach(day => {
+                            dayAssignments[day] = [];
+                        });
+                        updateAllDayDisplays();
+                        updateDayClientSelects();
+                        updateAvailableClientsList();
+                        Swal.fire('تم!', 'تم مسح جميع العملاء بنجاح', 'success');
+                    }
+                });
+            }
+
+            function initializeDragAndDrop() {
+                let draggedClient = null;
+
+                $(document).on('dragstart', '.available-client-card', function(e) {
+                    const clientId = $(this).data('client-id');
+                    draggedClient = availableClients.find(c => c.id == clientId);
+                    $(this).addClass('dragging');
+                    e.originalEvent.dataTransfer.effectAllowed = 'copy';
+                });
+
+                $(document).on('dragend', '.available-client-card', function() {
+                    $(this).removeClass('dragging');
+                    draggedClient = null;
+                    $('.day-assignment').removeClass('drop-zone-active');
+                });
+
+                $('.day-assignment').on('dragover', function(e) {
+                    e.preventDefault();
+                    $(this).addClass('drop-zone-active');
+                    e.originalEvent.dataTransfer.dropEffect = 'copy';
+                });
+
+                $('.day-assignment').on('dragleave', function() {
+                    $(this).removeClass('drop-zone-active');
+                });
+
+                $('.day-assignment').on('drop', function(e) {
+                    e.preventDefault();
+                    $(this).removeClass('drop-zone-active');
+
+                    if (draggedClient) {
+                        const day = $(this).data('day');
+                        if (!dayAssignments[day].find(c => c.id == draggedClient.id)) {
+                            addClientToDay(day, draggedClient);
+                        }
+                    }
+                });
+            }
+
+            function loadItineraryForWeek() {
+                const employeeId = employeeSelect.val();
+                if (!employeeId) return;
+
+                resetDayAssignments();
+
+                $.ajax({
+                    url: `/api/employees/${employeeId}/itinerary`,
+                    method: 'GET',
+                    data: {
+                        year: currentYear,
+                        week: currentWeek
+                    },
+                    success: function(itinerary) {
+                        if (itinerary?.length > 0) {
+                            itinerary.forEach(visit => {
+                                const day = visit.day_of_week;
+                                if (visit.client && dayAssignments[day]) {
+                                    if (!dayAssignments[day].find(c => c.id == visit.client
+                                        .id)) {
+                                        dayAssignments[day].push(visit.client);
+                                    }
+                                }
+                            });
+                        }
+                        updateAllDayDisplays();
+                    },
+                    error: function(xhr) {
+                        console.error('خطأ في جلب البيانات:', xhr.responseJSON);
+                        updateAllDayDisplays();
+                    }
+                });
+            }
+
+            function fetchClientsForGroup(groupId) {
+                spinner.show();
+                $('.day-client-select').prop('disabled', true);
+
+                $.ajax({
+                    url: `/api/groups/${groupId}/clients`,
+                    method: 'GET',
+                    success: function(clients) {
+                        spinner.hide();
+                        availableClients = mergeClients(clients, dayAssignments);
+                        updateAvailableClientsList();
+                        updateDayClientSelects();
+
+                        if (availableClients.length > 0) {
+                            $('.day-client-select').prop('disabled', false);
+                        } else {
+                            availableClientsList.html(
+                                '<p class="text-center text-muted">لا يوجد عملاء متاحين في هذه المجموعة.</p>'
+                            );
+                        }
+                    },
+                    error: function(xhr) {
+                        spinner.hide();
+                        showError('فشل في جلب العملاء', xhr.responseJSON?.message);
+                    }
+                });
+            }
+
+            function saveItinerary() {
+                const employeeId = employeeSelect.val();
+                if (!employeeId) {
+                    showAlert('error', 'خطأ', 'الرجاء اختيار مندوب أولاً');
+                    return;
+                }
+
+                const visits = {};
+                Object.keys(dayAssignments).forEach(day => {
+                    visits[day] = dayAssignments[day]
+                        .filter(client => client && client.id)
+                        .map(client => client.id);
+                });
+
+                Swal.fire({
+                    title: 'تأكيد الحفظ',
+                    text: 'هل أنت متأكد من حفظ خط السير؟',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'نعم، احفظ',
+                    cancelButtonText: 'إلغاء'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        executeSave(employeeId, visits);
+                    }
+                });
+            }
+
+            function executeSave(employeeId, visits) {
+                const saveBtn = $('#save-itinerary');
+                const originalText = saveBtn.html();
+                saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...');
+
+                $.ajax({
+                    url: '{{ route('itinerary.store') }}',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        employee_id: employeeId,
+                        year: currentYear,
+                        week_number: currentWeek,
+                        visits: visits,
+                        _token: '{{ csrf_token() }}'
+                    }),
+                    success: function(response) {
+                        saveBtn.prop('disabled', false).html(originalText);
+                        if (response.success) {
+                            showAlert('success', 'تم الحفظ', response.message);
+                            // Redirect to itinerary list after successful save
+                            setTimeout(function() {
+                                window.location.href = '{{ route("itinerary.list") }}';
+                            }, 2000);
+                        } else {
+                            showAlert('error', 'خطأ', response.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        saveBtn.prop('disabled', false).html(originalText);
+                        const errorMsg = xhr.responseJSON?.message || 'فشل في الاتصال بالخادم';
+                        showAlert('error', 'خطأ في الحفظ', errorMsg);
+                        console.error('تفاصيل الخطأ:', xhr.responseJSON);
+                    }
+                });
+            }
+
+            function addClientToDay(day, client) {
+                if (!dayAssignments[day].find(c => c.id == client.id)) {
+                    dayAssignments[day].push(client);
+                    updateDayDisplay(day);
+                    updateDayClientSelects();
+                    updateAvailableClientsList();
+                }
+            }
+
+            function removeClientFromDay(day, clientId) {
+                dayAssignments[day] = dayAssignments[day].filter(c => c.id != clientId);
+                updateDayDisplay(day);
+                updateDayClientSelects();
+                updateAvailableClientsList();
+            }
+
+            function updateDayDisplay(day) {
+                const container = $(`#clients-${day}`);
+                const countBadge = $(`#count-${day}`);
+
+                container.empty();
+                countBadge.text(`${dayAssignments[day].length} عميل`);
+
+                if (dayAssignments[day].length === 0) {
+                    container.html(`
+                        <div class="empty-day-message">
+                            <i class="fas fa-calendar-plus text-muted"></i>
+                            لم يتم تعيين عملاء لهذا اليوم بعد
+                        </div>
+                    `);
+                } else {
+                    dayAssignments[day].forEach(client => {
+                        container.append(createSelectedClientCard(client, day));
+                    });
+                }
+
+                $('[data-toggle="tooltip"]').tooltip();
+            }
+
+            function updateAllDayDisplays() {
+                Object.keys(dayAssignments).forEach(day => {
+                    updateDayDisplay(day);
+                });
+            }
+
+            function resetDayAssignments() {
+                Object.keys(dayAssignments).forEach(day => {
+                    dayAssignments[day] = [];
+                });
+            }
+
+            function updateDayClientSelects() {
+                $('.day-client-select').each(function() {
+                    const day = $(this).data('day');
+                    const availableForDay = availableClients.filter(client =>
+                        !dayAssignments[day].find(assigned => assigned.id == client.id)
+                    );
+
+                    let options = '<option value="">-- اختر عميل لإضافته --</option>';
+                    availableForDay.forEach(client => {
+                        options +=
+                            `<option value="${client.id}">${client.trade_name} - ${client.code}</option>`;
+                    });
+
+                    $(this).html(options).prop('disabled', availableForDay.length === 0);
+                });
+            }
+
+            function updateAvailableClientsList() {
+                availableClientsList.empty();
+
+                if (availableClients.length === 0) {
+                    availableClientsList.html(
+                        '<p class="text-center text-muted">لا يوجد عملاء متاحين في هذه المجموعة.</p>');
+                    return;
+                }
+
+                availableClients.forEach(client => {
+                    availableClientsList.append(createAvailableClientCard(client));
+                });
+
+                $('[data-toggle="tooltip"]').tooltip();
+            }
+
+            function mergeClients(newClients, assignments) {
+                const assignedClients = [];
+                Object.values(assignments).forEach(dayClients => {
+                    dayClients.forEach(client => {
+                        if (!assignedClients.find(c => c.id === client.id)) {
+                            assignedClients.push(client);
+                        }
+                    });
+                });
+
+                return [...newClients, ...assignedClients].filter((client, index, self) =>
+                    index === self.findIndex((c) => c.id === client.id)
+                );
+            }
+
+            function handleClientSearch(e) {
+                const term = $(this).val().toLowerCase();
+                $('.available-client-card').each(function() {
+                    const $card = $(this);
+                    const name = $card.find('.client-name').text().toLowerCase();
+                    const code = $card.find('.client-meta').text().toLowerCase();
+                    $card.toggle(name.includes(term) || code.includes(term));
+                });
+            }
+
+            function resetUI() {
+                groupSelect.prop('disabled', true).html('<option value="">-- اختر مجموعة --</option>');
+                availableClientsList.html(
+                    '<p class="text-center text-muted mt-4">اختر مندوب ومجموعة لعرض العملاء.</p>');
+                $('.day-client-select').prop('disabled', true).html(
+                    '<option value="">-- اختر عميل لإضافته --</option>');
+                resetDayAssignments();
+                updateAllDayDisplays();
+            }
+
+            function showAlert(icon, title, text, timer = null) {
+                const options = {
+                    icon: icon,
+                    title: title,
+                    text: text,
+                    confirmButtonText: 'حسناً',
+                    reverseButtons: true
+                };
+
+                if (timer) {
+                    options.timer = timer;
+                    options.showConfirmButton = false;
+                }
+
+                Swal.fire(options);
+            }
+
+            function showError(title, message) {
+                Swal.fire({
+                    icon: 'error',
+                    title: title,
+                    text: message || 'حدث خطأ غير متوقع',
+                    confirmButtonText: 'حسناً'
+                });
+            }
+
+            function createSelectedClientCard(client, day) {
+                const visitIcon = createActivityIcon('fa-walking', client.visits, 'زيارة');
+                const invoiceIcon = createActivityIcon('fa-file-invoice-dollar', client.invoices, 'فاتورة');
+                const noteIcon = createActivityIcon('fa-sticky-note', client.appointment_notes, 'ملاحظة');
+                const receiptIcon = createActivityIcon('fa-receipt', client.receipts, 'سند قبض');
+
+                return `
+                    <div class="selected-client-card" data-client-id="${client.id}" draggable="false">
+                        <div class="selected-client-info">
+                            <div class="client-name">${client.trade_name}</div>
+                            <div class="client-meta">الكود: ${client.code} | ${client.city || 'غير محدد'}</div>
+                            <div class="activity-icons mt-1">${visitIcon}${invoiceIcon}${noteIcon}${receiptIcon}</div>
+                        </div>
+                        <button class="remove-client-btn" data-day="${day}" data-client-id="${client.id}" title="إزالة العميل">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>`;
+            }
+
+            function createAvailableClientCard(client) {
+                const visitIcon = createActivityIcon('fa-walking', client.visits, 'زيارة');
+                const invoiceIcon = createActivityIcon('fa-file-invoice-dollar', client.invoices, 'فاتورة');
+                const noteIcon = createActivityIcon('fa-sticky-note', client.appointment_notes, 'ملاحظة');
+                const receiptIcon = createActivityIcon('fa-receipt', client.receipts, 'سند قبض');
+
+                const isAssigned = Object.values(dayAssignments).some(dayClients =>
+                    dayClients.find(c => c.id == client.id)
+                );
+
+                return `
+                    <div class="available-client-card ${isAssigned ? 'client-assigned' : ''}"
+                         data-client-id="${client.id}" draggable="true">
+                        <div class="client-info">
+                            <strong class="client-name">${client.trade_name}</strong>
+                            <small class="d-block text-muted client-meta">الكود: ${client.code} | ${client.city || 'غير محدد'}</small>
+                            ${isAssigned ? '<small class="text-success"><i class="fas fa-check"></i> مُعيَّن</small>' : ''}
+                        </div>
+                        <div class="activity-icons">${visitIcon}${invoiceIcon}${noteIcon}${receiptIcon}</div>
+                    </div>`;
+            }
+
+            function createActivityIcon(iconClass, data, type) {
+                if (data?.length > 0) {
+                    const latestItem = data[0];
+                    const date = new Date(latestItem.created_at).toLocaleDateString('ar-EG-u-nu-latn', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    });
+
+                    let tooltipText = `آخر ${type}: ${date}`;
+                    if (type === 'ملاحظة' && latestItem.description) {
+                        tooltipText += ` - ${latestItem.description}`;
+                    }
+
+                    return `<i class="fas ${iconClass} text-success" data-toggle="tooltip" title="${tooltipText}"></i>`;
+                }
+                return `<i class="fas ${iconClass} text-muted" data-toggle="tooltip" title="لا يوجد ${type}ات"></i>`;
+            }
+
+            // Remove the getCurrentWeek function since we're getting the current week from the server
+            // function getCurrentWeek() {
+            //     const now = new Date();
+            //     const startOfYear = new Date(now.getFullYear(), 0, 1);
+            //     const pastDaysOfYear = (now - startOfYear) / 86400000;
+            //     return Math.ceil((pastDaysOfYear + startOfYear.getDay() + 1) / 7);
+            // }
+
+            function updateWeekInfo() {
+                $('#week-info').text(`العام: ${currentYear}, الأسبوع: ${currentWeek}`);
+            }
+
+            function fetchGroupsForEmployee(employeeId) {
+                $.ajax({
+                    url: `/api/employees/${employeeId}/groups`,
+                    method: 'GET',
+                    success: function(groups) {
+                        let options = '<option value="">-- اختر مجموعة --</option>';
+                        groups.forEach(group => options +=
+                            `<option value="${group.id}">${group.name}</option>`);
+                        groupSelect.html(options).prop('disabled', false);
+                    },
+                    error: function() {
+                        showError('خطأ', 'فشل في جلب مجموعات الموظف');
+                    }
+                });
+            }
+
+            function getDayNameAr(day) {
+                const days = {
+                    saturday: 'السبت',
+                    sunday: 'الأحد',
+                    monday: 'الاثنين',
+                    tuesday: 'الثلاثاء',
+                    wednesday: 'الأربعاء',
+                    thursday: 'الخميس',
+                    friday: 'الجمعة'
+                };
+                return days[day] || day;
+            }
+
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>
+@endsection

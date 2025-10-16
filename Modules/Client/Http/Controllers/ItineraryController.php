@@ -31,7 +31,11 @@ class ItineraryController extends Controller
             $employees = User::where('role', 'employee')->get();
         }
 
-        return view('client::Itinerary.create', compact('employees', 'groups'));
+        // Get current week and year for default selection
+        $currentWeek = now()->weekOfYear;
+        $currentYear = now()->year;
+
+        return view('client::Itinerary.create', compact('employees', 'groups', 'currentWeek', 'currentYear'));
     }
 
     /**

@@ -1,4 +1,4 @@
-// Add this before your other scripts
+// Add CSRF token to all AJAX requests
 $.ajaxSetup({
     headers: {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
@@ -15,6 +15,59 @@ function disableForm(flag) {
 
 function remove_disabled_ckeckbox() {
     // Your existing code
+}
+
+// ✅ دالة تحديث حالة الموعد بدون إعادة تحميل الصفحة
+function updateAppointmentStatus(appointmentId, status, element) {
+    // إغلاق الـ dropdown
+    $(element).closest('.dropdown-menu').removeClass('show');
+
+    $.ajax({
+        url: '/appointments/' + appointmentId + '/update-status',
+        method: 'POST',
+        data: {
+            _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            status: status,
+            _method: 'PATCH'
+        },
+        success: function(response) {
+            if (response.success) {
+                // البحث عن الـ badge في نفس الصف
+                let row = $(element).closest('tr');
+                let statusBadge = row.find('td:nth-last-child(2) .badge');
+
+                // تحديث الـ badge
+                statusBadge.removeClass('bg-warning bg-success bg-danger bg-info')
+                           .addClass(response.status_color)
+                           .text(response.status_text);
+
+                // إظهار رسالة النجاح
+                toastr.success(response.message, 'نجاح');
+            } else {
+                toastr.error(response.message || 'حدث خطأ غير متوقع', 'خطأ');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error updating status:', {
+                status: status,
+                error: error,
+                responseText: xhr.responseText
+            });
+
+            let errorMessage = 'حدث خطأ أثناء تحديث الحالة';
+
+            try {
+                let response = JSON.parse(xhr.responseText);
+                if (response.errors) {
+                    errorMessage = Object.values(response.errors).join(', ');
+                } else if (response.message) {
+                    errorMessage = response.message;
+                }
+            } catch(e) {}
+
+            toastr.error(errorMessage, 'خطأ');
+        }
+    });
 }
 
 function changeAppointmentStatus(appointmentId, status) {
@@ -302,34 +355,6 @@ function showAppointmentDetails(appointmentId) {
 
 // Dropdown positioning fix
 document.addEventListener('DOMContentLoaded', function() {
-    const dropdowns = document.querySelectorAll('.dropdown');
-
-    dropdowns.forEach(dropdown => {
-        const dropdownToggle = dropdown.querySelector('.dropdown-toggle');
-        const dropdownMenu = dropdown.querySelector('.dropdown-menu');
-
-        dropdownToggle.addEventListener('click', function(e) {
-            e.stopPropagation();
-
-            // Close other open dropdowns
-            document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
-                if (menu !== dropdownMenu) {
-                    menu.classList.remove('show');
-                }
-            });
-
-            dropdownMenu.classList.toggle('show');
-
-            // Positioning logic
-            const toggleRect = dropdownToggle.getBoundingClientRect();
-            const menuRect = dropdownMenu.getBoundingClientRect();
-
-            dropdownMenu.style.position = 'fixed';
-            dropdownMenu.style.top = `${toggleRect.bottom + window.scrollY}px`;
-            dropdownMenu.style.left = `${toggleRect.left + window.scrollX}px`;
-        });
-    });
-
     // Close dropdowns when clicking outside
     document.addEventListener('click', function(e) {
         const dropdowns = document.querySelectorAll('.dropdown-menu.show');
@@ -339,6 +364,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-});
 
-// Rest of your existing code remains the same
+    // Initialize DataTable
+    if ($('.zero-configuration').length) {
+        $('.zero-configuration').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Arabic.json"
+            },
+            "order": [[3, "desc"]],
+            "responsive": true,
+            "paging": false
+        });
+    }
+
+    // Initialize DataTable
+    if ($('.zero-configuration').length) {
+        $('.zero-configuration').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Arabic.json"
+            },
+            "order": [[3, "desc"]],
+            "responsive": true,
+            "paging": false
+        });
+    }
+});

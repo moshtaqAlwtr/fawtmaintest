@@ -511,8 +511,8 @@
                                                         <option value="">اختر الموظف</option>
                                                         @foreach ($employees as $employee)
                                                             <option value="{{ $employee->id }}"
-                                                                data-name="{{ $employee->full_name }}">
-                                                                {{ $employee->full_name }}
+                                                                data-name="{{ $employee->name }}">
+                                                                {{ $employee->name }}
                                                             </option>
                                                         @endforeach
                                                     </select>

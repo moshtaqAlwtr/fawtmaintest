@@ -266,39 +266,58 @@ class AppointmentController extends Controller
     /**
      * تحديث حالة الموعد
      */
-    public function updateStatus($id, Request $request)
-    {
-        $appointment = Appointment::findOrFail($id);
 
-        // Update status
-        $oldStatus = $appointment->status;
-        $appointment->status = $request->input('status');
-        $appointment->save();
+public function updateStatus(Request $request, $id)
+{
+    $appointment = Appointment::findOrFail($id);
 
-        // Delete appointment if status is completed (2) or ignored (3)
-        if (in_array($request->input('status'), [2, 3])) {
-            $appointment->delete();
+    // Update status only
+    $oldStatus = $appointment->status;
+    $appointment->status = $request->input('status');
+    $appointment->save();
 
-            // Redirect with success message based on status
-            $message = $request->input('status') == 2 ? 'تم اكتمال الموعد وحذفه بنجاح' : 'تم صرف النظر عن الموعد وحذفه بنجاح';
+    // رسائل حسب الحالة
+    $statusTexts = [
+        1 => 'قيد الانتظار',
+        2 => 'مكتمل',
+        3 => 'ملغي',
+        4 => 'معاد جدولته'
+    ];
 
-            return redirect()
-                ->back()
-                ->with([
-                    'toast_type' => 'success',
-                    'toast_message' => $message,
-                ]);
-        }
+    $statusColors = [
+        1 => 'bg-warning',
+        2 => 'bg-success',
+        3 => 'bg-danger',
+        4 => 'bg-info'
+    ];
 
-        // Redirect with success message for other status changes
-        return redirect()
-            ->back()
-            ->with([
-                'toast_type' => 'success',
-                'toast_message' => 'تم تحديث حالة الموعد بنجاح',
-            ]);
+    $messages = [
+        1 => 'تم تحديث الحالة إلى "قيد الانتظار" بنجاح',
+        2 => 'تم تحديث الحالة إلى "مكتمل" بنجاح',
+        3 => 'تم تحديث الحالة إلى "ملغي" بنجاح',
+        4 => 'تم تحديث الحالة إلى "معاد جدولته" بنجاح'
+    ];
+
+    $message = $messages[$request->input('status')] ?? 'تم تحديث حالة الموعد بنجاح';
+
+    // إذا كان الطلب AJAX
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'status_text' => $statusTexts[$appointment->status] ?? 'غير معروف',
+            'status_color' => $statusColors[$appointment->status] ?? 'bg-secondary'
+        ]);
     }
 
+    // إذا كان الطلب عادي
+    return redirect()
+        ->back()
+        ->with([
+            'toast_type' => 'success',
+            'toast_message' => $message,
+        ]);
+}
     protected function getStatusText($status)
     {
         return Appointment::$statusArabicMap[$status] ?? 'غير معروف';

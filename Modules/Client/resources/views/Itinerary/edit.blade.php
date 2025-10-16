@@ -3,8 +3,566 @@
 @section('title', 'تعديل خط السير للمندوب')
 
 @section('content')
-    <link rel="stylesheet" href="{{ asset('assets/css/craeteEdit.css') }}">
+   <style>
 
+        :root {
+            --primary: #5651e5;
+            /* Primary purple color */
+            --primary-light: #eeedff;
+            /* Light purple for backgrounds */
+            --primary-hover: #433ad0;
+            /* Darker purple for hover */
+            --primary-gradient: linear-gradient(135deg, #5651e5, #433ad0);
+            --primary-shadow: rgba(86, 81, 229, 0.2);
+            --secondary: #7e78f5;
+            /* Secondary purple tone */
+            --accent: #e5e3ff;
+            /* Accent color for highlights */
+            --success: #4caf50;
+            /* Success green */
+            --warning: #ff9800;
+            /* Warning orange */
+            --danger: #f44336;
+            /* Danger red */
+            --light: #f8f9fc;
+            /* Light background */
+            --dark: #333;
+            /* Dark text */
+            --gray: #6c757d;
+            /* Gray for muted text */
+            --card-radius: 15px;
+            /* Consistent card radius */
+            --btn-radius: 10px;
+            /* Button radius */
+        }
+
+        body {
+            background-color: var(--light);
+            font-family: 'Cairo', sans-serif;
+        }
+
+        /* Header Styles */
+        .itinerary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .itinerary-header h2 {
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 0;
+            position: relative;
+        }
+
+        .itinerary-header h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            right: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+        }
+
+        .itinerary-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Card Styles */
+        .main-card {
+            border: none;
+            border-radius: var(--card-radius);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 8px;
+            height: 40%;
+            background: var(--primary-gradient);
+            border-radius: 0 var(--card-radius) 0 0;
+        }
+
+        .card {
+            border: none;
+            border-radius: var(--card-radius);
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            background: white;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px var(--primary-shadow);
+        }
+
+        .card-header {
+            background: var(--primary-light);
+            color: black;
+            font-weight: 600;
+            border: none;
+            padding: 1rem 1.25rem;
+            position: relative;
+        }
+
+        .card-header i {
+            margin-left: 10px;
+        }
+
+        /* Button Styles */
+        .btn {
+            border-radius: var(--btn-radius);
+            padding: 0.6rem 1.2rem;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.4s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .btn-primary:hover,
+        .btn-primary:focus {
+            background: linear-gradient(135deg, var(--primary-hover), #3830c0);
+            box-shadow: 0 5px 15px var(--primary-shadow);
+            transform: translateY(-2px);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #5651e5, #7e78f5);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: linear-gradient(135deg, #433ad0, #6c66e3);
+            box-shadow: 0 5px 15px var(--primary-shadow);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning), #e69500);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #e69500, #cc8400);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #3d9140);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #3d9140, #2e6d30);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #d32f2f);
+            color: white;
+        }
+
+        /* Form Controls */
+        .form-control {
+            border-radius: 8px;
+            padding: 0.7rem 1rem;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem var(--primary-shadow);
+        }
+
+        .select2-container--default .select2-selection--single {
+            border-radius: 8px;
+            height: 45px;
+            border: 2px solid #e9ecef;
+            display: flex;
+            align-items: center;
+        }
+
+        .select2-container--default .select2-selection--single:focus {
+            border-color: var(--primary);
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: var(--primary);
+        }
+
+        /* Day Assignment Styles */
+        .day-assignment {
+            background-color: white;
+            border-radius: var(--card-radius);
+            margin-bottom: 1.5rem;
+            padding: 1.4rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s;
+            border-right: 4px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .day-assignment::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 40%;
+            height: 4px;
+            background: var(--primary-gradient);
+            border-radius: 4px 0 0 0;
+        }
+
+        .day-assignment:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px var(--primary-shadow);
+        }
+
+        .day-assignment.drop-zone-active {
+            background-color: var(--primary-light);
+            border-right-width: 6px;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px var(--primary-shadow);
+        }
+
+        .day-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .day-name {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            position: relative;
+        }
+
+        .client-count-badge {
+            background: var(--primary-gradient);
+            color: white;
+            font-size: 0.85rem;
+            padding: 0.3rem 0.9rem;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-right: 10px;
+            box-shadow: 0 3px 8px var(--primary-shadow);
+        }
+
+        .day-action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-day-action {
+            padding: 0.35rem 0.7rem;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-day-action i {
+            font-size: 0.8rem;
+        }
+
+        /* Client Selection */
+        .client-select-wrapper {
+            position: relative;
+        }
+
+        .client-select-wrapper::before {
+            content: '\f0d7';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* Selected Clients List */
+        .selected-clients-list {
+            background-color: var(--light);
+            border-radius: 12px;
+            padding: 1.2rem;
+            min-height: 120px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .selected-client-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            border-right: 3px solid var(--primary);
+            animation: slideIn 0.3s ease;
+            transition: all 0.3s ease;
+        }
+
+        .selected-client-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px var(--primary-shadow);
+        }
+
+        .selected-client-info .client-name {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .selected-client-info .client-meta {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        .activity-icons {
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .activity-icons i {
+            font-size: 0.9rem;
+            color: var(--primary);
+        }
+
+        .remove-client-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .remove-client-btn:hover {
+            transform: scale(1.1) rotate(90deg);
+            background: var(--danger);
+        }
+
+        .empty-day-message {
+            text-align: center;
+            color: var(--gray);
+            padding: 2rem;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Available Clients List */
+        .available-clients-list {
+            max-height: 60vh;
+            overflow-y: auto;
+            background-color: var(--light);
+            border-radius: 12px;
+            padding: 1.2rem;
+        }
+
+        .available-client-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            cursor: grab;
+            border-right: 3px solid var(--primary);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .available-client-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: 0;
+            background: var(--primary-light);
+            z-index: -1;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .available-client-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px var(--primary-shadow);
+        }
+
+        .available-client-card:hover::before {
+            width: 100%;
+        }
+
+        .available-client-card.client-assigned {
+            background-color: var(--primary-light);
+            opacity: 0.8;
+            border-right-color: var(--gray);
+        }
+
+        /* Search Box */
+        .input-group-text {
+            background-color: transparent;
+            border-radius: 8px 0 0 8px;
+        }
+
+        #client-search {
+            border-radius: 0 8px 8px 0;
+            box-shadow: none;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            color: var(--primary) !important;
+            width: 3rem;
+            height: 3rem;
+        }
+
+        /* Sweet Alert Customizations */
+        .swal2-popup {
+            border-radius: var(--card-radius) !important;
+            font-family: 'Cairo', sans-serif !important;
+        }
+
+        .swal2-title {
+            color: var(--primary) !important;
+        }
+
+        .swal2-styled.swal2-confirm {
+            background: var(--primary-gradient) !important;
+            border-radius: var(--btn-radius) !important;
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 992px) {
+            .itinerary-header {
+                margin-bottom: 2rem;
+            }
+
+            .day-assignment {
+                padding: 1.2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .itinerary-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .itinerary-actions {
+                width: 100%;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .btn {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            .day-title {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .day-action-buttons {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+
+   </style>
     <div class="card">
         <div class="card-body">
             <div class="container-fluid">
@@ -206,7 +764,7 @@
                 const clientId = $(this).val();
                 if (clientId) {
                     const client = availableClients.find(c => c.id == clientId);
-                    if (client && !dayAssignments[day].find(c => c.id == clientId)) {
+                    if (client && !dayAssignments[day].find(assigned => assigned.id == clientId)) {
                         addClientToDay(day, client);
                         $(this).val('');
                     }
@@ -543,6 +1101,9 @@
                                 text: response.message,
                                 timer: 2000,
                                 showConfirmButton: false
+                            }).then(() => {
+                                // Redirect to itinerary list after successful save
+                                window.location.href = '{{ route("itinerary.list") }}';
                             });
                         } else {
                             Swal.fire('خطأ', response.message || 'حدث خطأ غير متوقع.', 'error');

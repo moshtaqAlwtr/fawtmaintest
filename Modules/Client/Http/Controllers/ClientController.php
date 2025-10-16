@@ -1268,7 +1268,7 @@ public function getHiddenClients(Request $request)
 {
     $user = auth()->user(); // المستخدم الحالي
 
-    $employees = Employee::all();
+    $employees = User::where('role', 'employee')->get();
     $categories = CategoriesClient::all();
     $branches = Branch::all();
     $lastClient = Client::orderBy('code', 'desc')->first();
@@ -1340,199 +1340,218 @@ public function getHiddenClients(Request $request)
         }
         return 'لم يتم العثور على الحي';
     }
- public function store(ClientRequest $request)
-    {
-        $data_request = $request->except('_token');
-        $rules = [
-            'region_id' => ['required'],
-        ];
+public function store(ClientRequest $request)
+{
+    $data_request = $request->except('_token');
+    $rules = [
+        'region_id' => ['required'],
+    ];
 
-        $messages = [
-            'region_id.required' => 'حقل المجموعة مطلوب.',
-        ];
+    $messages = [
+        'region_id.required' => 'حقل المجموعة مطلوب.',
+    ];
 
-        $request->validate($rules, $messages);
+    $request->validate($rules, $messages);
 
-        if ($request->has('latitude') && $request->has('longitude')) {
-            $latitude = $request->latitude;
-            $longitude = $request->longitude;
-        } else {
-            return redirect()->back()->with('error', 'الإحداثيات غير موجودة');
+    if ($request->has('latitude') && $request->has('longitude')) {
+        $latitude = $request->latitude;
+        $longitude = $request->longitude;
+    } else {
+        return redirect()->back()->with('error', 'الإحداثيات غير موجودة');
+    }
+
+    $client = new Client();
+    $client->status_id = 3;
+
+    // الحصول على الرقم الحالي لقسم العملاء من جدول serial_settings
+    $serialSetting = SerialSetting::where('section', 'customer')->first();
+    $currentNumber = $serialSetting ? $serialSetting->current_number : 1;
+
+    // تعيين id للعميل الجديد
+    $client->code = $currentNumber;
+    $client->fill($data_request);
+
+    // معالجة الصورة
+    if ($request->hasFile('attachments')) {
+        $file = $request->file('attachments');
+        if ($file->isValid()) {
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('assets/uploads/'), $filename);
+            $client->attachments = $filename;
         }
+    }
 
-        $client = new Client();
-        $client->status_id = 3;
+    // حفظ العميل أولاً
+    $client->save();
 
-        // الحصول على الرقم الحالي لقسم العملاء من جدول serial_settings
-        $serialSetting = SerialSetting::where('section', 'customer')->first();
-        $currentNumber = $serialSetting ? $serialSetting->current_number : 1;
+    // حفظ جهات الاتصال الأساسية
+    $mainContact = [
+        'first_name' => $client->trade_name,
+        'phone' => $client->phone,
+        'mobile' => $client->mobile,
+        'email' => $client->email,
+        'is_primary' => true,
+    ];
 
-        // تعيين id للعميل الجديد
-        $client->code = $currentNumber;
-        $client->fill($data_request);
+    $client->contacts()->create($mainContact);
 
-        // معالجة الصورة
-        if ($request->hasFile('attachments')) {
-            $file = $request->file('attachments');
-            if ($file->isValid()) {
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path('assets/uploads/'), $filename);
-                $client->attachments = $filename;
-            }
-        }
+    // حفظ الموظفين المرتبطين وجمع معرفاتهم
+    $employeeIds = [];
 
-        // حفظ العميل أولاً
-        $client->save();
-
-        // حفظ جهات الاتصال الأساسية
-        $mainContact = [
-            'first_name' => $client->trade_name,
-            'phone' => $client->phone,
-            'mobile' => $client->mobile,
-            'email' => $client->email,
-            'is_primary' => true,
-        ];
-
-        $client->contacts()->create($mainContact);
-
-        // حفظ الموظفين المرتبطين وجمع معرفاتهم
-        $employeeIds = [];
-        if (auth()->user()->role === 'manager') {
-            if ($request->has('employee_client_id')) {
-                foreach ($request->employee_client_id as $employee_id) {
+    if (auth()->user()->role === 'manager') {
+        if ($request->has('employee_client_id') && is_array($request->employee_client_id)) {
+            foreach ($request->employee_client_id as $user_id) {
+                // التأكد من أن user_id موجود وصحيح
+                if (!empty($user_id)) {
                     $client_employee = new ClientEmployee();
                     $client_employee->client_id = $client->id;
-                    $client_employee->employee_id = $employee_id;
+                    $client_employee->employee_id = $user_id; // نستخدم user_id مباشرة
                     $client_employee->save();
-                    $employeeIds[] = $employee_id;
+
+                    // إضافة الموظف لخط السير
+                    $employeeIds[] = $user_id;
                 }
             }
-        } elseif (auth()->user()->role === 'employee') {
-            $employeeId = auth()->user()->employee_id;
-            ClientEmployee::create([
-                'client_id' => $client->id,
-                ($employeeId = auth()->id()), // رقم المستخدم من جدول users
-            ]);
-            $employeeIds[] = $employeeId;
         }
+    } elseif (auth()->user()->role === 'employee') {
+        // استخدام user_id مباشرة (id من جدول users)
+        $userId = auth()->id();
 
-        // تسجيل الإحداثيات
-        $client->locations()->create([
-            'latitude' => $latitude,
-            'longitude' => $longitude,
+        // تسجيل للتأكد من القيمة
+        \Log::info('Employee adding client', [
+            'user_id' => $userId,
+            'user_name' => auth()->user()->name,
+            'client_id' => $client->id ?? 'not saved yet'
         ]);
 
-        $neighborhoodName = $this->getNeighborhoodFromGoogle($latitude, $longitude);
-        $Neighborhood = new Neighborhood();
-        $Neighborhood->name = $neighborhoodName ?? 'غير محدد';
-        $Neighborhood->region_id = $request->region_id;
-        $Neighborhood->client_id = $client->id;
-        $Neighborhood->save();
-
-        // إنشاء مستخدم جديد إذا تم توفير البريد الإلكتروني
-        $password = Str::random(10);
-        $full_name = $client->trade_name . ' ' . $client->first_name . ' ' . $client->last_name;
-        if ($request->email != null) {
-            User::create([
-                'name' => $full_name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'role' => 'client',
-                'client_id' => $client->id,
-                'password' => Hash::make($password),
-            ]);
-        }
-
-        // تسجيل إشعار نظام جديد
-        ModelsLog::create([
-            'type' => 'client',
-            'type_id' => $client->id,
-            'type_log' => 'log',
-            'description' => 'تم إضافة عميل **' . $client->trade_name . '**',
-            'created_by' => auth()->id(),
+        ClientEmployee::create([
+            'client_id' => $client->id,
+            'employee_id' => $userId, // نستخدم user_id
         ]);
 
-        // زيادة الرقم الحالي بمقدار 1
-        if ($serialSetting) {
-            $serialSetting->update(['current_number' => $currentNumber + 1]);
+        // إضافة الموظف لخط السير
+        $employeeIds[] = $userId;
+    }
+
+    // تسجيل الإحداثيات
+    $client->locations()->create([
+        'latitude' => $latitude,
+        'longitude' => $longitude,
+    ]);
+
+    $neighborhoodName = $this->getNeighborhoodFromGoogle($latitude, $longitude);
+    $Neighborhood = new Neighborhood();
+    $Neighborhood->name = $neighborhoodName ?? 'غير محدد';
+    $Neighborhood->region_id = $request->region_id;
+    $Neighborhood->client_id = $client->id;
+    $Neighborhood->save();
+
+    // إنشاء مستخدم جديد إذا تم توفير البريد الإلكتروني
+    $password = Str::random(10);
+    $full_name = $client->trade_name . ' ' . $client->first_name . ' ' . $client->last_name;
+    if ($request->email != null) {
+        User::create([
+            'name' => $full_name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'role' => 'client',
+            'client_id' => $client->id,
+            'password' => Hash::make($password),
+        ]);
+    }
+
+    // تسجيل إشعار نظام جديد
+    ModelsLog::create([
+        'type' => 'client',
+        'type_id' => $client->id,
+        'type_log' => 'log',
+        'description' => 'تم إضافة عميل **' . $client->trade_name . '**',
+        'created_by' => auth()->id(),
+    ]);
+
+    // زيادة الرقم الحالي بمقدار 1
+    if ($serialSetting) {
+        $serialSetting->update(['current_number' => $currentNumber + 1]);
+    }
+
+    // إنشاء حساب فرعي باستخدام trade_name
+    $customers = Account::where('name', 'العملاء')->first();
+    if ($customers) {
+        $customerAccount = new Account();
+        $customerAccount->name = $client->trade_name;
+        $customerAccount->client_id = $client->id;
+        $customerAccount->balance += $client->opening_balance ?? 0;
+
+        $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
+        $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1';
+
+        while (\App\Models\Account::where('code', $newCode)->exists()) {
+            $newCode = $this->generateNextCode($newCode);
         }
 
-        // إنشاء حساب فرعي باستخدام trade_name
-        $customers = Account::where('name', 'العملاء')->first();
-        if ($customers) {
-            $customerAccount = new Account();
-            $customerAccount->name = $client->trade_name;
-            $customerAccount->client_id = $client->id;
-            $customerAccount->balance += $client->opening_balance ?? 0;
+        $customerAccount->code = $newCode;
+        $customerAccount->balance_type = 'debit';
+        $customerAccount->parent_id = $customers->id;
+        $customerAccount->is_active = false;
+        $customerAccount->save();
 
-            $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
-            $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1';
+        if ($client->opening_balance > 0) {
+            $journalEntry = JournalEntry::create([
+                'reference_number' => $client->code,
+                'date' => now(),
+                'description' => 'رصيد افتتاحي للعميل : ' . $client->trade_name,
+                'status' => 1,
+                'currency' => 'SAR',
+                'client_id' => $client->id,
+            ]);
 
-            while (\App\Models\Account::where('code', $newCode)->exists()) {
-                $newCode = $this->generateNextCode($newCode);
-            }
+            JournalEntryDetail::create([
+                'journal_entry_id' => $journalEntry->id,
+                'account_id' => $customerAccount->id,
+                'description' => 'رصيد افتتاحي للعميل : ' . $client->trade_name,
+                'debit' => $client->opening_balance ?? 0,
+                'credit' => 0,
+                'is_debit' => true,
+            ]);
+        }
+    }
 
-            $customerAccount->code = $newCode;
-            $customerAccount->balance_type = 'debit';
-            $customerAccount->parent_id = $customers->id;
-            $customerAccount->is_active = false;
-            $customerAccount->save();
+    // حفظ جهات الاتصال الإضافية
+    if ($request->has('contacts') && is_array($request->contacts)) {
+        foreach ($request->contacts as $contact) {
+            $client->contacts()->create($contact);
+        }
+    }
 
-            if ($client->opening_balance > 0) {
-                $journalEntry = JournalEntry::create([
-                    'reference_number' => $client->code,
-                    'date' => now(),
-                    'description' => 'رصيد افتتاحي للعميل : ' . $client->trade_name,
-                    'status' => 1,
-                    'currency' => 'SAR',
-                    'client_id' => $client->id,
-                ]);
+    // إضافة العميل إلى خط سير جميع الموظفين المسؤولين عنه
+    if (!empty($employeeIds)) {
+        $now = now();
+        $currentDate = $now->copy();
+        $currentYear = $now->year;
 
-                JournalEntryDetail::create([
-                    'journal_entry_id' => $journalEntry->id,
-                    'account_id' => $customerAccount->id,
-                    'description' => 'رصيد افتتاحي للعميل : ' . $client->trade_name,
-                    'debit' => $client->opening_balance ?? 0,
-                    'credit' => 0,
-                    'is_debit' => true,
-                ]);
-            }
+        // نحسب أول سبت في السنة
+        $firstSaturday = Carbon::createFromDate($currentYear, 1, 1)->startOfWeek(Carbon::SATURDAY);
+
+        // إذا أول يوم في السنة كان سبت، نستخدمه
+        if (Carbon::createFromDate($currentYear, 1, 1)->dayOfWeek === Carbon::SATURDAY) {
+            $firstSaturday = Carbon::createFromDate($currentYear, 1, 1);
         }
 
-        // حفظ جهات الاتصال الإضافية
-        if ($request->has('contacts') && is_array($request->contacts)) {
-            foreach ($request->contacts as $contact) {
-                $client->contacts()->create($contact);
-            }
-        }
+        // نحسب الفرق بالأسابيع
+        $daysDiff = $firstSaturday->diffInDays($currentDate);
+        $currentWeek = (int) floor($daysDiff / 7) + 1;
 
-        // إضافة العميل إلى خط سير الموظفين المسؤولين عنه (اليوم الحالي فقط)
-        if (!empty($employeeIds)) {
-            $now = now();
-            $currentDate = $now->copy();
-            $currentYear = $now->year;
+        // اليوم الحالي بعد تعديل الترتيب بحيث السبت هو 0
+        $adjustedDayOfWeek = ($now->dayOfWeek + 1) % 7;
+        $englishDays = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        $dayOfWeek = strtolower($englishDays[$adjustedDayOfWeek]);
 
-            // نحسب أول سبت في السنة
-            $firstSaturday = Carbon::createFromDate($currentYear, 1, 1)->startOfWeek(Carbon::SATURDAY);
-
-            // إذا أول يوم في السنة كان سبت، نستخدمه
-            if (Carbon::createFromDate($currentYear, 1, 1)->dayOfWeek === Carbon::SATURDAY) {
-                $firstSaturday = Carbon::createFromDate($currentYear, 1, 1);
-            }
-
-            // نحسب الفرق بالأسابيع
-            $daysDiff = $firstSaturday->diffInDays($currentDate);
-            $currentWeek = (int) floor($daysDiff / 7) + 1;
-
-            // اليوم الحالي بعد تعديل الترتيب بحيث السبت هو 0
-            $adjustedDayOfWeek = ($now->dayOfWeek + 1) % 7;
-            $englishDays = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-            $dayOfWeek = strtolower($englishDays[$adjustedDayOfWeek]);
-
-            foreach ($employeeIds as $employeeId) {
+        foreach ($employeeIds as $employeeId) {
+            // التأكد من أن employeeId صحيح قبل الإضافة
+            if (!empty($employeeId)) {
                 EmployeeClientVisit::updateOrCreate(
                     [
-                        'employee_id' => $employeeId,
+                        'employee_id' => $employeeId, // user_id
                         'client_id' => $client->id,
                         'day_of_week' => $dayOfWeek,
                         'year' => $currentYear,
@@ -1546,10 +1565,10 @@ public function getHiddenClients(Request $request)
                 );
             }
         }
-
-        return redirect()->route('clients.index')->with('success', '✨ تم إضافة العميل بنجاح!');
     }
 
+    return redirect()->route('clients.index')->with('success', '✨ تم إضافة العميل بنجاح!');
+}
     protected function getCorrectWeekNumber(Carbon $date)
     {
         // تاريخ السبت الماضي كبداية للأسبوع
@@ -3290,5 +3309,85 @@ public function statement($id)
         }
     }
 
+    /**
+     * Display the client KPIs dashboard.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function kpis()
+    {
+        $user = auth()->user();
+
+        // Get total clients count
+        $totalClients = Client::count();
+
+        // Get client statistics
+        $clientStats = [
+            'total' => $totalClients,
+            'active' => Client::whereHas('status', function($query) {
+                $query->where('name', '!=', 'موقوف');
+            })->count(),
+            'inactive' => Client::whereHas('status', function($query) {
+                $query->where('name', 'موقوف');
+            })->count(),
+        ];
+
+        // Get invoice statistics
+        $invoiceStats = [
+            'current_count' => \App\Models\Invoice::where('type', 'normal')->count(),
+            'current_total' => \App\Models\Invoice::where('type', 'normal')->sum('grand_total'),
+        ];
+
+        // Get sales statistics
+        $salesStats = [
+            'current' => $invoiceStats['current_total'],
+            'average' => $totalClients > 0 ? $invoiceStats['current_total'] / $totalClients : 0,
+            'growth' => 5.2, // This would be calculated based on previous period data
+        ];
+
+        // Get returns statistics
+        $returnsStats = [
+            'total' => \App\Models\Invoice::where('type', 'returned')->count(),
+            'new' => \App\Models\Invoice::where('type', 'returned')->where('created_at', '>=', now()->subDays(7))->count(),
+            'processing' => 3, // This would be actual processing count
+            'processing_time' => 2, // Average processing time in days
+        ];
+
+        // Get quotes statistics
+        $quotesStats = [
+            'completed' => ['count' => 15],
+            'pending' => ['count' => 8],
+            'rejected' => ['count' => 2],
+        ];
+
+        // Get credit notifications
+        $creditNotifications = [
+            [
+                'id' => 1001,
+                'status' => 'مكتمل',
+                'status_class' => 'success',
+                'client_name' => 'شركة التقنية',
+                'grand_total' => 15000,
+                'credit_date' => '2023-10-15',
+            ],
+            [
+                'id' => 1002,
+                'status' => 'قيد المعالجة',
+                'status_class' => 'warning',
+                'client_name' => 'محل الإلكترونيات',
+                'grand_total' => 8500,
+                'credit_date' => '2023-10-14',
+            ],
+        ];
+
+        return view('client::kpis.index', compact(
+            'clientStats',
+            'invoiceStats',
+            'salesStats',
+            'returnsStats',
+            'quotesStats',
+            'creditNotifications'
+        ));
+    }
 
 }
