@@ -115,10 +115,36 @@
             background: white;
         }
 
+        /* تحسين عرض صور التوقيعات في السجل */
         .signature-history img {
             border: 1px solid #eee;
             padding: 5px;
             background: white;
+            max-height: 100px;
+            object-fit: contain;
+            margin: 0 auto;
+            display: block;
+            width: auto !important;
+        }
+        
+        .signature-card {
+            max-width: 100%;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .signature-card .card-body {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .signature-card .mt-2 {
+            max-width: 300px;
+            margin: 10px auto;
+            width: 100%;
+            height: auto;
+            position: relative;
         }
 
         .toast-container {
@@ -848,14 +874,21 @@
 
                                     <div class="mb-3">
                                         <label class="form-label">التوقيع *</label>
-                                        <div style="border: 1px dashed #ccc; height: 200px; position: relative;">
-                                            <canvas id="signature-pad"
-                                                style="width: 100%; height: 100%; touch-action: none;"></canvas>
-                                            <div id="signature-guide"
-                                                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ccc; font-size: 16px; pointer-events: none;">
-                                                الرجاء التوقيع هنا
-                                            </div>
-                                        </div>
+                        <div style="border: 1px dashed #ccc; height: 200px; position: relative;">
+                            <canvas id="signature-pad"
+                                style="width: 100%; height: 100%; touch-action: none;"></canvas>
+                            <div id="signature-guide"
+                                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ccc; font-size: 16px; pointer-events: none;">
+                                الرجاء التوقيع هنا
+                            </div>
+                            <div id="device-optimization-notice" style="position: absolute; bottom: 5px; right: 10px; font-size: 0.75rem; color: #6c757d; display: none;">
+                                تم تحسين اللوحة للتوقيع باستخدام الماوس
+                            </div>
+                            <button type="button" id="reset-signature-pad" class="btn btn-sm btn-warning" 
+                                style="position: absolute; bottom: 5px; left: 10px; display: none;">
+                                <i class="fas fa-sync-alt me-1"></i> إعادة تهيئة اللوحة
+                            </button>
+                        </div>
                                         <input type="hidden" name="signature_data" id="signature-data">
                                         <small class="text-muted">يمكنك التوقيع بإصبعك أو بالقلم</small>
                                     </div>
@@ -875,7 +908,7 @@
                                     <h5>سجل التواقيع</h5>
                                     @if (isset($invoice->signatures) && $invoice->signatures->count() > 0)
                                         @foreach ($invoice->signatures as $signature)
-                                            <div class="card mb-2">
+                                            <div class="card mb-2 signature-card">
                                                 <div class="card-body">
                                                     <div class="d-flex justify-content-between flex-wrap">
                                                         <div>
@@ -890,9 +923,9 @@
                                                         </div>
                                                         <small>{{ $signature->created_at->format('Y-m-d H:i') }}</small>
                                                     </div>
-                                                    <div class="mt-2 text-center">
+                                                    <div class="mt-2 signature-history">
                                                         <img src="{{ $signature->signature_data }}"
-                                                            style="max-height: 80px; border: 1px solid #eee; background: white; padding: 5px; width: 100%;">
+                                                             alt="توقيع {{ $signature->signer_name }}">
                                                     </div>
                                                 </div>
                                             </div>
@@ -1005,146 +1038,580 @@
                     "escapeHtml": true
                 };
 
-                // تهيئة لوحة التوقيع
-                const canvas = document.getElementById('signature-pad');
-                if (canvas) {
-                    const signaturePad = new SignaturePad(canvas, {
-                        backgroundColor: 'rgb(255,255,255)',
-                        penColor: 'rgb(0,0,0)',
-                        minWidth: 0.7,
-                        maxWidth: 2,
-                        throttle: 0,
-                        onBegin: () => {
-                            const guide = document.getElementById('signature-guide');
-                            if (guide) guide.style.display = 'none';
-                        }
-                    });
-
-                    // ضبط حجم Canvas
-                    function resizeCanvas() {
-                        const ratio = Math.max(window.devicePixelRatio || 1, 1);
-                        const width = canvas.offsetWidth;
-                        const height = canvas.offsetHeight;
-
-                        if (width === 0 || height === 0) return;
-
-                        const data = !signaturePad.isEmpty() ? signaturePad.toData() : null;
-
-                        canvas.width = width * ratio;
-                        canvas.height = height * ratio;
-                        canvas.getContext('2d').scale(ratio, ratio);
-
-                        canvas.style.width = width + 'px';
-                        canvas.style.height = height + 'px';
-
-                        if (data) {
-                            signaturePad.fromData(data);
+                // تهيئة نظام التوقيع المخصص للماوس والهواتف
+                (function() {
+                    // عناصر DOM
+                    const canvas = document.getElementById('signature-pad');
+                    const clearButton = document.getElementById('clear-signature');
+                    const resetButton = document.getElementById('reset-signature-pad');
+                    const signatureForm = document.getElementById('signature-form');
+                    const signatureData = document.getElementById('signature-data');
+                    const signatureGuide = document.getElementById('signature-guide');
+                    const deviceNotice = document.getElementById('device-optimization-notice');
+                    
+                    // متغيرات حالة
+                    let ctx = null;
+                    let signaturePad = null;
+                    let isDrawing = false;
+                    let lastX = 0, lastY = 0;
+                    
+                    // إنشاء عنصر حالة التوقيع إذا لم يكن موجودًا
+                    let statusDiv = document.getElementById('signature-status-container');
+                    if (!statusDiv && canvas) {
+                        statusDiv = document.createElement('div');
+                        statusDiv.id = 'signature-status-container';
+                        statusDiv.style.marginTop = '10px';
+                        statusDiv.style.padding = '5px';
+                        statusDiv.style.border = '1px solid #eee';
+                        statusDiv.style.borderRadius = '4px';
+                        statusDiv.style.backgroundColor = '#f9f9f9';
+                        statusDiv.style.textAlign = 'center';
+                        statusDiv.style.display = 'none';
+                        
+                        statusDiv.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; padding: 0 10px;">
+                                <div><strong>النظام:</strong> <span id="signature-mode">-</span></div>
+                                <div><strong>الحالة:</strong> <span id="signature-status">جاهز للتوقيع</span></div>
+                            </div>
+                        `;
+                        
+                        if (canvas.parentNode) {
+                            canvas.parentNode.insertBefore(statusDiv, canvas.nextSibling);
                         }
                     }
-
-                    window.addEventListener('resize', resizeCanvas);
-                    resizeCanvas();
-
-                    // مسح التوقيع
-                    document.getElementById('clear-signature')?.addEventListener('click', function(e) {
+                    
+                    // تحديد نوع الجهاز
+                    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    const isDesktop = !isMobileDevice;
+                    
+                    // إظهار إشعارات الجهاز المناسبة
+                    if (canvas && isDesktop) {
+                        if (deviceNotice) deviceNotice.style.display = 'block';
+                        if (resetButton) resetButton.style.display = 'block';
+                        if (statusDiv) statusDiv.style.display = 'block';
+                        
+                        const modeSpan = document.getElementById('signature-mode');
+                        if (modeSpan) modeSpan.textContent = 'نظام مخصص للماوس';
+                    }
+                    
+                    // ****************
+                    // * وظائف الرسم *
+                    // ****************
+                    
+                    // دالة للتحقق من وجود بكسلات غير بيضاء في القماش
+                    function hasSignatureContent(canvas) {
+                        try {
+                            if (!canvas || !ctx) return false;
+                            
+                            const imageData = ctx.getImageData(0, 0, canvas.width / (window.devicePixelRatio || 1), canvas.height / (window.devicePixelRatio || 1)).data;
+                            
+                            // التحقق من كل بكسل رباعي (R,G,B,A)
+                            for (let i = 3; i < imageData.length; i += 4) {
+                                if (imageData[i] > 10) { // تحقق من قناة ألفا (الشفافية)
+                                    return true;
+                                }
+                            }
+                            return false;
+                        } catch (e) {
+                            console.error('خطأ في التحقق من وجود توقيع:', e);
+                            return false;
+                        }
+                    }
+                    
+                    // تهيئة القماش وسياق الرسم
+                    function initializeCanvas() {
+                        if (!canvas) return false;
+                        
+                        try {
+                            ctx = canvas.getContext('2d');
+                            
+                            // ضبط حجم القماش حسب حجم العرض
+                            resizeCanvas();
+                            
+                            // تغيير مؤشر الماوس ليبدو مثل قلم
+                            if (isDesktop) {
+                                canvas.style.cursor = 'crosshair';
+                            }
+                            
+                            return true;
+                        } catch (e) {
+                            console.error('خطأ في تهيئة القماش:', e);
+                            return false;
+                        }
+                    }
+                    
+                    // ضبط حجم القماش بشكل صحيح مع مراعاة كثافة البكسل
+                    function resizeCanvas() {
+                        if (!canvas || !ctx) return false;
+                        
+                        try {
+                            // حفظ المحتوى الحالي إذا وجد
+                            let savedContent = null;
+                            if (canvas.width > 0 && canvas.height > 0) {
+                                try {
+                                    savedContent = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                                } catch (e) {
+                                    console.log('تعذر حفظ المحتوى الحالي:', e);
+                                }
+                            }
+                            
+                            // الحصول على أبعاد العرض الفعلية
+                            const rect = canvas.getBoundingClientRect();
+                            const dpr = window.devicePixelRatio || 1;
+                            
+                            // ضبط أبعاد القماش المنطقية مع مراعاة كثافة البكسل
+                            canvas.width = rect.width * dpr;
+                            canvas.height = rect.height * dpr;
+                            
+                            // ضبط أبعاد العرض المرئي
+                            canvas.style.width = rect.width + 'px';
+                            canvas.style.height = rect.height + 'px';
+                            
+                            // ضبط المقياس لمراعاة كثافة البكسل
+                            ctx.scale(dpr, dpr);
+                            
+                            // إعداد خصائص الرسم
+                            ctx.lineCap = 'round';
+                            ctx.lineJoin = 'round';
+                            ctx.lineWidth = isDesktop ? 1.5 : 2.5;
+                            ctx.strokeStyle = '#000';
+                            
+                            // ملء القماش باللون الأبيض
+                            ctx.fillStyle = '#fff';
+                            ctx.fillRect(0, 0, rect.width, rect.height);
+                            
+                            // استعادة المحتوى المحفوظ إذا وجد
+                            if (savedContent) {
+                                try {
+                                    ctx.putImageData(savedContent, 0, 0);
+                                } catch (e) {
+                                    console.log('تعذر استعادة المحتوى المحفوظ:', e);
+                                }
+                            }
+                            
+                            return true;
+                        } catch (e) {
+                            console.error('خطأ في تغيير حجم القماش:', e);
+                            return false;
+                        }
+                    }
+                    
+                    // مسح القماش
+                    function clearCanvas() {
+                        if (!canvas || !ctx) return false;
+                        
+                        try {
+                            // إعادة تعيين القماش
+                            const rect = canvas.getBoundingClientRect();
+                            ctx.fillStyle = '#fff';
+                            ctx.fillRect(0, 0, rect.width, rect.height);
+                            
+                            // إظهار دليل التوقيع مرة أخرى
+                            if (signatureGuide) signatureGuide.style.display = 'block';
+                            
+                            // تحديث الحالة
+                            const statusElement = document.getElementById('signature-status');
+                            if (statusElement) {
+                                statusElement.textContent = 'جاهز للتوقيع';
+                                statusElement.style.color = '';
+                            }
+                            
+                            // إذا كان SignaturePad موجودًا (للأجهزة المحمولة)، قم بمسحه
+                            if (!isDesktop && signaturePad) {
+                                signaturePad.clear();
+                            }
+                            
+                            return true;
+                        } catch (e) {
+                            console.error('خطأ في مسح القماش:', e);
+                            return false;
+                        }
+                    }
+                    
+                    // الحصول على بيانات التوقيع كصورة
+                    function getSignatureData() {
+                        if (!canvas) return null;
+                        
+                        try {
+                            return canvas.toDataURL('image/png');
+                        } catch (e) {
+                            console.error('خطأ في الحصول على بيانات التوقيع:', e);
+                            return null;
+                        }
+                    }
+                    
+                    // إعداد نظام الرسم المخصص للكمبيوتر
+                    function setupDesktopDrawing() {
+                        if (!canvas || !ctx) return false;
+                        
+                        try {
+                            // إزالة أي معالجات أحداث سابقة
+                            canvas.removeEventListener('mousedown', handleMouseDown);
+                            canvas.removeEventListener('mousemove', handleMouseMove);
+                            window.removeEventListener('mouseup', handleMouseUp);
+                            canvas.removeEventListener('mouseleave', handleMouseLeave);
+                            
+                            // إضافة معالجات الأحداث
+                            canvas.addEventListener('mousedown', handleMouseDown);
+                            canvas.addEventListener('mousemove', handleMouseMove);
+                            window.addEventListener('mouseup', handleMouseUp);
+                            canvas.addEventListener('mouseleave', handleMouseLeave);
+                            
+                            // منع الأحداث الافتراضية على القماش
+                            canvas.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+                            canvas.addEventListener('selectstart', function(e) { e.preventDefault(); });
+                            
+                            return true;
+                        } catch (e) {
+                            console.error('خطأ في إعداد نظام الرسم للكمبيوتر:', e);
+                            return false;
+                        }
+                    }
+                    
+                    // إعداد نظام الرسم للأجهزة المحمولة
+                    function setupMobileDrawing() {
+                        if (!canvas) return false;
+                        
+                        try {
+                            // إذا كان SignaturePad موجودًا، قم بإزالته أولاً
+                            if (signaturePad) {
+                                try {
+                                    signaturePad.off();
+                                    signaturePad.clear();
+                                } catch (e) {
+                                    console.log('تعذر تنظيف SignaturePad السابق:', e);
+                                }
+                            }
+                            
+                            // إنشاء مثيل جديد من SignaturePad
+                            signaturePad = new SignaturePad(canvas, {
+                                backgroundColor: 'rgb(255,255,255)',
+                                penColor: 'rgb(0,0,0)',
+                                minWidth: 2,
+                                maxWidth: 4,
+                                throttle: 0,
+                                velocityFilterWeight: 0.5,
+                                onBegin: function() {
+                                    if (signatureGuide) signatureGuide.style.display = 'none';
+                                }
+                            });
+                            
+                            return true;
+                        } catch (e) {
+                            console.error('خطأ في إعداد نظام الرسم للجوال:', e);
+                            return false;
+                        }
+                    }
+                    
+                    // *******************
+                    // * معالجات الأحداث *
+                    // *******************
+                    
+                    // معالج بدء الرسم بالماوس
+                    function handleMouseDown(e) {
                         e.preventDefault();
-                        if (!signaturePad.isEmpty()) {
+                        
+                        // أخفِ دليل التوقيع
+                        if (signatureGuide) signatureGuide.style.display = 'none';
+                        
+                        // تفعيل وضع الرسم
+                        isDrawing = true;
+                        
+                        // حساب موقع النقطة الأولى نسبة لموقع القماش
+                        const rect = canvas.getBoundingClientRect();
+                        lastX = e.clientX - rect.left;
+                        lastY = e.clientY - rect.top;
+                        
+                        // رسم نقطة في موقع البداية
+                        ctx.beginPath();
+                        ctx.arc(lastX, lastY, ctx.lineWidth / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // منع تحديد النص أثناء الرسم
+                        document.body.style.userSelect = 'none';
+                        
+                        // تحديث الحالة
+                        const statusElement = document.getElementById('signature-status');
+                        if (statusElement) {
+                            statusElement.textContent = 'جاري الرسم...';
+                            statusElement.style.color = '#007bff';
+                        }
+                    }
+                    
+                    // معالج الرسم أثناء تحريك الماوس
+                    function handleMouseMove(e) {
+                        if (!isDrawing) return;
+                        
+                        e.preventDefault();
+                        
+                        // حساب الموقع الحالي نسبة لموقع القماش
+                        const rect = canvas.getBoundingClientRect();
+                        const currentX = e.clientX - rect.left;
+                        const currentY = e.clientY - rect.top;
+                        
+                        // رسم خط من الموقع السابق إلى الموقع الحالي
+                        ctx.beginPath();
+                        ctx.moveTo(lastX, lastY);
+                        ctx.lineTo(currentX, currentY);
+                        ctx.stroke();
+                        
+                        // تحديث الموقع للحركة التالية
+                        [lastX, lastY] = [currentX, currentY];
+                    }
+                    
+                    // معالج إيقاف الرسم عند رفع زر الماوس
+                    function handleMouseUp(e) {
+                        if (!isDrawing) return;
+                        
+                        isDrawing = false;
+                        
+                        // استعادة إمكانية تحديد النص
+                        document.body.style.userSelect = '';
+                        
+                        // تحديث الحالة
+                        const statusElement = document.getElementById('signature-status');
+                        if (statusElement) {
+                            // فحص ما إذا كان هناك توقيع
+                            if (hasSignatureContent(canvas)) {
+                                statusElement.textContent = 'تم التوقيع ✓';
+                                statusElement.style.color = 'green';
+                            } else {
+                                statusElement.textContent = 'جاهز للتوقيع';
+                                statusElement.style.color = '';
+                            }
+                        }
+                    }
+                    
+                    // معالج إيقاف الرسم عند مغادرة القماش
+                    function handleMouseLeave(e) {
+                        if (!isDrawing) return;
+                        
+                        isDrawing = false;
+                        
+                        // استعادة إمكانية تحديد النص
+                        document.body.style.userSelect = '';
+                        
+                        // تحديث الحالة
+                        const statusElement = document.getElementById('signature-status');
+                        if (statusElement && hasSignatureContent(canvas)) {
+                            statusElement.textContent = 'تم التوقيع ✓';
+                            statusElement.style.color = 'green';
+                        }
+                    }
+                    
+                    // معالج تغيير حجم النافذة
+                    function handleResize() {
+                        resizeCanvas();
+                        
+                        // إعادة إعداد النظام المناسب
+                        if (isDesktop) {
+                            setupDesktopDrawing();
+                        } else {
+                            setupMobileDrawing();
+                        }
+                    }
+                    
+                    // تسجيل معالج تغيير حجم النافذة مع تأخير
+                    let resizeTimeout;
+                    window.addEventListener('resize', function() {
+                        clearTimeout(resizeTimeout);
+                        resizeTimeout = setTimeout(handleResize, 200);
+                    });
+                    
+                    // إعادة تهيئة نظام التوقيع
+                    function resetSignaturePad() {
+                        try {
+                            // مسح القماش
+                            clearCanvas();
+                            
+                            // إعادة ضبط حجم القماش
+                            resizeCanvas();
+                            
+                            // إعادة إعداد النظام المناسب
+                            if (isDesktop) {
+                                setupDesktopDrawing();
+                            } else {
+                                setupMobileDrawing();
+                            }
+                            
+                            // إظهار رسالة للمستخدم
+                            toastr.success('تم إعادة تهيئة لوحة التوقيع بنجاح', 'تم');
+                            
+                            return true;
+                        } catch (e) {
+                            console.error('خطأ في إعادة تهيئة نظام التوقيع:', e);
+                            
+                            // محاولة إعادة تهيئة القماش على الأقل
+                            try {
+                                initializeCanvas();
+                                clearCanvas();
+                            } catch (innerError) {
+                                console.error('فشلت محاولة الاستعادة:', innerError);
+                            }
+                            
+                            toastr.error('حدث خطأ أثناء إعادة التهيئة، يرجى تحديث الصفحة', 'خطأ');
+                            return false;
+                        }
+                    }
+                    
+                    // معالج مسح التوقيع
+                    function handleClearSignature(e) {
+                        if (e) e.preventDefault();
+                        
+                        // التحقق من وجود توقيع أولاً
+                        const hasSignature = isDesktop ? 
+                            hasSignatureContent(canvas) : 
+                            (signaturePad && !signaturePad.isEmpty());
+                        
+                        if (hasSignature) {
                             Swal.fire({
-                                title: 'هل أنت متأكد؟',
-                                text: "سيتم مسح التوقيع الحالي تماماً!",
+                                title: 'مسح التوقيع',
+                                text: 'هل أنت متأكد أنك تريد مسح التوقيع الحالي؟',
                                 icon: 'warning',
                                 showCancelButton: true,
-                                confirmButtonColor: '#3085d6',
-                                cancelButtonColor: '#d33',
-                                confirmButtonText: 'نعم، امسح!',
+                                confirmButtonText: 'نعم، امسح',
                                 cancelButtonText: 'إلغاء'
                             }).then((result) => {
                                 if (result.isConfirmed) {
-                                    signaturePad.clear();
-                                    const guide = document.getElementById('signature-guide');
-                                    if (guide) guide.style.display = 'block';
-                                    toastr.success('تم مسح التوقيع بنجاح', 'عملية ناجحة');
+                                    clearCanvas();
+                                    toastr.success('تم مسح التوقيع بنجاح', 'تم');
                                 }
                             });
                         } else {
-                            toastr.info('لا يوجد توقيع لمسحه', 'ملاحظة');
+                            toastr.info('لا يوجد توقيع للمسح', 'تنبيه');
                         }
-                    });
-
-                    // حفظ التوقيع
-                    document.getElementById('signature-form')?.addEventListener('submit', function(e) {
+                    }
+                    
+                    // معالج إعادة تهيئة لوحة التوقيع
+                    function handleResetSignaturePad(e) {
+                        if (e) e.preventDefault();
+                        resetSignaturePad();
+                    }
+                    
+                    // معالج حفظ التوقيع
+                    function handleSaveSignature(e) {
                         e.preventDefault();
-
-                        const signerName = document.getElementById('signer-name').value.trim();
-                        const signerRole = document.getElementById('signer-role').value.trim();
-
+                        
+                        // التحقق من الحقول المطلوبة
+                        const signerName = document.getElementById('signer-name')?.value.trim();
+                        const signerRole = document.getElementById('signer-role')?.value.trim();
+                        
                         if (!signerName) {
                             toastr.error('الرجاء إدخال الاسم الكامل للموقع', 'حقل مطلوب');
                             return;
                         }
-
+                        
                         if (!signerRole) {
                             toastr.error('الرجاء إدخال صفة الموقع', 'حقل مطلوب');
                             return;
                         }
-
-                        if (signaturePad.isEmpty()) {
-                            toastr.error('الرجاء تقديم التوقيع أولاً', 'توقيع مطلوب');
+                        
+                        // التحقق من وجود توقيع
+                        const hasSignature = isDesktop ? 
+                            hasSignatureContent(canvas) : 
+                            (signaturePad && !signaturePad.isEmpty());
+                        
+                        if (!hasSignature) {
+                            toastr.error('الرجاء التوقيع قبل الحفظ', 'توقيع مطلوب');
                             return;
                         }
-
+                        
+                        // تأكيد الحفظ
                         Swal.fire({
                             title: 'تأكيد الحفظ',
-                            text: "هل أنت متأكد من حفظ هذا التوقيع؟",
+                            text: 'هل أنت متأكد من حفظ هذا التوقيع؟',
                             icon: 'question',
                             showCancelButton: true,
-                            confirmButtonColor: '#28a745',
-                            cancelButtonColor: '#6c757d',
-                            confirmButtonText: 'نعم، احفظه!',
+                            confirmButtonText: 'نعم، احفظ',
                             cancelButtonText: 'إلغاء'
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                const signatureData = signaturePad.toDataURL();
-                                document.getElementById('signature-data').value = signatureData;
-
-                                Swal.fire({
-                                    title: 'جاري الحفظ',
-                                    html: 'يرجى الانتظار...',
-                                    allowOutsideClick: false,
-                                    didOpen: () => {
-                                        Swal.showLoading();
+                                try {
+                                    // الحصول على بيانات التوقيع
+                                    const signature = getSignatureData();
+                                    if (!signature) {
+                                        toastr.error('تعذر الحصول على بيانات التوقيع', 'خطأ');
+                                        return;
                                     }
-                                });
-
-                                const form = this;
-                                axios.post(form.action, new FormData(form))
-                                    .then(response => {
-                                        Swal.close();
-                                        if (response.data.success) {
-                                            toastr.success('تم حفظ التوقيع بنجاح', 'نجاح');
-                                            setTimeout(() => {
-                                                window.location.reload();
-                                            }, 2000);
-                                        } else {
-                                            toastr.error(response.data.message ||
-                                                'حدث خطأ أثناء الحفظ', 'خطأ');
+                                    
+                                    // تعيين بيانات التوقيع في النموذج
+                                    if (signatureData) signatureData.value = signature;
+                                    
+                                    // إظهار رسالة الانتظار
+                                    Swal.fire({
+                                        title: 'جاري الحفظ',
+                                        html: 'يرجى الانتظار...',
+                                        allowOutsideClick: false,
+                                        didOpen: () => {
+                                            Swal.showLoading();
                                         }
-                                    })
-                                    .catch(error => {
-                                        Swal.close();
-                                        let errorMessage = 'فشل في الحفظ. يرجى المحاولة لاحقًا.';
-                                        if (error.response && error.response.data && error.response
-                                            .data.errors) {
-                                            const errors = error.response.data.errors;
-                                            errorMessage = Object.values(errors).join('<br>');
-                                        }
-                                        toastr.error(errorMessage, 'خطأ');
                                     });
+                                    
+                                    // إرسال النموذج باستخدام Axios
+                                    axios.post(signatureForm.action, new FormData(signatureForm))
+                                        .then(response => {
+                                            Swal.close();
+                                            
+                                            if (response.data.success) {
+                                                toastr.success('تم حفظ التوقيع بنجاح', 'تم');
+                                                
+                                                // إعادة تحميل الصفحة بعد فترة قصيرة
+                                                setTimeout(() => {
+                                                    window.location.reload();
+                                                }, 2000);
+                                            } else {
+                                                toastr.error(response.data.message || 'حدث خطأ أثناء الحفظ', 'خطأ');
+                                            }
+                                        })
+                                        .catch(error => {
+                                            Swal.close();
+                                            
+                                            // عرض رسالة الخطأ
+                                            let errorMessage = 'حدث خطأ أثناء الحفظ، يرجى المحاولة مرة أخرى.';
+                                            
+                                            if (error.response && error.response.data && error.response.data.errors) {
+                                                const errors = error.response.data.errors;
+                                                errorMessage = Object.values(errors).join('<br>');
+                                            }
+                                            
+                                            toastr.error(errorMessage, 'خطأ');
+                                        });
+                                } catch (e) {
+                                    console.error('خطأ أثناء معالجة حفظ التوقيع:', e);
+                                    toastr.error('حدث خطأ غير متوقع، يرجى المحاولة مرة أخرى', 'خطأ');
+                                }
                             }
                         });
-                    });
-                }
-            });
+                    }
+                    
+                    // ربط الأحداث بالأزرار
+                    if (clearButton) {
+                        clearButton.addEventListener('click', handleClearSignature);
+                    }
+                    
+                    if (resetButton) {
+                        resetButton.addEventListener('click', handleResetSignaturePad);
+                    }
+                    
+                    if (signatureForm) {
+                        signatureForm.addEventListener('submit', handleSaveSignature);
+                    }
+                    
+                    // تهيئة نظام التوقيع عند تحميل الصفحة
+                    if (canvas) {
+                        // تهيئة القماش
+                        if (initializeCanvas()) {
+                            // تهيئة النظام المناسب حسب نوع الجهاز
+                            if (isDesktop) {
+                                setupDesktopDrawing();
+                            } else {
+                                setupMobileDrawing();
+                            }
+                        } else {
+                            console.error('تعذر تهيئة القماش!');
+                        }
+                    }
+                })();
 
             // دالة حذف الفاتورة
             function deleteInvoice() {

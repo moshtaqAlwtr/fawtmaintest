@@ -65,7 +65,7 @@ Route::group(
         });
 
         // PeriodicInvoicesController routes
-        Route::prefix('periodic-invoices')->group(function () {e
+        Route::prefix('periodic-invoices')->group(function () {
             Route::get('/', [PeriodicInvoicesController::class, 'index'])->name('periodic_invoices.index');
             Route::get('/create', [PeriodicInvoicesController::class, 'create'])->name('periodic_invoices.create');
             Route::post('/store', [PeriodicInvoicesController::class, 'store'])->name('periodic_invoices.store');
