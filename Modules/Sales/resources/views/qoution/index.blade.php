@@ -130,12 +130,10 @@
                     </div>
 
                     <div class="d-flex flex-wrap justify-content-between">
-                        <a href="{{ route('questions.create') }}" class="btn btn-success btn-sm flex-fill me-1 mb-1">
+                        <a href="{{ route('questions.create') }}" class="btn btn-primary">
                             <i class="fas fa-plus-circle me-1"></i>عرض سعر جديد
                         </a>
-                        <button class="btn btn-outline-primary btn-sm flex-fill mb-1">
-                            <i class="fas fa-cloud-upload-alt me-1"></i>استيراد
-                        </button>
+
                     </div>
                 </div>
             </div>

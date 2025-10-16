@@ -5,9 +5,7 @@
         <table class="table table-hover table-striped">
             <thead>
                 <tr>
-                    <th style="width: 5%">
-                        <input type="checkbox" class="form-check-input" id="selectAll">
-                    </th>
+                   
                     <th>رقم عرض السعر</th>
                     <th>العميل</th>
                     <th>التاريخ</th>
@@ -29,9 +27,7 @@
                     @endphp
 
                     <tr>
-                        <td>
-                            <input type="checkbox" class="form-check-input quote-checkbox" value="{{ $quote->id }}">
-                        </td>
+                       
                         <td>
                             <div class="d-flex align-items-center">
                                 <div class="avatar me-2" style="background-color: #007bff">
