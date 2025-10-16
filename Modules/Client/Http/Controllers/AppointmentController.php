@@ -86,6 +86,9 @@ class AppointmentController extends Controller
     $calendarAppointments = $this->getCalendarData();
     $calendarBookings = $this->formatCalendarBookings($calendarAppointments);
 
+    // Debug: Log the calendar bookings data
+    Log::debug('Calendar bookings data:', ['bookings' => $calendarBookings]);
+
     return view('client::appointments.index', compact(
         'appointments',
         'statuses',
@@ -232,13 +235,13 @@ public function updateStatus($id, $status)
     protected function getCalendarData()
     {
         $appointments = Appointment::with(['client', 'createdBy'])
-            ->where('appointment_date', '>=', now()->subMonths(3)) // Last 3 months
+            ->where('appointment_date', '>=', now()->subMonths(6)) // Last 6 months for better visibility
             ->get()
             ->map(function ($appointment) {
                 $statusText = $this->getStatusText($appointment->status);
                 $statusColor = $this->getStatusColor($appointment->status);
 
-                return [
+                $data = [
                     'id' => $appointment->id,
                     'title' => $appointment->client->trade_name ?? 'عميل',
                     'start' => $appointment->appointment_date . ($appointment->time ? 'T' . $appointment->time : ''),
@@ -255,8 +258,14 @@ public function updateStatus($id, $status)
                         'notes' => $appointment->notes ?? 'لا توجد ملاحظات',
                     ]
                 ];
+                
+                // Log each appointment data for debugging
+                Log::debug('Calendar appointment data:', $data);
+                
+                return $data;
             });
 
+        Log::debug('Total calendar appointments:', ['count' => $appointments->count()]);
         return $appointments;
     }
     /**
@@ -456,7 +465,20 @@ public function updateStatus($id, $status)
 
     protected function getStatusText($status)
     {
-        return Appointment::$statusArabicMap[$status] ?? 'غير معروف';
+        // Use the status map from the Appointment model if available
+        if (isset(Appointment::$statusArabicMap)) {
+            return Appointment::$statusArabicMap[$status] ?? 'غير معروف';
+        }
+        
+        // Fallback to manual mapping
+        $statusMap = [
+            1 => 'تم جدولته',
+            2 => 'تم',
+            3 => 'صرف النظر عنه',
+            4 => 'تم جدولته مجدداً'
+        ];
+        
+        return $statusMap[$status] ?? 'غير معروف';
     }
 
     /**
@@ -464,13 +486,14 @@ public function updateStatus($id, $status)
      */
     protected function getStatusColor($status)
     {
-        return match ($status) {
-            Appointment::STATUS_PENDING => 'bg-warning text-dark',
-            Appointment::STATUS_COMPLETED => 'bg-success text-white',
-            Appointment::STATUS_IGNORED => 'bg-danger text-white',
-            Appointment::STATUS_RESCHEDULED => 'bg-info text-white',
-            default => 'bg-secondary text-white',
-        };
+        $colorMap = [
+            1 => 'bg-warning text-dark',    // Pending
+            2 => 'bg-success text-white',   // Completed
+            3 => 'bg-danger text-white',    // Ignored/Cancelled
+            4 => 'bg-info text-white',      // Rescheduled
+        ];
+        
+        return $colorMap[$status] ?? 'bg-secondary text-white'; // Default
     }
 
     /**
@@ -520,12 +543,14 @@ public function updateStatus($id, $status)
         $bookings = [];
         
         foreach ($appointments as $appointment) {
-            $date = substr($appointment['start'], 0, 10); // Extract date part
+            // Extract date from the start field (format: YYYY-MM-DDTHH:MM:SS)
+            $date = substr($appointment['start'], 0, 10); // Extract date part (YYYY-MM-DD)
             
             if (!isset($bookings[$date])) {
                 $bookings[$date] = [];
             }
             
+            // Add appointment details to the date
             $bookings[$date][] = [
                 'client' => $appointment['extendedProps']['client_name'] ?? 'عميل',
                 'time' => $appointment['extendedProps']['time'] ?? '',
@@ -536,6 +561,9 @@ public function updateStatus($id, $status)
             ];
         }
         
+        // Log the formatted bookings for debugging
+        Log::debug('Formatted calendar bookings:', $bookings);
+        
         return $bookings;
     }
     
@@ -544,14 +572,18 @@ public function updateStatus($id, $status)
      */
     protected function getStatusClass($status)
     {
+        // Updated status map to match the actual status texts
         $statusMap = [
-            'قيد الانتظار' => 'pending',
-            'مكتمل' => 'completed',
-            'ملغي' => 'cancelled',
-            'معاد جدولته' => 'confirmed'
+            'تم جدولته' => 'pending',
+            'تم' => 'completed',
+            'صرف النظر عنه' => 'cancelled',
+            'تم جدولته مجدداً' => 'confirmed',
+            'تم جدولته مجددا' => 'confirmed' // Handle both variations
         ];
         
-        return $statusMap[$status] ?? 'pending';
+        $result = $statusMap[$status] ?? 'pending';
+        Log::debug("Status mapping: $status => $result");
+        return $result;
     }
     
     /**
@@ -559,12 +591,13 @@ public function updateStatus($id, $status)
      */
     protected function getStatusColorCode($status)
     {
-        return match ($status) {
+        $colorMap = [
             1 => '#ffc107',    // Yellow - Pending
             2 => '#28a745',    // Green - Completed
             3 => '#dc3545',    // Red - Cancelled
             4 => '#17a2b8',    // Cyan - Rescheduled
-            default => '#6c757d', // Gray - Default
-        };
+        ];
+        
+        return $colorMap[$status] ?? '#6c757d'; // Gray - Default
     }
 }

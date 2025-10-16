@@ -1344,34 +1344,44 @@ public function getHiddenClients(Request $request)
     /**
  * Generate PDF of all clients
  */
-
 public function generateClientsPdf()
 {
-    // جلب جميع العملاء مع العلاقات المطلوبة
-    $clients = Client::with(['status_client', 'branch', 'neighborhood.region', 'categoriesClient', 'account', 'invoices'])
+    // Load all clients with essential relationships
+    $clients = Client::with(['status_client', 'branch', 'neighborhood.region', 'categoriesClient', 'account'])
         ->orderBy('trade_name')
         ->get();
 
-    // إنشاء ملف PDF جديد
+    // Create new PDF using TCPDF
     $pdf = new TCPDF('L', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+    // Set document information
     $pdf->SetCreator('Fawtra');
     $pdf->SetAuthor('Fawtra System');
     $pdf->SetTitle('قائمة العملاء');
-    $pdf->SetMargins(10, 10, 10);
+
+    // Set margins
+    $pdf->SetMargins(15, 15, 15);
+    $pdf->SetHeaderMargin(0);
+    $pdf->SetFooterMargin(0);
+
+    // Disable header and footer
     $pdf->setPrintHeader(false);
     $pdf->setPrintFooter(false);
+
+    // Set right-to-left direction
     $pdf->setRTL(true);
+
+    // Add a new page
     $pdf->AddPage();
+
+    // Set Arabic font
     $pdf->SetFont('aealarabiya', '', 10);
 
-    // العنوان
-    $pdf->writeHTML('<h2 style="text-align:center">قائمة العملاء</h2>', true, false, true, false, '');
-
-    // رأس الجدول
-    $header = '
-    <table border="1" cellpadding="4" style="width:100%; border-collapse:collapse;">
+    // Create HTML content with client data
+    $html = '<h2 style="text-align:center">قائمة العملاء</h2>';
+    $html .= '<table border="1" cellpadding="5" style="width: 100%">
         <thead>
-            <tr style="background-color:#f2f2f2; text-align:center; font-weight:bold;">
+            <tr style="background-color: #f8f9fa; font-weight: bold; text-align: center;">
                 <th>الكود</th>
                 <th>الاسم التجاري</th>
                 <th>الهاتف</th>
@@ -1384,57 +1394,36 @@ public function generateClientsPdf()
                 <th>آخر فاتورة</th>
             </tr>
         </thead>
-        <tbody>
-    ';
-    $pdf->writeHTML($header, false, false, true, false, '');
-
-    // كتابة الصفوف على دفعات لتخفيف الذاكرة
-    $batch = 0;
-    $rows = '';
+        <tbody>';
 
     foreach ($clients as $client) {
-        $lastInvoice = $client->invoices->sortByDesc('invoice_date')->first();
+        $lastInvoice = $client->invoices()->latest('invoice_date')->first();
+        $balance = $client->account ? $client->account->balance : 0;
 
-        $rows .= '
-            <tr>
-                <td>' . ($client->code ?? '-') . '</td>
-                <td>' . ($client->trade_name ?? '-') . '</td>
-                <td>' . ($client->phone ?? '-') . '</td>
-                <td>' . ($client->status_client->name ?? '-') . '</td>
-                <td>' . ($client->branch->name ?? '-') . '</td>
-                <td>' . ($client->categoriesClient->name ?? '-') . '</td>
-                <td>' . number_format($client->account->balance ?? 0, 2) . '</td>
-                <td>' . number_format($client->credit_limit ?? 0, 2) . '</td>
-                <td>' . optional($client->created_at)->format('Y-m-d') . '</td>
-                <td>' . optional($lastInvoice)->invoice_date . '</td>
-            </tr>';
-
-        $batch++;
-
-        // كل 100 صف نرسلهم لـ TCPDF مباشرة لتقليل التحميل
-        if ($batch % 100 == 0) {
-            $pdf->writeHTML('<table>' . $rows . '</table>', false, false, true, false, '');
-            $rows = '';
-        }
+        $html .= '<tr>
+            <td>' . ($client->code ?? '-') . '</td>
+            <td>' . ($client->trade_name ?? '-') . '</td>
+            <td>' . ($client->phone ?? '-') . '</td>
+            <td>' . ($client->status_client->name ?? '-') . '</td>
+            <td>' . ($client->branch->name ?? '-') . '</td>
+            <td>' . ($client->categoriesClient->name ?? '-') . '</td>
+            <td>' . ($client->account->balance ?? '-') . '</td>
+            <td>' . ($client->credit_limit ?? '-') . '</td>
+            <td>' . optional($client->created_at)->format('Y-m-d') . '</td>
+            <td>' . optional($lastInvoice)->invoice_date . '</td>
+        </tr>';
     }
 
-    // إضافة الصفوف المتبقية إن وجدت
-    if (!empty($rows)) {
-        $pdf->writeHTML('<table>' . $rows . '</table>', false, false, true, false, '');
-    }
+    $html .= '</tbody></table>';
+    $html .= '<p style="text-align:center; margin-top:10px;">تم إنشاء التقرير بتاريخ: ' . now()->format('Y-m-d H:i') . '</p>';
 
-    // إغلاق الجدول
-    $pdf->writeHTML('</tbody></table>', true, false, true, false, '');
+    // Add content to PDF
+    $pdf->writeHTML($html, true, false, true, false, '');
 
-    // تذييل التقرير
-    $footer = '<p style="text-align:center; margin-top:10px;">تم إنشاء التقرير بتاريخ: ' . now()->format('Y-m-d H:i') . '</p>';
-    $pdf->writeHTML($footer, true, false, true, false, '');
-
-    // إخراج الملف
+    // Output the PDF file
     $filename = 'تقرير_العملاء_' . now()->format('Y-m-d') . '.pdf';
     return $pdf->Output($filename, 'I');
 }
-
 public function store(ClientRequest $request)
 {
     $data_request = $request->except('_token');
@@ -1513,7 +1502,7 @@ public function store(ClientRequest $request)
         $userId = auth()->id();
 
         // تسجيل للتأكد من القيمة
-        \Log::info('Employee adding client', [
+        Log::info('Employee adding client', [
             'user_id' => $userId,
             'user_name' => auth()->user()->name,
             'client_id' => $client->id ?? 'not saved yet'

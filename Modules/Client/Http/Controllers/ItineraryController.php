@@ -329,6 +329,7 @@ public function store(Request $request)
         return response()->json($clients);
     }
 
+
     public function listAll()
     {
         $itineraries = EmployeeClientVisit::with(['employee', 'client'])
@@ -338,15 +339,15 @@ public function store(Request $request)
             ->get()
             ->groupBy('employee_id')
             ->map(function ($employeeVisits) {
-                // الحصول على أحدث ثلاثة أسابيع (بعد ترتيبهم مسبقًا)
+                // الحصول على أحدث خمسة أسابيع (بعد ترتيبهم مسبقًا)
                 $latestWeeks = $employeeVisits
                     ->map(function ($visit) {
                         return $visit->year . '-W' . str_pad($visit->week_number, 2, '0', STR_PAD_LEFT);
                     })
                     ->unique()
-                    ->take(4); // أحدث ثلاثة أسابيع فقط
+                    ->take(5); // أحدث خمسة أسابيع بدلاً من أربعة
 
-                // تصفية الزيارات التي تنتمي لهذه الأسابيع الثلاثة
+                // تصفية الزيارات التي تنتمي لهذه الأسابيع الخمسة
                 $latestWeekVisits = $employeeVisits->filter(function ($visit) use ($latestWeeks) {
                     $visitKey = $visit->year . '-W' . str_pad($visit->week_number, 2, '0', STR_PAD_LEFT);
                     return $latestWeeks->contains($visitKey);
@@ -369,8 +370,88 @@ public function store(Request $request)
 
         $newClientsTodayCount = Client::whereDate('created_at', today())->count();
 
-        return view('client::Itinerary.list', compact('itineraries', 'newClientsTodayCount'));
+        // تحضير بيانات التقويم
+        $calendarData = $this->prepareCalendarData($itineraries);
+
+        return view('client::Itinerary.list', compact('itineraries', 'newClientsTodayCount', 'calendarData'));
     }
+
+    /**
+     * تحضير بيانات التقويم من معلومات خط السير
+     */
+    private function prepareCalendarData($itineraries)
+    {
+        $calendarData = [];
+
+        foreach ($itineraries as $employeeId => $employeeData) {
+            $employee = $employeeData['employee'];
+            $employeeName = $employee->name ?? 'غير معروف';
+
+            // لكل أسبوع في بيانات الموظف
+            foreach ($employeeData['weeks'] as $weekIdentifier => $dayData) {
+                // استخراج السنة ورقم الأسبوع من معرف الأسبوع
+                $yearWeek = explode('-W', $weekIdentifier);
+                $year = $yearWeek[0] ?? date('Y');
+                $weekNum = $yearWeek[1] ?? '00';
+
+                // إنشاء تاريخ بداية الأسبوع
+                $weekStartDate = new \DateTime();
+                $weekStartDate->setISODate($year, $weekNum);
+
+                // لكل يوم في الأسبوع
+                foreach ($dayData as $dayName => $dayInfo) {
+                    // حساب التاريخ الفعلي لهذا اليوم
+                    $dayOffset = $this->getDayOffset($dayName);
+                    $dayDate = clone $weekStartDate;
+                    if ($dayOffset > 0) {
+                        $dayDate->modify('+' . $dayOffset . ' days');
+                    }
+                    $formattedDate = $dayDate->format('Y-m-d');
+
+                    // إعداد بيانات الزيارات لهذا اليوم
+                    $visits = $dayInfo['visits'] ?? [];
+                    $visitCount = count($visits);
+                    $newClientsCount = $dayInfo['new_clients_count'] ?? 0;
+
+                    if ($visitCount > 0) {
+                        // تجميع المعلومات حسب التاريخ والموظف
+                        if (!isset($calendarData[$formattedDate])) {
+                            $calendarData[$formattedDate] = [];
+                        }
+
+                        $calendarData[$formattedDate][$employeeId] = [
+                            'employee_name' => $employeeName,
+                            'visit_count' => $visitCount,
+                            'new_clients_count' => $newClientsCount,
+                            'visits' => $visits,
+                            'employee_id' => $employeeId
+                        ];
+                    }
+                }
+            }
+        }
+
+        return $calendarData;
+    }
+
+    /**
+     * الحصول على ترتيب اليوم في الأسبوع (السبت = 0)
+     */
+    private function getDayOffset($dayName)
+    {
+        $daysMap = [
+            'saturday' => 0,
+            'sunday' => 1,
+            'monday' => 2,
+            'tuesday' => 3,
+            'wednesday' => 4,
+            'thursday' => 5,
+            'friday' => 6
+        ];
+
+        return $daysMap[strtolower($dayName)] ?? 0;
+    }
+
 
     // دالة مساعدة لتجميع الزيارات حسب اليوم
     private function groupVisitsByDay($weekVisits)

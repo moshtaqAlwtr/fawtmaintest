@@ -449,7 +449,7 @@
                     <!-- عرض التقويم -->
                     <div class="tab-pane fade" id="calendar-tab" role="tabpanel">
                         <div id="calendar-container" class="p-2">
-                            @include('client::appointments.partials.calender', ['calendarBookings' => $calendarBookings ?? []])
+                            @include('client::appointments.partials.calender')
                         </div>
                     </div>
                 </div>
@@ -465,6 +465,11 @@
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/ar.js'></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+
+<script>
+// Make calendarBookings available globally for the calendar partial
+window.calendarBookings = @json($calendarBookings ?? []);
+</script>
 
 <script>
 // تأكيد تحديث CSRF token
@@ -1023,9 +1028,6 @@ document.addEventListener('DOMContentLoaded', function() {
             calendar.refetchEvents();
         }
     }
-    
-    // Make calendarBookings available globally for the calendar partial
-    window.calendarBookings = @json($calendarBookings ?? []);
 });
 </script>
 @endsection

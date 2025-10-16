@@ -1,8 +1,9 @@
 @extends('master')
 
-@section('title', 'عرض جميع خطط السير')
+@section('title', 'عرض خطط السير')
 @section('css')
-    <link rel="stylesheet" href="{{ asset('assets/css/listIntry.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/itinerary-calendar.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.10.2/main.min.css">
 @endsection
 @section('content')
 
@@ -12,16 +13,20 @@
             <div class="row align-items-center">
                 <div class="col-md-8">
                     <div class="page-title">
-                        <i class="fas fa-route text-primary me-3"></i>
-                        <h2 class="mb-0">عرض جميع خطط السير</h2>
+                        <i class="fas fa-route me-3"></i>
+                        <h2 class="mb-0">خطط السير الأسبوعية</h2>
                         <p class="text-muted mt-2">إدارة ومراقبة خطط السير الأسبوعية للمناديب</p>
                     </div>
                 </div>
                 <div class="col-md-4 text-end">
-                    <a href="{{ route('itinerary.create') }}" class="btn btn-primary btn-lg shadow-sm">
+                    <a href="{{ route('itinerary.create') }}" class="btn btn-primary">
                         <i class="fas fa-plus me-2"></i>
-                        أضف خط سير جديد
+                        إضافة خطة جديدة
                     </a>
+                    <button class="btn btn-outline-primary ms-2" id="toggleViewBtn">
+                        <i class="fas fa-exchange-alt me-1"></i>
+                        <span>عرض القائمة</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -32,7 +37,7 @@
         <div class="row g-4">
             <div class="col-xl-3 col-lg-6 col-md-6">
                 <div class="stats-card">
-                    <div class="stats-icon bg-primary">
+                    <div class="stats-icon">
                         <i class="fas fa-calendar-week"></i>
                     </div>
                     <div class="stats-content">
@@ -65,7 +70,7 @@
 
             <div class="col-xl-3 col-lg-6 col-md-6">
                 <div class="stats-card">
-                    <div class="stats-icon bg-info">
+                    <div class="stats-icon">
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="stats-content">
@@ -77,7 +82,7 @@
 
             <div class="col-xl-3 col-lg-6 col-md-6">
                 <div class="stats-card">
-                    <div class="stats-icon bg-warning">
+                    <div class="stats-icon">
                         <i class="fas fa-building"></i>
                     </div>
                     <div class="stats-content">
@@ -104,7 +109,7 @@
 
             <div class="col-xl-3 col-lg-6 col-md-6">
                 <div class="stats-card">
-                    <div class="stats-icon bg-success">
+                    <div class="stats-icon">
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <div class="stats-content">
@@ -133,17 +138,57 @@
         </div>
     </div>
 
-    <!-- Main Content -->
+    <!-- Calendar View & List View -->
     <div class="container-fluid">
         <div class="row">
             <div class="col-12">
-                <div class="main-card">
+                <!-- Calendar View -->
+                <div class="main-card mb-4" id="calendarView">
                     <div class="card-header">
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
                                 <h4 class="card-title mb-1">
-                                    <i class="fas fa-calendar-alt text-primary me-2"></i>
-                                    خطط السير الأسبوعية
+                                    <i class="fas fa-calendar-alt me-2"></i>
+                                    التقويم الأسبوعي
+                                </h4>
+                                <p class="card-subtitle text-muted mb-0">عرض خطط السير في تقويم أسبوعي</p>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <div class="btn-group" role="group" id="viewSwitchGroup">
+                                    <button type="button" class="btn btn-outline-primary active" data-view="month">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        شهر
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary" data-view="week">
+                                        <i class="fas fa-calendar-week me-1"></i>
+                                        أسبوع
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary" data-view="day">
+                                        <i class="fas fa-calendar-day me-1"></i>
+                                        يوم
+                                    </button>
+                                </div>
+                                <button class="btn btn-outline-secondary" id="today-btn">
+                                    <i class="fas fa-calendar-check me-1"></i>
+                                    اليوم
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-0">
+                        <div id="calendar"></div>
+                    </div>
+                </div>
+
+                <!-- List View (Hidden initially) -->
+                <div class="main-card" id="listView" style="display: none;">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <h4 class="card-title mb-1">
+                                    <i class="fas fa-list me-2"></i>
+                                    قائمة خطط السير
                                 </h4>
                                 <p class="card-subtitle text-muted mb-0">استعراض وإدارة خطط السير مجمعة حسب الأسبوع</p>
                             </div>
@@ -182,6 +227,7 @@
                                 </a>
                             </div>
                         @else
+                            <!-- Accordion for List View -->
                             <div class="accordion-modern" id="weeklyAccordion">
                                 @php
                                     $accordionItemIndex = 0;
@@ -448,31 +494,52 @@
                                                                                                     {{ ($dayVisitCount - $dayCompletedVisits) }} غير مكتملة
                                                                                                 </span>
                                                                                             @endif
+
+                                                                                                            @if ($statusToShow)
+                                                                                                                <span class="badge rounded-pill mb-1" style="background-color: {{ $statusToShow->color ?? '#6c757d' }}; font-size: 11px;">
+                                                                                                                    <i class="fas fa-circle me-1"></i>
+                                                                                                                    {{ $statusToShow->name ?? 'غير محدد' }}
+                                                                                                                </span>
+                                                                                                            @else
+                                                                                                                <span class="badge rounded-pill bg-secondary mb-1" style="font-size: 11px;">
+                                                                                                                    <i class="fas fa-question-circle me-1"></i>
+                                                                                                                    غير محدد
+                                                                                                                </span>
+                                                                                                            @endif
                                                                                         </div>
 
                                                                                         @foreach ($dayVisits as $index => $visit)
                                                                                             @if (isset($visit->client))
                                                                                                 @php
                                                                                                     $client = $visit->client;
-                                                                                                    $lastNote = $client
-                                                                                                        ->appointmentNotes()
-                                                                                                        ->where('employee_id', auth()->id())
-                                                                                                        ->where('process', 'إبلاغ المشرف')
-                                                                                                        ->whereNotNull('employee_view_status')
-                                                                                                        ->latest()
-                                                                                                        ->first();
+                                                                                                    $isNewClient = $visit->client->is_new_for_visit_date ?? false;
 
-                                                                                                    $statusToShow = $client->status_client;
-
-                                                                                                    if (
-                                                                                                        auth()->user()->role === 'employee' &&
-                                                                                                        $lastNote &&
-                                                                                                        $lastNote->employee_id == auth()->id()
-                                                                                                    ) {
-                                                                                                        $statusToShow = $statuses->find($lastNote->employee_view_status);
+                                                                                                    // التحقق من وجود حالة العميل
+                                                                                                    $statusToShow = null;
+                                                                                                    if (isset($client->status_client)) {
+                                                                                                        $statusToShow = $client->status_client;
                                                                                                     }
 
-                                                                                                    $isNewClient = $visit->client->is_new_for_visit_date ?? false;
+                                                                                                    // التحقق من وجود ملاحظات
+                                                                                                    $lastNote = null;
+                                                                                                    if (method_exists($client, 'appointmentNotes')) {
+                                                                                                        $lastNote = $client
+                                                                                                            ->appointmentNotes()
+                                                                                                            ->where('employee_id', auth()->id())
+                                                                                                            ->where('process', 'إبلاغ المشرف')
+                                                                                                            ->whereNotNull('employee_view_status')
+                                                                                                            ->latest()
+                                                                                                            ->first();
+
+                                                                                                        if (
+                                                                                                            auth()->user()->role === 'employee' &&
+                                                                                                            $lastNote &&
+                                                                                                            $lastNote->employee_id == auth()->id() &&
+                                                                                                            isset($statuses) && $statuses
+                                                                                                        ) {
+                                                                                                            $statusToShow = $statuses->find($lastNote->employee_view_status);
+                                                                                                        }
+                                                                                                    }
                                                                                                 @endphp
 
                                                                                                 <div class="visit-card-wrapper d-flex align-items-center justify-content-between mb-2 flex-wrap">
@@ -510,320 +577,3 @@
                                                                                                                     جديد
                                                                                                                 </span>
                                                                                                             @endif
-
-                                                                                                            @if ($statusToShow)
-                                                                                                                <span class="badge rounded-pill mb-1" style="background-color: {{ $statusToShow->color }}; font-size: 11px;">
-                                                                                                                    <i class="fas fa-circle me-1"></i>
-                                                                                                                    {{ $statusToShow->name }}
-                                                                                                                </span>
-                                                                                                            @else
-                                                                                                                <span class="badge rounded-pill bg-secondary mb-1" style="font-size: 11px;">
-                                                                                                                    <i class="fas fa-question-circle me-1"></i>
-                                                                                                                    غير محدد
-                                                                                                                </span>
-                                                                                                            @endif
-                                                                                                        </div>
-                                                                                                    </a>
-
-                                                                                                    <button type="button"
-                                                                                                            class="btn btn-sm btn-danger ms-3 delete-visit-btn"
-                                                                                                            title="حذف الزيارة"
-                                                                                                            data-visit-id="{{ $visit->id ?? '' }}"
-                                                                                                            data-url="{{ isset($visit->id) ? route('itinerary.visits.destroy', $visit->id) : '#' }}">
-                                                                                                        <i class="fas fa-trash"></i>
-                                                                                                    </button>
-                                                                                                </div>
-                                                                                            @endif
-                                                                                        @endforeach
-                                                                                    @else
-                                                                                        <div class="no-visits text-center mt-3">
-                                                                                            <i class="fas fa-calendar-times fa-2x text-muted"></i>
-                                                                                            <p class="text-muted mt-2">لا يوجد زيارات مخططة</p>
-                                                                                        </div>
-                                                                                    @endif
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    @endforeach
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-@endsection
-
-@section('scripts')
-    <script>
-        // دالة لتوسيع جميع الأسابيع
-        function expandAll() {
-            const collapseElements = document.querySelectorAll('.accordion-collapse');
-            collapseElements.forEach(element => {
-                if (!element.classList.contains('show')) {
-                    const button = document.querySelector(`[data-bs-target="#${element.id}"]`);
-                    if (button) {
-                        button.click();
-                    }
-                }
-            });
-        }
-
-        // دالة لطي جميع الأسابيع
-        function collapseAll() {
-            const collapseElements = document.querySelectorAll('.accordion-collapse.show');
-            collapseElements.forEach(element => {
-                const button = document.querySelector(`[data-bs-target="#${element.id}"]`);
-                if (button) {
-                    button.click();
-                }
-            });
-        }
-
-        // دالة لتوسيع جميع الموظفين
-        function expandAllEmployees() {
-            const employeeSchedules = document.querySelectorAll('.employee-schedule');
-            employeeSchedules.forEach(schedule => {
-                if (schedule.style.display === 'none') {
-                    schedule.style.display = 'block';
-                    // تدوير الأيقونة
-                    const scheduleId = schedule.id;
-                    const toggleIcon = document.querySelector(`#employeeToggle${scheduleId.replace('employeeSchedule', '')}`);
-                    if (toggleIcon) {
-                        toggleIcon.classList.remove('fa-chevron-right');
-                        toggleIcon.classList.add('fa-chevron-down');
-                    }
-                }
-            });
-        }
-
-        // دالة لطي جميع الموظفين
-        function collapseAllEmployees() {
-            const employeeSchedules = document.querySelectorAll('.employee-schedule');
-            employeeSchedules.forEach(schedule => {
-                if (schedule.style.display === 'block') {
-                    schedule.style.display = 'none';
-                    // تدوير الأيقونة
-                    const scheduleId = schedule.id;
-                    const toggleIcon = document.querySelector(`#employeeToggle${scheduleId.replace('employeeSchedule', '')}`);
-                    if (toggleIcon) {
-                        toggleIcon.classList.remove('fa-chevron-down');
-                        toggleIcon.classList.add('fa-chevron-right');
-                    }
-                }
-            });
-        }
-
-        // دالة لتوسيع/طي موظف معين
-        function toggleEmployee(weekIndex, employeeId) {
-            const scheduleElement = document.getElementById(`employeeSchedule${weekIndex}_${employeeId}`);
-            const toggleIcon = document.getElementById(`employeeToggle${weekIndex}_${employeeId}`);
-
-            if (scheduleElement) {
-                if (scheduleElement.style.display === 'none') {
-                    scheduleElement.style.display = 'block';
-                    if (toggleIcon) {
-                        toggleIcon.classList.remove('fa-chevron-right');
-                        toggleIcon.classList.add('fa-chevron-down');
-                    }
-                } else {
-                    scheduleElement.style.display = 'none';
-                    if (toggleIcon) {
-                        toggleIcon.classList.remove('fa-chevron-down');
-                        toggleIcon.classList.add('fa-chevron-right');
-                    }
-                }
-            }
-        }
-
-        // تهيئة الأحداث عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', function() {
-            // إضافة أحداث أزرار التحكم بالموظفين لكل أسبوع
-            document.querySelectorAll('.expand-employees-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const weekIndex = this.getAttribute('data-week');
-                    expandWeekEmployees(weekIndex);
-                });
-            });
-
-            document.querySelectorAll('.collapse-employees-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const weekIndex = this.getAttribute('data-week');
-                    collapseWeekEmployees(weekIndex);
-                });
-            });
-
-            // إضافة أحداث أزرار حذف الزيارات
-            document.querySelectorAll('.delete-visit-btn').forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    const visitId = this.getAttribute('data-visit-id');
-                    const deleteUrl = this.getAttribute('data-url');
-
-                    if (!visitId || !deleteUrl || deleteUrl === '#') {
-                        alert('خطأ: معرف الزيارة غير صحيح');
-                        return;
-                    }
-
-                    if (confirm('هل أنت متأكد من حذف هذه الزيارة؟')) {
-                        // إرسال طلب الحذف
-                        fetch(deleteUrl, {
-                            method: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json'
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                // إزالة العنصر من DOM
-                                this.closest('.visit-card-wrapper').remove();
-                                alert('تم حذف الزيارة بنجاح');
-
-                                // إعادة تحميل الصفحة لتحديث الإحصائيات
-                                setTimeout(() => {
-                                    location.reload();
-                                }, 1000);
-                            } else {
-                                alert('حدث خطأ أثناء حذف الزيارة: ' + (data.message || 'خطأ غير معروف'));
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('حدث خطأ أثناء حذف الزيارة');
-                        });
-                    }
-                });
-            });
-
-            // إضافة تأثيرات hover للكروت
-            document.querySelectorAll('.visit-card').forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-2px)';
-                    this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
-                });
-
-                card.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0)';
-                    this.style.boxShadow = 'none';
-                });
-            });
-
-            // إضافة تأثيرات للأكورديون
-            document.querySelectorAll('.accordion-button').forEach(button => {
-                button.addEventListener('click', function() {
-                    const target = this.getAttribute('data-bs-target');
-                    const targetElement = document.querySelector(target);
-                    const arrow = this.querySelector('.accordion-arrow');
-
-                    if (targetElement) {
-                        targetElement.addEventListener('shown.bs.collapse', function() {
-                            if (arrow) {
-                                arrow.style.transform = 'rotate(180deg)';
-                            }
-                        });
-
-                        targetElement.addEventListener('hidden.bs.collapse', function() {
-                            if (arrow) {
-                                arrow.style.transform = 'rotate(0deg)';
-                            }
-                        });
-                    }
-                });
-            });
-        });
-
-        // دالة لتوسيع موظفي أسبوع معين
-        function expandWeekEmployees(weekIndex) {
-            const container = document.getElementById(`employeesContainer${weekIndex}`);
-
-            if (container) {
-                const schedules = container.querySelectorAll('.employee-schedule');
-                schedules.forEach(schedule => {
-                    schedule.style.display = 'block';
-
-                    // تدوير الأيقونة
-                    const scheduleId = schedule.id;
-                    const toggleIcon = document.querySelector(`#employeeToggle${scheduleId.replace('employeeSchedule', '')}`);
-                    if (toggleIcon) {
-                        toggleIcon.classList.remove('fa-chevron-right');
-                        toggleIcon.classList.add('fa-chevron-down');
-                    }
-                });
-            }
-        }
-
-        // دالة لطي موظفي أسبوع معين
-        function collapseWeekEmployees(weekIndex) {
-            const container = document.getElementById(`employeesContainer${weekIndex}`);
-
-            if (container) {
-                const schedules = container.querySelectorAll('.employee-schedule');
-                schedules.forEach(schedule => {
-                    schedule.style.display = 'none';
-
-                    // تدوير الأيقونة
-                    const scheduleId = schedule.id;
-                    const toggleIcon = document.querySelector(`#employeeToggle${scheduleId.replace('employeeSchedule', '')}`);
-                    if (toggleIcon) {
-                        toggleIcon.classList.remove('fa-chevron-down');
-                        toggleIcon.classList.add('fa-chevron-right');
-                    }
-                });
-            }
-        }
-
-        // دالة للبحث في الزيارات (اختيارية)
-        function searchVisits(searchTerm) {
-            if (!searchTerm || searchTerm.length < 2) {
-                // إعادة عرض جميع الزيارات إذا كان البحث فارغاً
-                document.querySelectorAll('.visit-card-wrapper').forEach(card => {
-                    card.style.display = '';
-                });
-                return;
-            }
-
-            searchTerm = searchTerm.toLowerCase();
-
-            document.querySelectorAll('.visit-card').forEach(card => {
-                const clientName = card.querySelector('.client-name').textContent.toLowerCase();
-                const clientCode = card.querySelector('.client-code').textContent.toLowerCase();
-
-                if (clientName.includes(searchTerm) || clientCode.includes(searchTerm)) {
-                    card.closest('.visit-card-wrapper').style.display = '';
-                } else {
-                    card.closest('.visit-card-wrapper').style.display = 'none';
-                }
-            });
-        }
-
-        // دالة لطباعة التقرير
-        function printReport() {
-            window.print();
-        }
-
-        // إضافة أسلوب لتحميل محتوى الصفحة بشكل تدريجي
-        document.addEventListener('DOMContentLoaded', function() {
-            // تأثير ظهور تدريجي للعناصر
-            const items = document.querySelectorAll('.accordion-item, .stats-card');
-            items.forEach((item, index) => {
-                setTimeout(() => {
-                    item.classList.add('fade-in');
-                }, 100 * index);
-            });
-        });
-    </script>
-@endsection
