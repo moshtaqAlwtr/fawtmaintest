@@ -132,6 +132,16 @@
             z-index: 1050;
             /* عشان تبقى فوق كل العناصر */
         }
+        
+        /* Calendar tab styles */
+        #calendar-tab {
+            display: none;
+        }
+        
+        .btn-group .btn.active {
+            background-color: #007bff;
+            color: white;
+        }
     </style>
 
 @endsection
@@ -344,12 +354,12 @@
 
                     <!-- أزرار عرض القائمة والشبكة والتقويم على اليسار -->
                     <div class="btn-group me-2" role="group" aria-label="View Toggle">
-                        <button type="button" class="btn btn-outline-secondary active" id="gridViewBtn"
-                            title="عرض الشبكة">
-                            <i class="fas fa-th-large"></i>
-                        </button>
                         <button type="button" class="btn btn-outline-secondary" id="listViewBtn" title="عرض القائمة">
                             <i class="fas fa-list"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary active" id="tableViewBtn"
+                            title="عرض الجدول">
+                            <i class="fas fa-table"></i>
                         </button>
                         <button type="button" class="btn btn-outline-secondary" id="calendarViewBtn"
                             title="عرض التقويم">
@@ -363,12 +373,17 @@
 
             <div class="card-body">
                 <div class="tab-content" id="appointmentsTabsContent">
-                    <!-- Appointments Tab -->
+                    <!-- Appointments Tab (Table View) -->
                     <div class="tab-pane fade show active" id="appointments-content" role="tabpanel"
                         aria-labelledby="appointments-tab">
                         @include('client::appointments.partials.appointments_table', [
                             'appointments' => $appointments->where('status', 1),
                         ])
+                    </div>
+
+                    <!-- Calendar Tab -->
+                    <div class="tab-pane fade" id="calendar-tab" role="tabpanel">
+                        <div id="calendar"></div>
                     </div>
 
                     <!-- Supply Orders Tab -->
@@ -399,33 +414,11 @@
             }
 
             .btn-group .btn.active {
-                background-color: #e9ecef;
-                border-color: #dee2e6;
+                background-color: #007bff;
+                color: white;
+                border-color: #007bff;
             }
         </style>
-
-
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const gridViewBtn = document.getElementById('gridViewBtn');
-                const listViewBtn = document.getElementById('listViewBtn');
-
-                // Add click event listeners
-                gridViewBtn.addEventListener('click', function() {
-                    this.classList.add('active');
-                    listViewBtn.classList.remove('active');
-                    // Add your grid view logic here
-                    console.log('Switched to Grid View');
-                });
-
-                listViewBtn.addEventListener('click', function() {
-                    this.classList.add('active');
-                    gridViewBtn.classList.remove('active');
-                    // Add your list view logic here
-                    console.log('Switched to List View');
-                });
-            });
-        </script>
 
 
     </div>
@@ -444,5 +437,99 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- FullCalendar JS -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // View toggle buttons
+            const listViewBtn = document.getElementById('listViewBtn');
+            const tableViewBtn = document.getElementById('tableViewBtn');
+            const calendarViewBtn = document.getElementById('calendarViewBtn');
+            
+            // Tab content elements
+            const appointmentsTab = document.getElementById('appointments-content');
+            const calendarTab = document.getElementById('calendar-tab');
+            
+            // Calendar data passed from controller
+            const calendarEvents = @json($calendarAppointments);
+            
+            // Add click event listeners for view toggle buttons
+            listViewBtn.addEventListener('click', function() {
+                // Activate list view button
+                listViewBtn.classList.add('active');
+                tableViewBtn.classList.remove('active');
+                calendarViewBtn.classList.remove('active');
+                
+                // Show appointments table, hide calendar
+                appointmentsTab.classList.add('show', 'active');
+                calendarTab.classList.remove('show', 'active');
+                
+                console.log('Switched to List View');
+            });
+            
+            tableViewBtn.addEventListener('click', function() {
+                // Activate table view button
+                tableViewBtn.classList.add('active');
+                listViewBtn.classList.remove('active');
+                calendarViewBtn.classList.remove('active');
+                
+                // Show appointments table, hide calendar
+                appointmentsTab.classList.add('show', 'active');
+                calendarTab.classList.remove('show', 'active');
+                
+                console.log('Switched to Table View');
+            });
+            
+            calendarViewBtn.addEventListener('click', function() {
+                // Activate calendar view button
+                calendarViewBtn.classList.add('active');
+                tableViewBtn.classList.remove('active');
+                listViewBtn.classList.remove('active');
+                
+                // Hide appointments table, show calendar
+                appointmentsTab.classList.remove('show', 'active');
+                calendarTab.classList.add('show', 'active');
+                
+                // Initialize or render calendar
+                renderCalendar();
+                
+                console.log('Switched to Calendar View');
+            });
+            
+            // Initialize FullCalendar
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                locale: 'ar',
+                buttonText: {
+                    today: 'اليوم',
+                    month: 'شهر',
+                    week: 'أسبوع',
+                    day: 'يوم'
+                },
+                events: calendarEvents,
+                eventClick: function(info) {
+                    // Handle event click
+                    alert('Event: ' + info.event.title);
+                    // You can add more detailed information here
+                    console.log('Event details:', info.event);
+                }
+            });
+            
+            // Function to render calendar
+            function renderCalendar() {
+                if (calendarViewBtn.classList.contains('active')) {
+                    calendar.render();
+                }
+            }
+        });
+    </script>
 
 @endsection
