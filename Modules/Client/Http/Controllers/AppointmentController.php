@@ -14,69 +14,216 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Response;
 class AppointmentController extends Controller
 {
     /**
      * عرض قائمة المواعيد.
      */
-    public function index(Request $request)
-    {
-        $query = Appointment::query();
+  public function index(Request $request)
+{
+    $query = Appointment::with(['client.status_client', 'createdBy']);
 
-        // البحث حسب الحالة
-        if ($request->has('status') && !empty($request->status)) {
-            $statusValue = Appointment::$statusMap[$request->status] ?? null;
-            if ($statusValue) {
-                $query->where('status', $statusValue);
+    // البحث حسب العميل
+    if ($request->filled('client')) {
+        $query->where('client_id', $request->client);
+    }
+
+    // البحث حسب حالة الموعد
+    if ($request->filled('appointment_status')) {
+        $statusMap = [
+            'pending' => 1,
+            'completed' => 2,
+            'cancelled' => 3,
+            'rescheduled' => 4
+        ];
+
+        if (isset($statusMap[$request->appointment_status])) {
+            $query->where('status', $statusMap[$request->appointment_status]);
+        }
+    }
+
+    // البحث حسب نوع الموعد
+    if ($request->filled('appointment_type')) {
+        $query->where('action_type', $request->appointment_type);
+    }
+
+    // البحث حسب الموظف
+    if ($request->filled('employee')) {
+        $query->where('created_by', $request->employee);
+    }
+
+    // البحث حسب التاريخ من
+    if ($request->filled('date_from')) {
+        $query->whereDate('appointment_date', '>=', $request->date_from);
+    }
+
+    // البحث حسب التاريخ إلى
+    if ($request->filled('date_to')) {
+        $query->whereDate('appointment_date', '<=', $request->date_to);
+    }
+
+    // البحث حسب الأولوية
+    if ($request->filled('priority')) {
+        $query->where('priority', $request->priority);
+    }
+
+    $appointments = $query->latest('appointment_date')->paginate(10);
+
+    // ✅ إذا كان الطلب AJAX، نرجع فقط الجدول
+    if ($request->ajax()) {
+        return view('client::appointments.partials.appointments_table', [
+            'appointments' => $appointments
+        ])->render();
+    }
+
+    // ✅ إذا كان طلب عادي، نرجع الصفحة كاملة
+    $employees = User::where('role', 'employee')->get();
+    $clients = Client::all();
+    $statuses = Statuses::all();
+
+    // Get calendar data
+    $calendarAppointments = $this->getCalendarData();
+    $calendarBookings = $this->formatCalendarBookings($calendarAppointments);
+
+    return view('client::appointments.index', compact(
+        'appointments',
+        'statuses',
+        'employees',
+        'clients',
+        'calendarAppointments',
+        'calendarBookings'
+    ));
+}
+
+// ✅ دالة تحديث الحالة
+public function updateStatus($id, $status)
+{
+    try {
+        $appointment = Appointment::findOrFail($id);
+        $appointment->status = $status;
+        $appointment->save();
+
+        $statusNames = [
+            1 => 'قيد الانتظار',
+            2 => 'مكتمل',
+            3 => 'ملغي',
+            4 => 'معاد جدولته'
+        ];
+
+        if (request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تحديث الحالة إلى: ' . $statusNames[$status]
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'تم تحديث الحالة بنجاح');
+
+    } catch (\Exception $e) {
+        if (request()->ajax()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ: ' . $e->getMessage()
+            ], 500);
+        }
+
+        return redirect()->back()->with('error', 'حدث خطأ أثناء التحديث');
+    }
+}
+
+    /**
+     * Export appointments to Excel
+     */
+    public function export(Request $request)
+    {
+        // Get all appointments with filters applied
+        $query = Appointment::with(['client', 'createdBy']);
+
+        // Apply the same filters as in index method
+        if ($request->filled('client')) {
+            $query->where('client_id', $request->client);
+        }
+
+        if ($request->filled('appointment_status')) {
+            $statusMap = [
+                'pending' => 1,
+                'completed' => 2,
+                'cancelled' => 3,
+                'rescheduled' => 4
+            ];
+
+            if (isset($statusMap[$request->appointment_status])) {
+                $query->where('status', $statusMap[$request->appointment_status]);
             }
         }
 
-        // البحث حسب الموظف
-        if ($request->has('employee_id') && !empty($request->employee_id)) {
-            $query->where('created_by', $request->employee_id);
+        if ($request->filled('appointment_type')) {
+            $query->where('action_type', $request->appointment_type);
         }
 
-        // البحث حسب العميل
-        if ($request->has('client_id') && !empty($request->client_id)) {
-            $query->where('client_id', $request->client_id);
+        if ($request->filled('employee')) {
+            $query->where('created_by', $request->employee);
         }
 
-        // البحث حسب نوع الإجراء
-        if ($request->has('action_type') && !empty($request->action_type)) {
-            $query->where('action_type', $request->action_type);
+        if ($request->filled('date_from')) {
+            $query->whereDate('appointment_date', '>=', $request->date_from);
         }
 
-        // البحث حسب مسؤول المبيعات
-        if ($request->has('sales_person_user') && !empty($request->sales_person_user)) {
-            $query->where('created_by', $request->sales_person_user);
+        if ($request->filled('date_to')) {
+            $query->whereDate('appointment_date', '<=', $request->date_to);
         }
 
-        // البحث حسب التاريخ من
-        if ($request->has('from_date') && !empty($request->from_date)) {
-            $query->whereDate('date', '>=', $request->from_date);
+        if ($request->filled('priority')) {
+            $query->where('priority', $request->priority);
         }
 
-        // البحث حسب التاريخ إلى
-        if ($request->has('to_date') && !empty($request->to_date)) {
-            $query->whereDate('date', '<=', $request->to_date);
+        $appointments = $query->get();
+
+        // Create CSV content
+        $csvData = [];
+        $csvData[] = ['اسم العميل', 'رقم الهاتف', 'التاريخ', 'الوقت', 'الحالة', 'الموظف', 'الملاحظات'];
+
+        foreach ($appointments as $appointment) {
+            $statusText = '';
+            switch ($appointment->status) {
+                case 1: $statusText = 'قيد الانتظار'; break;
+                case 2: $statusText = 'مكتمل'; break;
+                case 3: $statusText = 'ملغي'; break;
+                case 4: $statusText = 'معاد جدولته'; break;
+                default: $statusText = 'غير معروف';
+            }
+
+            $csvData[] = [
+                $appointment->client->trade_name ?? 'غير محدد',
+                $appointment->client->phone ?? 'غير محدد',
+                $appointment->appointment_date,
+                $appointment->time,
+                $statusText,
+                $appointment->createdBy->name ?? 'غير محدد',
+                $appointment->notes ?? ''
+            ];
         }
 
-        // البحث حسب الحالة (من جدول statuses)
-        if ($request->has('status_id') && !empty($request->status_id)) {
-            $query->whereHas('client', function($q) use ($request) {
-                $q->where('status_id', $request->status_id);
-            });
-        }
-        $appointments = $query->latest()->paginate(10);
-        $employees = User::where('role','employee')->get();
-        $clients = Client::all();
-        $statuses = Statuses::all();
-        $actionTypes = Appointment::distinct()->pluck('action_type')->filter()->values();
+        // Generate CSV file
+        $filename = "appointments_" . date('Y-m-d_H-i-s') . ".csv";
+        $headers = [
+            "Content-type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        ];
 
-        // Get calendar data for the calendar view
-        $calendarAppointments = $this->getCalendarData();
+        $callback = function() use ($csvData) {
+            $file = fopen('php://output', 'w');
+            foreach ($csvData as $row) {
+                fputcsv($file, $row);
+            }
+            fclose($file);
+        };
 
-        return view('client::appointments.index', compact('appointments','statuses', 'employees', 'clients', 'actionTypes', 'calendarAppointments'));
+        return Response::stream($callback, 200, $headers);
     }
 
     /**
@@ -298,57 +445,15 @@ class AppointmentController extends Controller
      * تحديث حالة الموعد
      */
 
-public function updateStatus(Request $request, $id)
-{
-    $appointment = Appointment::findOrFail($id);
+// public function updateStatus($id, $status)
+// {
+//     $appointment = Appointment::findOrFail($id);
+//     $appointment->status = $status;
+//     $appointment->save();
 
-    // Update status only
-    $oldStatus = $appointment->status;
-    $appointment->status = $request->input('status');
-    $appointment->save();
+//     return redirect()->back()->with('success', 'تم تحديث حالة الموعد بنجاح.');
+// }
 
-    // رسائل حسب الحالة
-    $statusTexts = [
-        1 => 'قيد الانتظار',
-        2 => 'مكتمل',
-        3 => 'ملغي',
-        4 => 'معاد جدولته'
-    ];
-
-    $statusColors = [
-        1 => 'bg-warning',
-        2 => 'bg-success',
-        3 => 'bg-danger',
-        4 => 'bg-info'
-    ];
-
-    $messages = [
-        1 => 'تم تحديث الحالة إلى "قيد الانتظار" بنجاح',
-        2 => 'تم تحديث الحالة إلى "مكتمل" بنجاح',
-        3 => 'تم تحديث الحالة إلى "ملغي" بنجاح',
-        4 => 'تم تحديث الحالة إلى "معاد جدولته" بنجاح'
-    ];
-
-    $message = $messages[$request->input('status')] ?? 'تم تحديث حالة الموعد بنجاح';
-
-    // إذا كان الطلب AJAX
-    if ($request->ajax() || $request->wantsJson()) {
-        return response()->json([
-            'success' => true,
-            'message' => $message,
-            'status_text' => $statusTexts[$appointment->status] ?? 'غير معروف',
-            'status_color' => $statusColors[$appointment->status] ?? 'bg-secondary'
-        ]);
-    }
-
-    // إذا كان الطلب عادي
-    return redirect()
-        ->back()
-        ->with([
-            'toast_type' => 'success',
-            'toast_message' => $message,
-        ]);
-}
     protected function getStatusText($status)
     {
         return Appointment::$statusArabicMap[$status] ?? 'غير معروف';
@@ -408,16 +513,58 @@ public function updateStatus(Request $request, $id)
     }
 
     /**
+     * Format calendar data for the custom calendar view
+     */
+    protected function formatCalendarBookings($appointments)
+    {
+        $bookings = [];
+        
+        foreach ($appointments as $appointment) {
+            $date = substr($appointment['start'], 0, 10); // Extract date part
+            
+            if (!isset($bookings[$date])) {
+                $bookings[$date] = [];
+            }
+            
+            $bookings[$date][] = [
+                'client' => $appointment['extendedProps']['client_name'] ?? 'عميل',
+                'time' => $appointment['extendedProps']['time'] ?? '',
+                'status' => $this->getStatusClass($appointment['extendedProps']['status'] ?? ''),
+                'product' => [
+                    'name' => $appointment['extendedProps']['notes'] ?? ''
+                ]
+            ];
+        }
+        
+        return $bookings;
+    }
+    
+    /**
+     * Get status class for calendar view
+     */
+    protected function getStatusClass($status)
+    {
+        $statusMap = [
+            'قيد الانتظار' => 'pending',
+            'مكتمل' => 'completed',
+            'ملغي' => 'cancelled',
+            'معاد جدولته' => 'confirmed'
+        ];
+        
+        return $statusMap[$status] ?? 'pending';
+    }
+    
+    /**
      * Get color code for status
      */
     protected function getStatusColorCode($status)
     {
         return match ($status) {
-            Appointment::STATUS_PENDING => '#ffc107',    // Yellow
-            Appointment::STATUS_COMPLETED => '#28a745',  // Green
-            Appointment::STATUS_IGNORED => '#dc3545',    // Red
-            Appointment::STATUS_RESCHEDULED => '#17a2b8', // Cyan
-            default => '#6c757d',                        // Gray
+            1 => '#ffc107',    // Yellow - Pending
+            2 => '#28a745',    // Green - Completed
+            3 => '#dc3545',    // Red - Cancelled
+            4 => '#17a2b8',    // Cyan - Rescheduled
+            default => '#6c757d', // Gray - Default
         };
     }
 }

@@ -20,9 +20,12 @@
     width: 100%;
 }
 
-.apex-charts {
+/* مهم: إضافة هذه القاعدة لمنع إخفاء المخططات */
+.apexcharts-canvas {
     display: block !important;
     visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
 }
 
 /* أنماط لوحة التحكم */
@@ -157,6 +160,38 @@
 .bg-success { background-color: #28c76f !important; }
 .bg-info { background-color: #0dcce1 !important; }
 .bg-danger { background-color: #ea5455 !important; }
+
+/* Progress bar */
+.progress {
+    height: 0.5rem;
+    border-radius: 1rem;
+    background-color: rgba(0,0,0,0.1);
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-bar {
+    border-radius: 1rem;
+    transition: width 0.6s ease;
+}
+
+.progress-bar-primary .progress-bar,
+.progress-bar-primary,
+.progress.progress-bar-primary {
+    background-color: #7367f0;
+}
+
+.progress-bar-warning .progress-bar,
+.progress-bar-warning,
+.progress.progress-bar-warning {
+    background-color: #ff9f43;
+}
+
+.progress-bar-success .progress-bar,
+.progress-bar-success,
+.progress.progress-bar-success {
+    background-color: #28c76f;
+}
 
 /* Timeline */
 .activity-timeline {
@@ -437,8 +472,7 @@
                 </div>
             </div>
         </div>
-
-        <!-- الصف الرابع: مقارنة العام الحالي مع العام السابق -->
+<!-- الصف الرابع: مقارنة العام الحالي مع العام السابق -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -641,12 +675,14 @@
 </div>
 @endsection
 
-@push('scripts')
+@section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     'use strict';
+
+    console.log('تم تحميل الصفحة - بدء تهيئة المخططات البيانية');
 
     // تحقق مما إذا كانت المكتبة محملة بشكل صحيح
     if (typeof ApexCharts === 'undefined') {
@@ -654,17 +690,51 @@ document.addEventListener('DOMContentLoaded', function() {
         // محاولة إعادة تحميل المكتبة
         var script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js';
-        script.onload = initCharts;
+        script.onload = function() {
+            console.log('تم تحميل مكتبة ApexCharts بنجاح - بدء تهيئة المخططات');
+            setTimeout(initCharts, 300);
+        };
         document.head.appendChild(script);
         return;
     }
 
-    // في حالة تحميل المكتبة بنجاح، قم بتهيئة المخططات
-    initCharts();
+    // إضافة تأخير بسيط لضمان جاهزية DOM
+    setTimeout(initCharts, 300);
 
     function initCharts() {
         try {
             console.log('بدء تهيئة المخططات البيانية...');
+
+            // التأكد من تحميل المكتبة
+            if (typeof ApexCharts === 'undefined') {
+                console.error('مكتبة ApexCharts غير محملة بعد!');
+                return;
+            }
+
+            // التحقق من وجود العناصر في الصفحة
+            ['total-clients-chart', 'new-clients-chart', 'growth-rate-chart',
+             'status-chart', 'monthly-clients-chart', 'yearly-comparison-chart',
+             'category-chart', 'region-chart'].forEach(function(elementId) {
+                var element = document.getElementById(elementId);
+                if (!element) {
+                    console.warn('عنصر المخطط غير موجود: #' + elementId);
+                } else {
+                    // طباعة حجم وموضع العنصر للتشخيص
+                    var rect = element.getBoundingClientRect();
+                    console.log('أبعاد #' + elementId + ':',
+                                'العرض=' + rect.width,
+                                'الارتفاع=' + rect.height,
+                                'X=' + rect.x,
+                                'Y=' + rect.y);
+
+                    // تأكد من أن العنصر له أبعاد
+                    if (rect.width === 0 || rect.height === 0) {
+                        console.warn('#' + elementId + ' له أبعاد صفرية! تحديد أبعاد للعنصر...');
+                        element.style.minHeight = '100px';
+                        element.style.width = '100%';
+                    }
+                }
+            });
 
             var colors = {
                 primary: '#7367f0',
@@ -676,240 +746,511 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             // مخطط إجمالي العملاء
-            if (document.querySelector("#total-clients-chart")) {
-                var totalClientsOptions = {
-                    chart: {
-                        height: 100,
-                        type: 'area',
-                        toolbar: { show: false },
-                        sparkline: { enabled: true }
-                    },
-                    dataLabels: { enabled: false },
-                    stroke: { curve: 'smooth', width: 2.5 },
-                    fill: {
-                        type: 'gradient',
-                        gradient: {
-                            shadeIntensity: 0.9,
-                            opacityFrom: 0.7,
-                            opacityTo: 0.5,
-                            stops: [0, 80, 100]
+            renderChart('#total-clients-chart', {
+                chart: {
+                    height: 100,
+                    type: 'area',
+                    toolbar: { show: false },
+                    sparkline: { enabled: true },
+                    animations: {
+                        enabled: true,
+                        easing: 'easeinout',
+                        speed: 800,
+                        animateGradually: {
+                            enabled: true,
+                            delay: 150
+                        },
+                        dynamicAnimation: {
+                            enabled: true,
+                            speed: 350
+                        }
+                    }
+                },
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 2.5 },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 0.9,
+                        opacityFrom: 0.7,
+                        opacityTo: 0.5,
+                        stops: [0, 80, 100]
+                    }
+                },
+                series: [{
+                    name: 'العملاء',
+                    data: [28, 40, 36, 52, 38, 60]
+                }],
+                colors: [colors.primary],
+                xaxis: {
+                    labels: { show: false },
+                    axisBorder: { show: false }
+                },
+                yaxis: [{
+                    y: 0,
+                    offsetX: 0,
+                    offsetY: 0,
+                    labels: { show: false },
+                    padding: { left: 0, right: 0 }
+                }],
+                grid: { show: false },
+                tooltip: {
+                    x: { show: false }
+                }
+            }, 'مخطط إجمالي العملاء');
+
+            // مخطط العملاء الجدد
+            renderChart('#new-clients-chart', {
+                chart: {
+                    height: 100,
+                    type: 'area',
+                    toolbar: { show: false },
+                    sparkline: { enabled: true },
+                    animations: {
+                        enabled: true,
+                        easing: 'easeinout',
+                        speed: 800,
+                        animateGradually: {
+                            enabled: true,
+                            delay: 150
+                        },
+                        dynamicAnimation: {
+                            enabled: true,
+                            speed: 350
+                        }
+                    }
+                },
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 2.5 },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 0.9,
+                        opacityFrom: 0.7,
+                        opacityTo: 0.5,
+                        stops: [0, 80, 100]
+                    }
+                },
+                series: [{
+                    name: 'عملاء جدد',
+                    data: [10, 15, 8, 15, 7, 12]
+                }],
+                colors: [colors.success],
+                xaxis: {
+                    labels: { show: false },
+                    axisBorder: { show: false }
+                },
+                yaxis: [{
+                    y: 0,
+                    offsetX: 0,
+                    offsetY: 0,
+                    labels: { show: false },
+                    padding: { left: 0, right: 0 }
+                }],
+                grid: { show: false },
+                tooltip: {
+                    x: { show: false }
+                }
+            }, 'مخطط العملاء الجدد');
+
+            // مخطط معدل النمو
+            renderChart('#growth-rate-chart', {
+                chart: {
+                    height: 200,
+                    type: 'line',
+                    toolbar: { show: false },
+                    zoom: { enabled: false },
+                    animations: {
+                        enabled: true,
+                        easing: 'easeinout',
+                        speed: 800,
+                        animateGradually: {
+                            enabled: true,
+                            delay: 150
+                        },
+                        dynamicAnimation: {
+                            enabled: true,
+                            speed: 350
+                        }
+                    }
+                },
+                dataLabels: { enabled: false },
+                stroke: {
+                    curve: 'straight',
+                    width: 3
+                },
+                series: [{
+                    name: 'معدل النمو',
+                    data: [0, 10, 5, 15, 10, 20, 15, 25, 20, 30, 25, 40]
+                }],
+                colors: [colors.success],
+                grid: {
+                    borderColor: '#e7eef0',
+                    strokeDashArray: 5,
+                    xaxis: {
+                        lines: {
+                            show: true
                         }
                     },
-                    series: [{
-                        name: 'العملاء',
-                        data: [{{ implode(',', array_slice($newClientsMonthly['counts'], -6)) }}]
-                    }],
-                    colors: [colors.primary],
-                    xaxis: {
-                        categories: {!! json_encode(array_slice($newClientsMonthly['months'], -6)) !!},
-                        labels: { show: true }
+                    yaxis: {
+                        lines: {
+                            show: false
+                        }
                     },
-                    yaxis: { show: false },
-                    grid: { show: false }
-                };
-                var growthChart = new ApexCharts(document.querySelector("#growth-rate-chart"), growthOptions);
-                growthChart.render();
-                console.log('تم تهيئة مخطط معدل النمو');
-            } else {
-                console.error('لم يتم العثور على عنصر #growth-rate-chart');
-            }
+                    padding: {
+                        top: 0,
+                        right: 0,
+                        bottom: 0,
+                        left: 0
+                    }
+                },
+                xaxis: {
+                    categories: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
+                    labels: { show: false }
+                },
+                yaxis: { show: false }
+            }, 'مخطط معدل النمو');
 
             // مخطط الحالة
-            if (document.querySelector("#status-chart")) {
-                var statusOptions = {
-                    chart: {
-                        height: 290,
-                        type: 'radialBar'
-                    },
-                    plotOptions: {
-                        radialBar: {
-                            size: 150,
-                            hollow: { size: '20%' },
-                            track: { strokeWidth: '100%', margin: 15 },
-                            dataLabels: {
-                                name: { fontSize: '18px' },
-                                value: { fontSize: '16px' },
-                                total: {
-                                    show: true,
-                                    label: 'الإجمالي',
-                                    formatter: function() {
-                                        return {{ $totalClients }};
-                                    }
+            renderChart('#status-chart', {
+                chart: {
+                    height: 290,
+                    type: 'radialBar',
+                    animations: {
+                        enabled: true,
+                        easing: 'easeinout',
+                        speed: 800,
+                        animateGradually: {
+                            enabled: true,
+                            delay: 150
+                        },
+                        dynamicAnimation: {
+                            enabled: true,
+                            speed: 350
+                        }
+                    }
+                },
+                plotOptions: {
+                    radialBar: {
+                        size: 150,
+                        hollow: { size: '20%' },
+                        track: { strokeWidth: '100%', margin: 15 },
+                        dataLabels: {
+                            name: { fontSize: '18px' },
+                            value: { fontSize: '16px' },
+                            total: {
+                                show: true,
+                                label: 'الإجمالي',
+                                formatter: function() {
+                                    return {{ $totalClients }};
                                 }
                             }
                         }
-                    },
-                    colors: {!! json_encode($clientsByStatus->pluck('color')->toArray()) !!},
-                    series: {!! json_encode($clientsByStatus->pluck('count')->toArray()) !!},
-                    labels: {!! json_encode($clientsByStatus->pluck('status')->toArray()) !!},
-                    stroke: { lineCap: 'round' }
-                };
-                var statusChart = new ApexCharts(document.querySelector("#status-chart"), statusOptions);
-                statusChart.render();
-                console.log('تم تهيئة مخطط الحالة');
-            } else {
-                console.error('لم يتم العثور على عنصر #status-chart');
-            }
+                    }
+                },
+                colors: [{!! json_encode($clientsByStatus->pluck('color')->toArray()) !!}],
+                series: {!! json_encode($clientsByStatus->pluck('count')->toArray()) !!},
+                labels: {!! json_encode($clientsByStatus->pluck('status')->toArray()) !!},
+                stroke: { lineCap: 'round' }
+            }, 'مخطط الحالة');
 
             // مخطط العملاء الشهري
-            if (document.querySelector("#monthly-clients-chart")) {
-                var monthlyOptions = {
-                    chart: {
-                        height: 350,
-                        type: 'bar',
-                        toolbar: { show: false }
-                    },
-                    dataLabels: { enabled: false },
-                    stroke: { curve: 'smooth', width: 3 },
-                    series: [{
-                        name: 'عملاء جدد',
-                        data: [{{ implode(',', $newClientsMonthly['counts']) }}]
-                    }],
-                    colors: [colors.primary],
-                    xaxis: {
-                        categories: {!! json_encode($newClientsMonthly['months']) !!},
-                        axisBorder: { show: false },
-                        axisTicks: { show: false },
-                        crosshairs: { show: true },
-                        labels: { show: true, style: { fontSize: '12px' } }
-                    },
-                    yaxis: {
-                        labels: { show: true }
-                    },
-                    grid: {
-                        borderColor: '#EBEBEB',
-                        row: { colors: ['#f5f5f5', 'transparent'], opacity: 0.25 }
-                    },
-                    plotOptions: {
-                        bar: {
-                            columnWidth: '50%',
-                            borderRadius: 5
-                        }
-                    },
-                    tooltip: {
-                        shared: true,
-                        y: {
-                            formatter: function(val) {
-                                return val.toLocaleString();
-                            }
+            renderChart('#monthly-clients-chart', {
+                chart: {
+                    height: 350,
+                    type: 'bar',
+                    toolbar: { show: false },
+                    animations: {
+                        enabled: true,
+                        easing: 'easeinout',
+                        speed: 800,
+                        animateGradually: {
+                            enabled: true,
+                            delay: 150
+                        },
+                        dynamicAnimation: {
+                            enabled: true,
+                            speed: 350
                         }
                     }
-                };
-                var monthlyChart = new ApexCharts(document.querySelector("#monthly-clients-chart"), monthlyOptions);
-                monthlyChart.render();
-                console.log('تم تهيئة مخطط العملاء الشهري');
-            } else {
-                console.error('لم يتم العثور على عنصر #monthly-clients-chart');
-            }
+                },
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 3 },
+                series: [{
+                    name: 'عملاء جدد',
+                    data: {!! json_encode($newClientsMonthly['counts']) !!}
+                }],
+                colors: [colors.primary],
+                xaxis: {
+                    categories: {!! json_encode($newClientsMonthly['months']) !!},
+                    axisBorder: { show: false },
+                    axisTicks: { show: false },
+                    crosshairs: { show: true },
+                    labels: { show: true, style: { fontSize: '12px' } }
+                },
+                yaxis: {
+                    labels: { show: true }
+                },
+                grid: {
+                    borderColor: '#EBEBEB',
+                    row: { colors: ['#f5f5f5', 'transparent'], opacity: 0.25 }
+                },
+                plotOptions: {
+                    bar: {
+                        columnWidth: '50%',
+                        borderRadius: 5
+                    }
+                },
+                tooltip: {
+                    shared: true,
+                    y: {
+                        formatter: function(val) {
+                            return val.toLocaleString();
+                        }
+                    }
+                }
+            }, 'مخطط العملاء الشهري');
 
             // مخطط مقارنة الأداء السنوي
-            if (document.querySelector("#yearly-comparison-chart")) {
-                var yearlyComparisonOptions = {
-                    chart: {
-                        height: 350,
-                        type: 'area',
-                        toolbar: { show: false }
-                    },
-                    dataLabels: { enabled: false },
-                    stroke: { curve: 'smooth', width: [3, 3] },
-                    series: [
-                        {
-                            name: '{{ $yearlyComparison['currentYear'] }}',
-                            data: {{ json_encode($yearlyComparison['currentYearData']) }}
+            renderChart('#yearly-comparison-chart', {
+                chart: {
+                    height: 350,
+                    type: 'area',
+                    toolbar: { show: false },
+                    animations: {
+                        enabled: true,
+                        easing: 'easeinout',
+                        speed: 800,
+                        animateGradually: {
+                            enabled: true,
+                            delay: 150
                         },
-                        {
-                            name: '{{ $yearlyComparison['previousYear'] }}',
-                            data: {{ json_encode($yearlyComparison['previousYearData']) }}
-                        }
-                    ],
-                    colors: [colors.primary, colors.success],
-                    xaxis: {
-                        categories: {!! json_encode($yearlyComparison['monthNames']) !!},
-                        axisBorder: { show: false },
-                        axisTicks: { show: false }
-                    },
-                    yaxis: {
-                        labels: { show: true }
-                    },
-                    tooltip: {
-                        x: { format: 'MM' },
-                        shared: true
-                    },
-                    fill: {
-                        type: 'gradient',
-                        gradient: {
-                            shadeIntensity: 1,
-                            opacityFrom: 0.7,
-                            opacityTo: 0.5,
-                            stops: [0, 90, 100]
+                        dynamicAnimation: {
+                            enabled: true,
+                            speed: 350
                         }
                     }
-                };
-                var yearlyChart = new ApexCharts(document.querySelector("#yearly-comparison-chart"), yearlyComparisonOptions);
-                yearlyChart.render();
-                console.log('تم تهيئة مخطط مقارنة الأداء السنوي');
-            } else {
-                console.error('لم يتم العثور على عنصر #yearly-comparison-chart');
-            }
+                },
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: [3, 3] },
+                series: [
+                    {
+                        name: '{{ $yearlyComparison['currentYear'] }}',
+                        data: {!! json_encode($yearlyComparison['currentYearData']) !!}
+                    },
+                    {
+                        name: '{{ $yearlyComparison['previousYear'] }}',
+                        data: {!! json_encode($yearlyComparison['previousYearData']) !!}
+                    }
+                ],
+                colors: [colors.primary, colors.success],
+                xaxis: {
+                    categories: {!! json_encode($yearlyComparison['monthNames']) !!},
+                    axisBorder: { show: false },
+                    axisTicks: { show: false }
+                },
+                yaxis: {
+                    labels: { show: true }
+                },
+                tooltip: {
+                    x: { format: 'MM' },
+                    shared: true
+                },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.7,
+                        opacityTo: 0.5,
+                        stops: [0, 90, 100]
+                    }
+                }
+            }, 'مخطط مقارنة الأداء السنوي');
 
             // مخطط الفئات
-            if (document.querySelector("#category-chart")) {
-                var categoryOptions = {
-                    chart: {
-                        height: 350,
-                        type: 'radialBar'
-                    },
-                    plotOptions: {
-                        radialBar: {
-                            hollow: { size: '30%' },
-                            dataLabels: {
-                                name: { fontSize: '14px' },
-                                value: { fontSize: '16px' }
-                            }
+            renderChart('#category-chart', {
+                chart: {
+                    height: 350,
+                    type: 'radialBar',
+                    animations: {
+                        enabled: true,
+                        easing: 'easeinout',
+                        speed: 800,
+                        animateGradually: {
+                            enabled: true,
+                            delay: 150
+                        },
+                        dynamicAnimation: {
+                            enabled: true,
+                            speed: 350
                         }
-                    },
-                    colors: [colors.primary, colors.warning, colors.danger, colors.success],
-                    series: {!! json_encode($clientsByCategory->pluck('count')->toArray()) !!},
-                    labels: {!! json_encode($clientsByCategory->pluck('category')->toArray()) !!}
-                };
-                var categoryChart = new ApexCharts(document.querySelector("#category-chart"), categoryOptions);
-                categoryChart.render();
-                console.log('تم تهيئة مخطط الفئات');
-            } else {
-                console.error('لم يتم العثور على عنصر #category-chart');
-            }
+                    }
+                },
+                plotOptions: {
+                    radialBar: {
+                        hollow: { size: '30%' },
+                        dataLabels: {
+                            name: { fontSize: '14px' },
+                            value: { fontSize: '16px' }
+                        }
+                    }
+                },
+                colors: [colors.primary, colors.warning, colors.danger, colors.success],
+                series: {!! json_encode($clientsByCategory->pluck('count')->toArray()) !!},
+                labels: {!! json_encode($clientsByCategory->pluck('category')->toArray()) !!}
+            }, 'مخطط الفئات');
 
             // مخطط المناطق
-            if (document.querySelector("#region-chart")) {
-                var regionOptions = {
-                    chart: {
-                        height: 400,
-                        type: 'radar',
-                        toolbar: { show: false }
+            renderChart('#region-chart', {
+                chart: {
+                    height: 400,
+                    type: 'radar',
+                    toolbar: { show: false },
+                    animations: {
+                        enabled: true,
+                        easing: 'easeinout',
+                        speed: 800,
+                        animateGradually: {
+                            enabled: true,
+                            delay: 150
+                        },
+                        dynamicAnimation: {
+                            enabled: true,
+                            speed: 350
+                        }
                     },
-                    series: [{
-                        name: 'العملاء',
-                        data: {!! json_encode($clientsByRegion->pluck('total')->toArray()) !!}
-                    }],
-                    colors: [colors.info],
-                    xaxis: {
-                        categories: {!! json_encode($clientsByRegion->pluck('region')->toArray()) !!}
+                    dropShadow: {
+                        enabled: true,
+                        blur: 8,
+                        left: 1,
+                        top: 1,
+                        opacity: 0.2
                     }
-                };
-                var regionChart = new ApexCharts(document.querySelector("#region-chart"), regionOptions);
-                regionChart.render();
-                console.log('تم تهيئة مخطط المناطق');
-            } else {
-                console.error('لم يتم العثور على عنصر #region-chart');
-            }
+                },
+                series: [{
+                    name: 'العملاء',
+                    data: {!! json_encode($clientsByRegion->pluck('total')->toArray()) !!}
+                }],
+                colors: [colors.info],
+                fill: {
+                    opacity: 0.7
+                },
+                xaxis: {
+                    categories: {!! json_encode($clientsByRegion->pluck('region')->toArray()) !!}
+                }
+            }, 'مخطط المناطق');
 
             // سجل رسالة نجاح في وحدة التحكم للتأكد من تحميل المخططات بشكل صحيح
             console.log('تم تحميل جميع المخططات بنجاح!');
+
+            // إضافة وظيفة تنظيف Canvas بعد حدوث أي مشكلة
+            cleanBrokenCharts();
 
         } catch (error) {
             console.error('حدث خطأ أثناء إنشاء المخططات:', error);
         }
     }
+
+    // دالة مساعدة لرسم المخططات
+    function renderChart(selector, options, name) {
+        try {
+            var element = document.querySelector(selector);
+            if (element) {
+                console.log('تهيئة ' + name);
+
+                // تنظيف العنصر إذا كان يحتوي على مخطط سابق
+                while (element.firstChild) {
+                    element.removeChild(element.firstChild);
+                }
+
+                // تأكد من أن العنصر مرئي ويملك أبعاد
+                element.style.display = 'block';
+                element.style.position = 'relative';
+                element.style.minHeight = options.chart.height + 'px';
+
+                // إنشاء المخطط
+                var chart = new ApexCharts(element, options);
+                chart.render().then(function() {
+                    console.log('تم عرض ' + name + ' بنجاح');
+                }).catch(function(err) {
+                    console.error('فشل في عرض ' + name + ':', err);
+
+                    // إعادة تهيئة المخطط بعد فترة قصيرة
+                    setTimeout(function() {
+                        console.log('محاولة إعادة تهيئة ' + name);
+                        try {
+                            chart.render();
+                        } catch (e) {
+                            console.error('فشلت محاولة إعادة تهيئة ' + name, e);
+                        }
+                    }, 500);
+                });
+            } else {
+                console.warn('العنصر غير موجود: ' + selector);
+            }
+        } catch (error) {
+            console.error('خطأ في تهيئة ' + name + ':', error);
+        }
+    }
+
+    // دالة لتنظيف المخططات المعطلة
+    function cleanBrokenCharts() {
+        // تحقق من عناصر Canvas المعطلة
+        setTimeout(function() {
+            document.querySelectorAll('canvas').forEach(function(canvas) {
+                if (canvas.offsetParent === null || canvas.style.display === 'none' ||
+                    (canvas.width === 0 && canvas.height === 0)) {
+                    console.warn('تم العثور على canvas معطل، محاولة إصلاحه');
+                    if (canvas.parentNode) {
+                        canvas.parentNode.style.minHeight = '100px';
+                        canvas.parentNode.style.position = 'relative';
+                        canvas.style.display = 'block';
+                    }
+                }
+            });
+        }, 1000);
+    }
+
+    // إضافة زر لإعادة تحميل المخططات في حالة وجود مشكلة
+    function addReloadButton() {
+        var button = document.createElement('button');
+        button.innerHTML = 'إعادة تحميل المخططات';
+        button.className = 'btn btn-primary mt-2';
+        button.style.position = 'fixed';
+        button.style.bottom = '20px';
+        button.style.right = '20px';
+        button.style.zIndex = '9999';
+
+        button.addEventListener('click', function() {
+            console.log('إعادة تهيئة جميع المخططات...');
+            initCharts();
+        });
+
+        document.body.appendChild(button);
+    }
+
+    // إضافة زر إعادة التحميل للمساعدة في حالة وجود مشكلة
+    setTimeout(addReloadButton, 2000);
+
+    // إضافة مراقب DOM للتأكد من بقاء المخططات مرئية
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' || mutation.type === 'attributes') {
+                cleanBrokenCharts();
+            }
+        });
+    });
+
+    // بدء المراقبة بعد فترة قصيرة
+    setTimeout(function() {
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['style', 'class']
+        });
+        console.log('تم تفعيل مراقبة DOM للمخططات');
+    }, 1500);
 });
 </script>
-@endpush
+@endsection

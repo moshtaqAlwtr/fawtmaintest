@@ -1340,6 +1340,101 @@ public function getHiddenClients(Request $request)
         }
         return 'لم يتم العثور على الحي';
     }
+
+    /**
+ * Generate PDF of all clients
+ */
+
+public function generateClientsPdf()
+{
+    // جلب جميع العملاء مع العلاقات المطلوبة
+    $clients = Client::with(['status_client', 'branch', 'neighborhood.region', 'categoriesClient', 'account', 'invoices'])
+        ->orderBy('trade_name')
+        ->get();
+
+    // إنشاء ملف PDF جديد
+    $pdf = new TCPDF('L', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+    $pdf->SetCreator('Fawtra');
+    $pdf->SetAuthor('Fawtra System');
+    $pdf->SetTitle('قائمة العملاء');
+    $pdf->SetMargins(10, 10, 10);
+    $pdf->setPrintHeader(false);
+    $pdf->setPrintFooter(false);
+    $pdf->setRTL(true);
+    $pdf->AddPage();
+    $pdf->SetFont('aealarabiya', '', 10);
+
+    // العنوان
+    $pdf->writeHTML('<h2 style="text-align:center">قائمة العملاء</h2>', true, false, true, false, '');
+
+    // رأس الجدول
+    $header = '
+    <table border="1" cellpadding="4" style="width:100%; border-collapse:collapse;">
+        <thead>
+            <tr style="background-color:#f2f2f2; text-align:center; font-weight:bold;">
+                <th>الكود</th>
+                <th>الاسم التجاري</th>
+                <th>الهاتف</th>
+                <th>الحالة</th>
+                <th>الفرع</th>
+                <th>الفئة</th>
+                <th>الرصيد</th>
+                <th>الحد الائتماني</th>
+                <th>تاريخ التسجيل</th>
+                <th>آخر فاتورة</th>
+            </tr>
+        </thead>
+        <tbody>
+    ';
+    $pdf->writeHTML($header, false, false, true, false, '');
+
+    // كتابة الصفوف على دفعات لتخفيف الذاكرة
+    $batch = 0;
+    $rows = '';
+
+    foreach ($clients as $client) {
+        $lastInvoice = $client->invoices->sortByDesc('invoice_date')->first();
+
+        $rows .= '
+            <tr>
+                <td>' . ($client->code ?? '-') . '</td>
+                <td>' . ($client->trade_name ?? '-') . '</td>
+                <td>' . ($client->phone ?? '-') . '</td>
+                <td>' . ($client->status_client->name ?? '-') . '</td>
+                <td>' . ($client->branch->name ?? '-') . '</td>
+                <td>' . ($client->categoriesClient->name ?? '-') . '</td>
+                <td>' . number_format($client->account->balance ?? 0, 2) . '</td>
+                <td>' . number_format($client->credit_limit ?? 0, 2) . '</td>
+                <td>' . optional($client->created_at)->format('Y-m-d') . '</td>
+                <td>' . optional($lastInvoice)->invoice_date . '</td>
+            </tr>';
+
+        $batch++;
+
+        // كل 100 صف نرسلهم لـ TCPDF مباشرة لتقليل التحميل
+        if ($batch % 100 == 0) {
+            $pdf->writeHTML('<table>' . $rows . '</table>', false, false, true, false, '');
+            $rows = '';
+        }
+    }
+
+    // إضافة الصفوف المتبقية إن وجدت
+    if (!empty($rows)) {
+        $pdf->writeHTML('<table>' . $rows . '</table>', false, false, true, false, '');
+    }
+
+    // إغلاق الجدول
+    $pdf->writeHTML('</tbody></table>', true, false, true, false, '');
+
+    // تذييل التقرير
+    $footer = '<p style="text-align:center; margin-top:10px;">تم إنشاء التقرير بتاريخ: ' . now()->format('Y-m-d H:i') . '</p>';
+    $pdf->writeHTML($footer, true, false, true, false, '');
+
+    // إخراج الملف
+    $filename = 'تقرير_العملاء_' . now()->format('Y-m-d') . '.pdf';
+    return $pdf->Output($filename, 'I');
+}
+
 public function store(ClientRequest $request)
 {
     $data_request = $request->except('_token');

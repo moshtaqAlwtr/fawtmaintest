@@ -26,10 +26,10 @@
             </a>
 
             <!-- زر تصدير PDF -->
-            <button id="exportPdfBtn" class="bg-white border d-flex align-items-center justify-content-center"
+            <a href="{{ route('clients.export-pdf') }}" class="bg-white border d-flex align-items-center justify-content-center"
                 style="width: 44px; height: 44px; border-radius: 6px;" title="تصدير ك PDF">
                 <i class="fas fa-file-pdf text-primary"></i>
-            </button>
+            </a>
 
             <!-- زر تصدير Excel -->
             <button id="exportExcelBtn" class="bg-white border d-flex align-items-center justify-content-center"

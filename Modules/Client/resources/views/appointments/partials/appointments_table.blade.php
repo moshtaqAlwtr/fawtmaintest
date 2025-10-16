@@ -46,36 +46,54 @@
                                         {{ $info->status == 1 ? 'قيد الانتظار' : ($info->status == 2 ? 'مكتمل' : ($info->status == 3 ? 'ملغي' : 'معاد جدولته')) }}
                                     </span>
                                 </td>
-                              <!-- تصحيح بنية الدروب داون -->
-<td style="width: 120px">
-    <div class="dropdown">
-        <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm dropdown-toggle"
-            type="button" id="dropdownMenu{{ $info->id }}" data-bs-toggle="dropdown" aria-expanded="false">
-        </button>
+                                <!-- تصحيح بنية الدروب داون -->
+                                <td style="width: 120px">
+                                    <div class="dropdown">
+                                        <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                            type="button" id="dropdownMenu{{ $info->id }}"
+                                            data-bs-toggle="dropdown">
+                                        </button>
 
-        <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="dropdownMenu{{ $info->id }}">
-            <li><a class="dropdown-item" href="{{ route('appointments.edit', $info->id) }}">
-                <i class="fa fa-edit me-2 text-success"></i>تعديل
-            </a></li>
-            <li><a class="dropdown-item" href="javascript:void(0)"
-               onclick="updateAppointmentStatus({{ $info->id }}, 1, this)">
-                <i class="fa fa-clock me-2 text-warning"></i>قيد الانتظار
-            </a></li>
-            <li><a class="dropdown-item" href="javascript:void(0)"
-               onclick="updateAppointmentStatus({{ $info->id }}, 2, this)">
-                <i class="fa fa-check me-2 text-success"></i>مكتمل
-            </a></li>
-            <li><a class="dropdown-item" href="javascript:void(0)"
-               onclick="updateAppointmentStatus({{ $info->id }}, 3, this)">
-                <i class="fa fa-times me-2 text-danger"></i>ملغي
-            </a></li>
-            <li><a class="dropdown-item" href="javascript:void(0)"
-               onclick="updateAppointmentStatus({{ $info->id }}, 4, this)">
-                <i class="fa fa-redo me-2 text-info"></i>معاد جدولته
-            </a></li>
-        </ul>
-    </div>
-</td>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-lg"
+                                            aria-labelledby="dropdownMenu{{ $info->id }}">
+                                            <li>
+                                                <a class="dropdown-item"
+                                                    href="{{ route('appointments.edit', $info->id) }}">
+                                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                </a>
+                                            </li>
+
+                                            <li>
+                                                <a class="dropdown-item status-action"
+                                                    href="{{ route('update-status', ['id' => $info->id, 'status' => 1]) }}">
+                                                    <i class="fa fa-clock me-2 text-warning"></i>قيد الانتظار
+                                                </a>
+                                            </li>
+
+                                            <li>
+                                                <a class="dropdown-item status-action"
+                                                    href="{{ route('update-status', ['id' => $info->id, 'status' => 2]) }}">
+                                                    <i class="fa fa-check me-2 text-success"></i>مكتمل
+                                                </a>
+                                            </li>
+
+                                            <li>
+                                                <a class="dropdown-item status-action"
+                                                    href="{{ route('update-status', ['id' => $info->id, 'status' => 3]) }}">
+                                                    <i class="fa fa-times me-2 text-danger"></i>ملغي
+                                                </a>
+                                            </li>
+
+                                            <li>
+                                                <a class="dropdown-item status-action"
+                                                    href="{{ route('update-status', ['id' => $info->id, 'status' => 4]) }}">
+                                                    <i class="fa fa-redo me-2 text-info"></i>معاد جدولته
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+
 
                             </tr>
                         @endforeach

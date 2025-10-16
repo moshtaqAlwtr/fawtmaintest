@@ -905,7 +905,7 @@ window.addEventListener('load', function() {
         },
         series: [{
             name: 'الفواتير',
-            data: [28, 40, 36, 52, 38, 60, 55]
+            data: {!! json_encode($invoiceStats['chart_data']) !!}
         }],
         colors: [colors.primary],
         xaxis: {
@@ -948,7 +948,7 @@ window.addEventListener('load', function() {
         },
         series: [{
             name: 'المبيعات',
-            data: [10, 15, 8, 15, 7, 12, 8]
+            data: {!! json_encode($salesStats['chart_data']) !!}
         }],
         colors: [colors.warning],
         xaxis: {
@@ -992,7 +992,7 @@ window.addEventListener('load', function() {
         dataLabels: { enabled: false },
         series: [{
             name: 'المبيعات',
-            data: [75, 125, 225, 175, 125, 75, 25]
+            data: {!! json_encode($salesStats['daily_data']) !!}
         }],
         xaxis: {
             labels: { show: false },
@@ -1056,7 +1056,7 @@ window.addEventListener('load', function() {
             }
         },
         stroke: { dashArray: 8 },
-        series: [83],
+        series: [{!! json_encode([$returnsStats['completion_rate']]) !!}],
         labels: ['المرتجعات المكتملة']
     };
     initChart("#support-tracker-chart", supportTrackerChartOptions, 'مخطط المرتجعات');
@@ -1083,14 +1083,18 @@ window.addEventListener('load', function() {
                         fontSize: '18px',
                         label: 'الإجمالي',
                         formatter: function(w) {
-                            return '42459';
+                            return '{{ number_format($quotesStats['total']) }}';
                         }
                     }
                 }
             }
         },
         colors: [colors.primary, colors.warning, colors.danger],
-        series: [70, 52, 26],
+        series: [{!! json_encode([
+            $quotesStats['completed']['percentage'], 
+            $quotesStats['pending']['percentage'], 
+            $quotesStats['rejected']['percentage']
+        ]) !!}],
         labels: ['مكتملة', 'معلقة', 'مرفوضة'],
         stroke: { lineCap: 'round' }
     };
@@ -1110,13 +1114,7 @@ window.addEventListener('load', function() {
                 opacity: 0.2
             }
         },
-        series: [{
-            name: 'المبيعات',
-            data: [90, 50, 86, 40, 100, 20]
-        }, {
-            name: 'الزيارات',
-            data: [70, 75, 70, 76, 20, 85]
-        }],
+        series: [{!! json_encode($salesPerformance['series']) !!}],
         stroke: { width: 0 },
         colors: [colors.primary, colors.info],
         plotOptions: {
@@ -1147,7 +1145,7 @@ window.addEventListener('load', function() {
             horizontalAlign: 'right'
         },
         xaxis: {
-            categories: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو']
+            categories: {!! json_encode($salesPerformance['categories']) !!}
         },
         yaxis: { show: false }
     };
