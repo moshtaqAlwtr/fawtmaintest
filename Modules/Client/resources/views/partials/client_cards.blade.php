@@ -318,34 +318,28 @@
         if ($clientInfo && isset($clientInfo['monthly'])) {
             foreach ($clientInfo['monthly'] as $monthName => $monthData) {
                 $collected = $monthData['collected'] ?? 0;
-                $group = strtoupper($monthData['group'] ?? 'D');
-
                 $totalCollected = $collected;
 
                 $chartLabels[] = $monthName;
                 $chartData[] = $totalCollected;
 
-                // ألوان النظام الجديد
-                switch ($group) {
-                    case 'A': // رمادي فاتح (أكثر من 1000)
-                        $chartColors[] = 'rgba(189, 189, 189, 0.7)';
-                        $chartBorderColors[] = 'rgba(158, 158, 158, 1)';
-                        break;
-                    case 'B': // أزرق سماوي (500-1000)
-                        $chartColors[] = 'rgba(33, 150, 243, 0.7)';
-                        $chartBorderColors[] = 'rgba(33, 150, 243, 1)';
-                        break;
-                    case 'C': // أخضر (200-500)
-                        $chartColors[] = 'rgba(76, 175, 80, 0.7)';
-                        $chartBorderColors[] = 'rgba(76, 175, 80, 1)';
-                        break;
-                    case 'D': // برتقالي (0-200)
-                        $chartColors[] = 'rgba(255, 152, 0, 0.7)';
-                        $chartBorderColors[] = 'rgba(255, 152, 0, 1)';
-                        break;
-                    default:
-                        $chartColors[] = 'rgba(158, 158, 158, 0.7)';
-                        $chartBorderColors[] = 'rgba(158, 158, 158, 1)';
+                // تحديد اللون بناءً على قيمة التحصيلات
+                if ($totalCollected >= 1000) {
+                    // رمادي (1000 فأكثر)
+                    $chartColors[] = 'rgba(189, 189, 189, 0.7)';
+                    $chartBorderColors[] = 'rgba(158, 158, 158, 1)';
+                } elseif ($totalCollected >= 500) {
+                    // أزرق (500-1000)
+                    $chartColors[] = 'rgba(33, 150, 243, 0.7)';
+                    $chartBorderColors[] = 'rgba(33, 150, 243, 1)';
+                } elseif ($totalCollected >= 200) {
+                    // أخضر (200-500)
+                    $chartColors[] = 'rgba(76, 175, 80, 0.7)';
+                    $chartBorderColors[] = 'rgba(76, 175, 80, 1)';
+                } else {
+                    // برتقالي (0-200)
+                    $chartColors[] = 'rgba(255, 152, 0, 0.7)';
+                    $chartBorderColors[] = 'rgba(255, 152, 0, 1)';
                 }
             }
         }

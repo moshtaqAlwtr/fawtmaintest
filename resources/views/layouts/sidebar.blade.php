@@ -239,6 +239,13 @@
                                     </a>
                                 </li>
                             @endcan
+                              @can('clients_view_all_clients')
+                                <li><a href="{{ route('clients.dashboard') }}"><i class="feather icon-circle"></i><span
+                                            class="menu-item"
+                                            data-i18n="Analytics">{{ trans('main_trans.Customer_management') }}</span>
+                                    </a>
+                                </li>
+                            @endcan
 
                             @can('clients_add_client')
                                 <li><a href="{{ route('clients.create') }}"><i class="feather icon-circle"></i><span

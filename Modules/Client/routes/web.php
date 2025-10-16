@@ -35,6 +35,12 @@ Route::group(
     function () {
 
         // =============================================
+        // لوحة تحكم العملاء ومؤشرات الأداء
+        // =============================================
+        Route::get('/client-dashboard', [CatagroiyClientController::class, 'dashboard'])->name('clients.dashboard');
+        Route::get('/client-kpis', [CatagroiyClientController::class, 'kpis'])->name('clients.kpis');
+
+        // =============================================
         // إعدادات العميل
         // =============================================
         Route::prefix('client-settings')->group(function () {
@@ -97,8 +103,8 @@ Route::group(
         Route::prefix('appointments')->group(function () {
             Route::resource('appointments', AppointmentController::class)->except(['show']);
             Route::get('/show/{id}', [AppointmentController::class, 'show'])->name('appointments.show');
-            Route::post('/update-status', [AppointmentController::class, 'updateStatus'])->name('appointments.update.status');
-            Route::patch('/appointments/{id}/status', [AppointmentController::class, 'updateStatus'])->name('appointments.update-status');
+            Route::patch('/appointments/{id}/update-status', [AppointmentController::class, 'updateStatus'])
+    ->name('appointments.update-status');
             Route::get('/filter', [AppointmentController::class, 'filterAppointments'])->name('appointments.filter');
             Route::get('/appointments/calendar', [AppointmentController::class, 'calendar'])->name('appointments.calendar');
             Route::get('/appointments/{id}/full-details', [AppointmentController::class, 'getFullAppointmentDetails'])->name('appointments.full-details');
