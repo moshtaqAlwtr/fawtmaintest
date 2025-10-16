@@ -81,7 +81,7 @@
                 <h2 class="content-header-title float-left mb-0">إدارة الإشعارات الدائنة</h2>
                 <div class="breadcrumb-wrapper col-12">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('dashboard_sales.index') }}">الرئيسية</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسية</a></li>
                         <li class="breadcrumb-item active">عرض</li>
                     </ol>
                 </div>

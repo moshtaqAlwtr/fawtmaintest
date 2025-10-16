@@ -81,7 +81,7 @@
                 <h2 class="content-header-title float-left mb-0">ادارة الفواتير</h2>
                 <div class="breadcrumb-wrapper col-12">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('dashboard_sales.index') }}">الرئيسيه</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">الرئيسيه</a></li>
                         <li class="breadcrumb-item active">عرض</li>
                     </ol>
                 </div>
