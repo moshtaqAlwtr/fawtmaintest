@@ -152,21 +152,30 @@ public function index(Request $request)
         // تطبيق جميع شروط البحث
         $this->applySearchFilters($query, $request);
 
-        // التحقق من كون الطلب AJAX
-        if ($request->ajax()) {
-            $invoices = $query->orderBy('created_at', 'desc')->paginate(15);
-            $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-
-            return response()->json([
-                'success' => true,
-                'data' => view('sales::invoices.partials.table', compact('invoices', 'account_setting'))->render(),
-                'current_page' => $invoices->currentPage(),
-                'last_page' => $invoices->lastPage(),
-                'total' => $invoices->total(),
-                'from' => $invoices->firstItem(),
-                'to' => $invoices->lastItem()
-            ]);
+    // التحقق من كون الطلب AJAX
+    if ($request->ajax()) {
+        // استخدام قيمة per_page من الطلب مع التحقق من صحتها
+        $perPage = (int) $request->input('per_page', 10);
+        
+        // التحقق من أن القيمة صالحة
+        if (!in_array($perPage, [10, 25, 50, 100])) {
+            $perPage = 10; // القيمة الافتراضية إذا كانت القيمة غير صالحة
         }
+
+        $invoices = $query->orderBy('created_at', 'desc')->paginate($perPage);
+        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+
+        return response()->json([
+            'success' => true,
+            'data' => view('sales::invoices.partials.table', compact('invoices', 'account_setting'))->render(),
+            'current_page' => $invoices->currentPage(),
+            'last_page' => $invoices->lastPage(),
+            'total' => $invoices->total(),
+            'from' => $invoices->firstItem(),
+            'to' => $invoices->lastItem(),
+            'per_page' => $perPage // إضافة per_page للرد
+        ]);
+    }
 
         // جلب البيانات الأخرى المطلوبة للواجهة
         $user = auth()->user();

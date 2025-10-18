@@ -1,19 +1,39 @@
 {{-- ملف: resources/views/sales/invoices/partials/table.blade.php --}}
 
 @if ($invoices->count() > 0)
-    <div class="table">
-        <table class="table table-hover table-striped">
-            <thead>
-                <tr>
-                   
-                    <th>رقم الفاتورة</th>
-                    <th>العميل</th>
-                    <th>التاريخ</th>
-                    <th>المبلغ الإجمالي</th>
-                    <th>الحالة</th>
-                    <th style="width: 10%">خيارات</th>
-                </tr>
-            </thead>
+    <div class="table-responsive">
+        <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap4">
+            <div class="row align-items-center">
+                <div class="col-12">
+                    <div class="dataTables_length" id="DataTables_Table_0_length" style="text-align: left;">
+                        <label style="margin-bottom: 0;">
+                            عرض 
+                            <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0" class="form-select form-select-sm d-inline-block w-auto" 
+                                onchange="if(window.loadData) { window.loadData(1, parseInt(this.value)); }">
+                                <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+                                <option value="25" {{ request('per_page', 10) == 25 ? 'selected' : '' }}>25</option>
+                                <option value="50" {{ request('per_page', 10) == 50 ? 'selected' : '' }}>50</option>
+                                <option value="100" {{ request('per_page', 10) == 100 ? 'selected' : '' }}>100</option>
+                            </select> 
+                            سجل
+                        </label>
+                    </div>
+                </div>
+               
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <table class="table dataTable" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info">
+                        <thead>
+                            <tr role="row">
+                                <th class="sorting_asc" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" aria-sort="ascending">رقم الفاتورة</th>
+                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1">العميل</th>
+                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1">التاريخ</th>
+                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1">المبلغ الإجمالي</th>
+                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1">الحالة</th>
+                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" style="width: 10%">خيارات</th>
+                            </tr>
+                        </thead>
             <tbody>
                 @foreach ($invoices as $invoice)
                     @php
@@ -43,7 +63,7 @@
                                 </div>
                                 <div>
                                     #{{ $invoice->id }}
-                                    <div class="text-muted small">فاتورة مبيعات</div>
+                                    
                                 </div>
                             </div>
                         </td>
@@ -52,12 +72,8 @@
                                 <strong>
                                     {{ $invoice->client ? ($invoice->client->trade_name ?: $invoice->client->first_name . ' ' . $invoice->client->last_name) : 'عميل غير معروف' }}
                                 </strong>
-                                @if ($invoice->client && $invoice->client->tax_number)
-                                    <div class="text-muted small">الرقم الضريبي: {{ $invoice->client->tax_number }}</div>
-                                @endif
-                                @if ($invoice->client && $invoice->client->full_address)
-                                    <div class="text-muted small">{{ $invoice->client->full_address }}</div>
-                                @endif
+                               
+
                             </div>
                         </td>
                         <td>
@@ -79,13 +95,10 @@
                             {{-- Badge للحالة العامة --}}
                             @if ($returnedInvoice)
                                 <span class="badge bg-danger">مرتجع</span>
-                            @elseif ($invoice->type == 'normal' && $payments->count() == 0)
-                                <span class="badge bg-secondary">أنشئت فاتورة</span>
+                            
                             @endif
 
-                            @if ($payments->count() > 0)
-                                <span class="badge bg-success">أضيفت عملية دفع</span>
-                            @endif
+
 
                             <br>
 
@@ -148,11 +161,15 @@
                     </tr>
                 @endforeach
             </tbody>
-        </table>
+                       
+                    </table>
+                </div>
+            </div>
+            
+            {{-- الترقيم --}}
+            @include('sales::invoices.partials.pagination', ['invoices' => $invoices])
+        </div>
     </div>
-
-    {{-- الترقيم --}}
-    @include('sales::invoices.partials.pagination', ['invoices' => $invoices])
 @else
     <div class="alert alert-info text-center" role="alert">
         <i class="fa fa-info-circle me-2"></i>

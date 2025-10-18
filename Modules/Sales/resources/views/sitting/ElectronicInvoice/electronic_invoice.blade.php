@@ -65,7 +65,7 @@
                 <div class="desc mb-3">يمكنك اختبار التكامل من خلال محاكاة فوترة</div>
 
 
-                    <a href="{{route('settings_send_fawtra')}}" class="btn btn-activate">
+                    <a href="" class="btn btn-activate">
                         <span class="icon-check">&#10003;</span> تفعيل
                     </a>
 
@@ -76,7 +76,7 @@
             <div class="card-electronic">
                 <div class="title">منصة فوترة</div>
                 <div class="desc mb-3">يمكنك إرسال العملية الفعلية من خلال بوابة فوترة</div>
-                 <a href="{{route('settings_send_fawtra')}}" class="btn btn-activate">
+                 <a href="" class="btn btn-activate">
                         <span class="icon-check">&#10003;</span> تفعيل
                     </a>
             </div>

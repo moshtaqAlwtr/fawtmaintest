@@ -365,4 +365,9 @@ public function  dashbordtest()
 {
     return view('sales::dashboard.sales.index');
 }
+
+public function electronic_invoice()
+{
+    return view('sales::sitting.ElectronicInvoice.electronic_invoice');
+}
 }

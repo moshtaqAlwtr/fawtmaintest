@@ -76,7 +76,7 @@
                         </a>
                         <ul class="menu-content">
 
-                            <li><a href=""><i
+                             <li><a href="{{ route('dashboard.kpis') }}"><i
                                         class="feather icon-circle {{ request()->is("$getLocal/sales/invoices/index") ? 'active' : '' }}"></i><span
                                         class="menu-item"
                                         data-i18n="Analytics">مؤشرات الاداء</span></a>
