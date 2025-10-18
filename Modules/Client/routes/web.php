@@ -80,12 +80,12 @@ Route::group(
         // المجموعات والفئات
         // =============================================
         Route::prefix('group')->group(function () {
-            Route::get('/group', [GroupsController::class, 'group_client'])->name('groups.group_client');
-            Route::get('/group/create', [GroupsController::class, 'group_client_create'])->name('groups.group_client_create');
-            Route::post('/group/store', [GroupsController::class, 'group_client_store'])->name('groups.group_client_store');
-            Route::get('/group/edit/{id}', [GroupsController::class, 'group_client_edit'])->name('groups.group_client_edit');
-            Route::put('/group/update/{id}', [GroupsController::class, 'group_client_update'])->name('groups.group_client_update');
-            Route::delete('/group/{id}', [GroupsController::class, 'destroy'])->name('groups.group_client_destroy');
+            Route::get('/index', [GroupsController::class, 'group_client'])->name('groups.group_client');
+            Route::get('/create', [GroupsController::class, 'group_client_create'])->name('groups.group_client_create');
+            Route::post('/store', [GroupsController::class, 'group_client_store'])->name('groups.group_client_store');
+            Route::get('/edit/{id}', [GroupsController::class, 'group_client_edit'])->name('groups.group_client_edit');
+            Route::put('/update/{id}', [GroupsController::class, 'group_client_update'])->name('groups.group_client_update');
+          Route::get('/destroy/{id}', [GroupsController::class, 'destroy'])->name('groups.group_client_destroy');
         });
 
         Route::prefix('categoriesClient')->group(function () {

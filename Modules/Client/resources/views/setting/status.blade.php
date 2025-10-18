@@ -16,20 +16,20 @@
     </div>
 
     <div class="content-body">
-        <div class="card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center flex-wrap">
-                    <div>
-                        <a href="{{ route('clients.index') }}" class="btn btn-outline-danger">
-                            <i class="fa fa-ban"></i> الغاء
-                        </a>
-                        <button type="submit" class="btn btn-outline-primary" id="saveAllChanges">
-                            <i class="fa fa-save"></i> حفظ التغييرات
-                        </button>
-                    </div>
-                </div>
+       <div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-start align-items-center flex-wrap">
+            <div>
+                <a href="{{ route('clients.index') }}" class="btn btn btn-outline-warning me-2">
+                    <i class="fa fa-ban"></i> الغاء
+                </a>
+                <button type="submit" class="btn btn-outline-primary" id="saveAllChanges">
+                    <i class="fa fa-save"></i> حفظ التغييرات
+                </button>
             </div>
         </div>
+    </div>
+</div>
 
         <div class="card">
             <div class="card-content">

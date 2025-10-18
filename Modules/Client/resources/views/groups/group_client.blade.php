@@ -1,6 +1,5 @@
 @extends('sales::master')
 
-
 @section('title')
     اعدادات المجموعات
 @stop
@@ -13,6 +12,8 @@
             margin-bottom: 20px;
         }
     </style>
+    <!-- إضافة مكتبة SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.css">
 @stop
 
 @section('content')
@@ -46,26 +47,20 @@
 
     <div class="content-body">
 
-
         <!-- بطاقة الإجراءات -->
-        <div class="card shadow-lg border-0 rounded-3">
-            <div class="card-body">
-                <div class="row align-items-center gy-3">
-                    <!-- القسم الأيمن -->
-                    <div
-                        class="col-md-6 d-flex flex-wrap align-items-center gap-2 justify-content-center justify-content-md-start">
-                        <!-- زر إضافة عميل -->
-                        <a href="{{ route('groups.group_client_create') }}"
-                            class="btn btn-success btn-sm rounded-pill px-4 text-center">
-                            <i class="fas fa-plus-circle me-1"></i>
-                            إضافة مجموعة
-                        </a>
-
-
-                    </div>
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-body p-3">
+                <div class="d-flex flex-wrap justify-content-end" style="gap: 10px;">
+                    <a href="{{ route('groups.group_client_create') }}"
+                        class="btn btn-primary d-flex align-items-center justify-content-center"
+                        style="height: 44px; padding: 0 16px; font-weight: bold; border-radius: 6px;">
+                        <i class="fas fa-plus ms-2"></i>
+                        أضف مجموعة جديدة
+                    </a>
                 </div>
             </div>
         </div>
+
         <form action="{{ route('groups.group_client') }}" method="GET">
             <div class="card">
                 <div class="card-body">
@@ -99,23 +94,20 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-4 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary mr-2">
-                                <i class="fa fa-search"></i> بحث
-                            </button>
-                            <a href="{{ route('groups.group_client') }}" class="btn btn-secondary">
-                                <i class="fa fa-times"></i> إلغاء
-                            </a>
-                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary mr-2">
+                            <i class="fa fa-search"></i> بحث
+                        </button>
+                        <a href="{{ route('groups.group_client') }}" class="btn btn-outline-warning">
+                            <i class="fa fa-times"></i> إلغاء
+                        </a>
                     </div>
                 </div>
             </div>
         </form>
 
-
-
         <!-- جدول العملاء -->
-
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
@@ -132,66 +124,97 @@
                         <tbody>
                             @foreach ($Regions_groub as $Region_groub)
                                 <tr>
-                                    <td>{{ $loop->iteration }}</td> <!-- ترقيم تلقائي -->
+                                    <td>{{ $loop->iteration }}</td>
                                     <td>{{ $Region_groub->name }}</td>
                                     <td>{{ $Region_groub->direction->name ?? 'غير محدد' }}</td>
-
-
                                     <td>{{ $Region_groub->branch->name ?? '' }}</td>
                                     <td>
-                                            <div class="btn-group">
-                                                <div class="dropdown">
-                                                    <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
-                                                        type="button"id="dropdownMenuButton303" data-toggle="dropdown"
-                                                        aria-haspopup="true"aria-expanded="false"></button>
-                                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                                href="{{ route('groups.group_client_edit', $Region_groub->id) }}">
-                                                                <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                            </a>
-                                                        </li>
-
-                                                        <li>
-                                                            <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#modal_DELETE{{ $Region_groub->id }}">
-                                                                <i class="fa fa-trash me-2"></i>حذف
-                                                            </a>
-                                                        </li>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                </tr>
-                                                                    <div class="modal fade text-left" id="modal_DELETE{{ $Region_groub->id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-scrollable" role="document">
-                                            <div class="modal-content">
-                                                <div class="modal-header" style="background-color: #EA5455 !important;">
-                                                    <h4 class="modal-title" id="myModalLabel1" style="color: #FFFFFF">حذف {{ $Region_groub->name }}</h4>
-                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true" style="color: #DC3545">&times;</span>
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <strong>
-                                                        هل انت متاكد من انك تريد الحذف ؟
-                                                    </strong>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-light waves-effect waves-light" data-dismiss="modal">الغاء</button>
-                                                    <a href="{{ route('groups.group_client_destroy', $Region_groub->id) }}" class="btn btn-danger waves-effect waves-light">تأكيد</a>
+                                        <div class="btn-group">
+                                            <div class="dropdown">
+                                                <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                                    type="button" id="dropdownMenuButton303" data-toggle="dropdown"
+                                                    aria-haspopup="true" aria-expanded="false"></button>
+                                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
+                                                    <li>
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('groups.group_client_edit', $Region_groub->id) }}">
+                                                            <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item text-danger delete-btn" href="#"
+                                                            data-id="{{ $Region_groub->id }}"
+                                                            data-name="{{ $Region_groub->name }}">
+                                                            <i class="fa fa-trash me-2"></i>حذف
+                                                        </a>
+                                                    </li>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </td>
+                                </tr>
                             @endforeach
                         </tbody>
                     </table>
-
                 </div>
             </div>
         </div>
+    </div>
+@endsection
 
+@section('scripts')
+    <!-- إضافة مكتبة SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <script>
+        $(document).ready(function() {
+            // تفعيل زر الحذف مع SweetAlert2
+            $('.delete-btn').on('click', function(e) {
+                e.preventDefault();
 
-    @endsection
+                const groupId = $(this).data('id');
+                const groupName = $(this).data('name');
+
+                Swal.fire({
+                    title: 'هل أنت متأكد؟',
+                    text: `سيتم حذف المجموعة: ${groupName}`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'نعم، قم بالحذف!',
+                    cancelButtonText: 'إلغاء',
+                    customClass: {
+                        confirmButton: 'btn btn-danger',
+                        cancelButton: 'btn btn-secondary'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // توجيه المستخدم إلى رابط الحذف
+                        window.location.href = `{{ url('/ar/group/destroy') }}/${groupId}`;
+                    }
+                });
+            });
+
+            // إذا كان هناك رسالة نجاح في الجلسة، عرض إشعار SweetAlert2
+            @if(session('success'))
+                Swal.fire({
+                    title: 'تم بنجاح!',
+                    text: "{{ session('success') }}",
+                    icon: 'success',
+                    confirmButtonText: 'حسناً'
+                });
+            @endif
+
+            // إذا كان هناك رسالة خطأ في الجلسة، عرض إشعار SweetAlert2
+            @if(session('error'))
+                Swal.fire({
+                    title: 'خطأ!',
+                    text: "{{ session('error') }}",
+                    icon: 'error',
+                    confirmButtonText: 'حسناً'
+                });
+            @endif
+        });
+    </script>
+@endsection
