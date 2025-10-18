@@ -49,18 +49,16 @@
 
     <div class="content-body">
         <!-- بطاقة الإجراءات -->
-        <div class="card shadow-lg border-0 rounded-3">
-            <div class="card-body">
-                <div class="row align-items-center gy-3">
-                    <div class="col-md-6 d-flex flex-wrap align-items-center gap-2 justify-content-center justify-content-md-start">
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-body p-3">
+                <div class="d-flex flex-wrap justify-content-end" style="gap: 10px;">
 
                     <a href="{{ route('categoriesClient.create') }}"
-                        class="btn btn-success d-flex align-items-center justify-content-center"
+                        class="btn btn-primary d-flex align-items-center justify-content-center"
                         style="height: 44px; padding: 0 16px; font-weight: bold; border-radius: 6px;">
                         <i class="fas fa-plus ms-2"></i>
-                        أضف تصنيف
+                        أضف موعد جديد
                     </a>
-                    </div>
                 </div>
             </div>
         </div>
@@ -75,7 +73,7 @@
                             <input type="text" name="name" class="form-control" value="{{ request('name') }}"
                                 placeholder="ابحث باسم التصنيف">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label for="status">الحالة</label>
                             <select name="active" class="form-control">
                                 <option value="">-- جميع الحالات --</option>

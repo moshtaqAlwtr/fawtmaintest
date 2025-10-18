@@ -1,4 +1,4 @@
-@extends('master')
+@extends('sales::master')
 
 @section('title')
     صلاحيات العميل
@@ -15,15 +15,15 @@
             <div class="content-header-left col-md-9 col-12 mb-2">
                 <div class="row breadcrumbs-top">
                     <div class="col-12">
-                        <h2 class="main-title">⚙️ إعدادات صلاحيات العميل</h2>
+                        <h2 class="main-title"> إعدادات صلاحيات العميل</h2>
                         <div class="breadcrumb-wrapper col-12">
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb breadcrumb-custom">
                                     <li class="breadcrumb-item">
-                                        <a href="">🏠 الرئيسية</a>
+                                        <a href=""> الرئيسية</a>
                                     </li>
                                     <li class="breadcrumb-item active" aria-current="page">
-                                        ➕ إضافة صلاحيات
+                                        إضافة صلاحيات
                                     </li>
                                 </ol>
                             </nav>

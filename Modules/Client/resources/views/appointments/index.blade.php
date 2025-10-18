@@ -235,7 +235,7 @@
                     <h2 class="content-header-title float-left mb-0">ادارة المواعيد</h2>
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="">الرئيسيه</a>
+                            <li class="breadcrumb-item"><a href="{{route('sales.department.dashboard')}}">الرئيسيه</a>
                             </li>
                             <li class="breadcrumb-item active">عرض
                             </li>

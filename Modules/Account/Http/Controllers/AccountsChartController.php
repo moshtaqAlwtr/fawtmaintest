@@ -903,7 +903,7 @@ try {
     // الحساب المحدد لعرض اسمه
     $account = $accountId ? Account::find($accountId) : null;
 
-    return view('Accounts.generalLedger', [
+    return view('account::generalLedger', [
         'entries' => $entries,
         'accounts' => $accounts,
         'account' => $account,

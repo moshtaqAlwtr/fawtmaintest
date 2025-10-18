@@ -11,7 +11,7 @@ class AccountsSettingsController extends Controller
      */
     public function index()
     {
-        return view("Accounts.accounts_settings.index");
+        return view("account::accounts_settings.index");
     }
 
     /**
@@ -20,26 +20,26 @@ class AccountsSettingsController extends Controller
      // الفترات المالية
     public function financial_years()
     {
-        return view("Accounts.accounts_settings.financial_years");
+        return view("account::accounts_settings.financial_years");
     }
 
  public function closed_periods()
     {
-        return view("Accounts.accounts_settings.closed_periods");
+        return view("account::.accounts_settings.closed_periods");
     }
-    
-    
-    
+
+
+
      public function accounts_routing()
     {
-        return view("Accounts.accounts_settings.accounts_routing");
+        return view("account::accounts_settings.accounts_routing");
     }
-    
+
      public function accounting_general()
     {
-        return view("Accounts.accounts_settings.accounting_general");
+        return view("account::accounts_settings.accounting_general");
     }
-    
+
     /**
      * Store a newly created resource in storage.
      */
