@@ -100,7 +100,7 @@
                             <h4 class="report-title">الميزانية العمومية</h4>
                         </div>
                         <div class="report-actions">
-                            <a href="{{ route('GeneralAccountReports.BalanceSheet') }}" class="report-btn view">
+                            <a href="" class="report-btn view">
                                 <i class="fas fa-eye"></i> عرض
                             </a>
                         </div>

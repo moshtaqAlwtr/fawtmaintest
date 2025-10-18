@@ -108,6 +108,63 @@ Route::group(
             Route::get('/paymentPurchases', [PurchasesReportController::class, 'paymentPurchases'])->name('ReportsPurchases.paymentPurchases');
             Route::get('/prodectPurchases', [PurchasesReportController::class, 'prodectPurchases'])->name('ReportsPurchases.prodectPurchases');
         });
+        Route::prefix('GeneralAccountReports')->group(function () {
+    Route::get('/', [GeneralAccountsController::class, 'index'])->name('GeneralAccountReports.index');
+    Route::get('/taxReport', [GeneralAccountsController::class, 'taxReport'])->name('GeneralAccountReports.taxReport');
+    Route::get('/taxDeclaration', [GeneralAccountsController::class, 'taxDeclaration'])->name('GeneralAccountReports.taxDeclaration');
+    Route::get('/taxDeclarationAjax', [GeneralAccountsController::class, 'taxDeclarationAjax'])->name('GeneralAccountReports.taxDeclarationAjax');
+
+    Route::get('/declaration', [GeneralAccountsController::class, 'taxDeclaration'])->name('GeneralAccountReports.declaration');
+
+    Route::get('/splitExpensesByCategory', [GeneralAccountsController::class, 'splitExpensesByCategory'])->name('GeneralAccountReports.splitExpensesByCategory');
+    Route::get('/splitExpensesBySeller', [GeneralAccountsController::class, 'splitExpensesBySeller'])->name('GeneralAccountReports.splitExpensesBySeller');
+    Route::get('/splitExpensesByEmployee', [GeneralAccountsController::class, 'splitExpensesByEmployee'])->name('GeneralAccountReports.splitExpensesByEmployee');
+    Route::get('/by-employee', [GeneralAccountsController::class, 'journalEntriesByEmployee']);
+    Route::get('/ReceiptByEmployee', [GeneralAccountsController::class, 'receiptsReportAjax'])->name('GeneralAccountReports.ReceiptByEmployeeAjax');
+
+    // AJAX لتحديث بيانات التقرير
+    // AJAX لتحديث بيانات التقرير
+
+    Route::get('/by-employee', [GeneralAccountsController::class, 'journalEntriesByEmployee'])->name('GeneralAccountReports.JournalEntriesByEmployee');
+
+    Route::get('/by-employee/ajax', [GeneralAccountsController::class, 'journalEntriesByEmployeeAjax'])->name('GeneralAccountReports.JournalEntriesByEmployeeAjax');
+    Route::get('/splitExpensesByEmployeeAjax', [GeneralAccountsController::class, 'expensesByEmployeeAjax'])->name('GeneralAccountReports.expensesByEmployeeAjax');
+    Route::get('/splitExpensesByClient', [GeneralAccountsController::class, 'splitExpensesByClient'])->name('GeneralAccountReports.splitExpensesByClient');
+    Route::get('/splitExpensesByTimePeriod', [GeneralAccountsController::class, 'splitExpensesByTimePeriod'])->name('GeneralAccountReports.splitExpensesByTimePeriod');
+    Route::get('/ReceiptByCategory', [GeneralAccountsController::class, 'ReceiptByCategory'])->name('GeneralAccountReports.ReceiptByCategory');
+    Route::get('/ReceiptBySeller', [GeneralAccountsController::class, 'ReceiptBySeller'])->name('GeneralAccountReports.ReceiptBySeller');
+    Route::get('/ReceiptByEmployee', [GeneralAccountsController::class, 'receiptsReport'])->name('GeneralAccountReports.ReceiptByEmployee');
+    Route::get('/ReceiptByEmployeeAjax', [GeneralAccountsController::class, 'receiptsReportAjax'])->name('GeneralAccountReports.ReceiptByEmployeeAjax');
+    Route::get('/ReceiptByClient', [GeneralAccountsController::class, 'ReceiptByClient'])->name('GeneralAccountReports.ReceiptByClient');
+    Route::get('/ReceiptByTimePeriod', [GeneralAccountsController::class, 'ReceiptByTimePeriod'])->name('GeneralAccountReports.ReceiptByTimePeriod');
+    Route::get('/trialBalance', [TrialBalanceController::class, 'trialBalance'])->name('GeneralAccountReports.trialBalance');
+
+    // Route للـ Ajax لجلب بيانات ميزان المراجعة
+    Route::get('trial-balance-ajax', [TrialBalanceController::class, 'trialBalanceAjax'])->name('GeneralAccountReports.trialBalanceAjax');
+    Route::get('/incomeStatement', [GeneralAccountsController::class, 'incomeStatement'])->name('GeneralAccountReports.incomeStatement');
+
+    // قائمة الدخل - جلب البيانات عبر AJAX
+    Route::get('/income-statement-ajax', [GeneralAccountsController::class, 'incomeStatementAjax'])->name('GeneralAccountReports.incomeStatementAjax');
+
+    // قائمة الدخل - تصدير إلى Excel
+    Route::get('/income-statement-excel', [GeneralAccountsController::class, 'exportIncomeStatementExcel'])->name('GeneralAccountReports.incomeStatementExcel');
+
+    // قائمة الدخل - تصدير إلى PDF
+    Route::get('/income-statement-pdf', [GeneralAccountsController::class, 'exportIncomeStatementPdf'])->name('GeneralAccountReports.incomeStatementPdf');
+
+    // قائمة الدخل - طباعة
+    Route::get('/income-statement-print', [GeneralAccountsController::class, 'printIncomeStatement'])->name('GeneralAccountReports.incomeStatementPrint');
+
+    Route::get('/accountBalanceReview', [TrialBalanceController::class, 'accountBalanceReview'])->name('GeneralAccountReports.accountBalanceReview');
+    Route::get('account-balance-review-ajax', [TrialBalanceController::class, 'accountBalanceReviewAjax'])->name('GeneralAccountReports.accountBalanceReviewAjax');
+
+    Route::get('/generalLedger', [GeneralAccountsController::class, 'generalLedger'])->name('GeneralAccountReports.generalLedger');
+    Route::get('/CostCentersReport', [TrialBalanceController::class, 'CostCentersReport'])->name('GeneralAccountReports.CostCentersReport');
+    Route::get('/CostCentersReportAjax', [TrialBalanceController::class, 'CostCentersReportAjax'])->name('GeneralAccountReports.CostCentersReportAjax');
+
+    Route::get('/ReportJournal', [GeneralAccountsController::class, 'ReportJournal'])->name('GeneralAccountReports.ReportJournal');
+    Route::get('/ChartOfAccounts', [GeneralAccountsController::class, 'ChartOfAccounts'])->name('GeneralAccountReports.ChartOfAccounts');
+});
 
         Route::prefix('salesReports')
             ->middleware(['auth'])
@@ -189,63 +246,7 @@ Route::group(
     },
 );
 
-Route::prefix('GeneralAccountReports')->group(function () {
-    Route::get('/', [GeneralAccountsController::class, 'index'])->name('GeneralAccountReports.index');
-    Route::get('/taxReport', [GeneralAccountsController::class, 'taxReport'])->name('GeneralAccountReports.taxReport');
-    Route::get('/taxDeclaration', [GeneralAccountsController::class, 'taxDeclaration'])->name('GeneralAccountReports.taxDeclaration');
-    Route::get('/taxDeclarationAjax', [GeneralAccountsController::class, 'taxDeclarationAjax'])->name('GeneralAccountReports.taxDeclarationAjax');
 
-    Route::get('/declaration', [GeneralAccountsController::class, 'taxDeclaration'])->name('GeneralAccountReports.declaration');
-
-    Route::get('/splitExpensesByCategory', [GeneralAccountsController::class, 'splitExpensesByCategory'])->name('GeneralAccountReports.splitExpensesByCategory');
-    Route::get('/splitExpensesBySeller', [GeneralAccountsController::class, 'splitExpensesBySeller'])->name('GeneralAccountReports.splitExpensesBySeller');
-    Route::get('/splitExpensesByEmployee', [GeneralAccountsController::class, 'splitExpensesByEmployee'])->name('GeneralAccountReports.splitExpensesByEmployee');
-    Route::get('/by-employee', [GeneralAccountsController::class, 'journalEntriesByEmployee']);
-    Route::get('/ReceiptByEmployee', [GeneralAccountsController::class, 'receiptsReportAjax'])->name('GeneralAccountReports.ReceiptByEmployeeAjax');
-
-    // AJAX لتحديث بيانات التقرير
-    // AJAX لتحديث بيانات التقرير
-
-    Route::get('/by-employee', [GeneralAccountsController::class, 'journalEntriesByEmployee'])->name('GeneralAccountReports.JournalEntriesByEmployee');
-
-    Route::get('/by-employee/ajax', [GeneralAccountsController::class, 'journalEntriesByEmployeeAjax'])->name('GeneralAccountReports.JournalEntriesByEmployeeAjax');
-    Route::get('/splitExpensesByEmployeeAjax', [GeneralAccountsController::class, 'expensesByEmployeeAjax'])->name('GeneralAccountReports.expensesByEmployeeAjax');
-    Route::get('/splitExpensesByClient', [GeneralAccountsController::class, 'splitExpensesByClient'])->name('GeneralAccountReports.splitExpensesByClient');
-    Route::get('/splitExpensesByTimePeriod', [GeneralAccountsController::class, 'splitExpensesByTimePeriod'])->name('GeneralAccountReports.splitExpensesByTimePeriod');
-    Route::get('/ReceiptByCategory', [GeneralAccountsController::class, 'ReceiptByCategory'])->name('GeneralAccountReports.ReceiptByCategory');
-    Route::get('/ReceiptBySeller', [GeneralAccountsController::class, 'ReceiptBySeller'])->name('GeneralAccountReports.ReceiptBySeller');
-    Route::get('/ReceiptByEmployee', [GeneralAccountsController::class, 'receiptsReport'])->name('GeneralAccountReports.ReceiptByEmployee');
-    Route::get('/ReceiptByEmployeeAjax', [GeneralAccountsController::class, 'receiptsReportAjax'])->name('GeneralAccountReports.ReceiptByEmployeeAjax');
-    Route::get('/ReceiptByClient', [GeneralAccountsController::class, 'ReceiptByClient'])->name('GeneralAccountReports.ReceiptByClient');
-    Route::get('/ReceiptByTimePeriod', [GeneralAccountsController::class, 'ReceiptByTimePeriod'])->name('GeneralAccountReports.ReceiptByTimePeriod');
-    Route::get('/trialBalance', [TrialBalanceController::class, 'trialBalance'])->name('GeneralAccountReports.trialBalance');
-
-    // Route للـ Ajax لجلب بيانات ميزان المراجعة
-    Route::get('trial-balance-ajax', [TrialBalanceController::class, 'trialBalanceAjax'])->name('GeneralAccountReports.trialBalanceAjax');
-    Route::get('/incomeStatement', [GeneralAccountsController::class, 'incomeStatement'])->name('GeneralAccountReports.incomeStatement');
-
-    // قائمة الدخل - جلب البيانات عبر AJAX
-    Route::get('/income-statement-ajax', [GeneralAccountsController::class, 'incomeStatementAjax'])->name('GeneralAccountReports.incomeStatementAjax');
-
-    // قائمة الدخل - تصدير إلى Excel
-    Route::get('/income-statement-excel', [GeneralAccountsController::class, 'exportIncomeStatementExcel'])->name('GeneralAccountReports.incomeStatementExcel');
-
-    // قائمة الدخل - تصدير إلى PDF
-    Route::get('/income-statement-pdf', [GeneralAccountsController::class, 'exportIncomeStatementPdf'])->name('GeneralAccountReports.incomeStatementPdf');
-
-    // قائمة الدخل - طباعة
-    Route::get('/income-statement-print', [GeneralAccountsController::class, 'printIncomeStatement'])->name('GeneralAccountReports.incomeStatementPrint');
-
-    Route::get('/accountBalanceReview', [TrialBalanceController::class, 'accountBalanceReview'])->name('GeneralAccountReports.accountBalanceReview');
-    Route::get('account-balance-review-ajax', [TrialBalanceController::class, 'accountBalanceReviewAjax'])->name('GeneralAccountReports.accountBalanceReviewAjax');
-
-    Route::get('/generalLedger', [GeneralAccountsController::class, 'generalLedger'])->name('GeneralAccountReports.generalLedger');
-    Route::get('/CostCentersReport', [TrialBalanceController::class, 'CostCentersReport'])->name('GeneralAccountReports.CostCentersReport');
-    Route::get('/CostCentersReportAjax', [TrialBalanceController::class, 'CostCentersReportAjax'])->name('GeneralAccountReports.CostCentersReportAjax');
-
-    Route::get('/ReportJournal', [GeneralAccountsController::class, 'ReportJournal'])->name('GeneralAccountReports.ReportJournal');
-    Route::get('/ChartOfAccounts', [GeneralAccountsController::class, 'ChartOfAccounts'])->name('GeneralAccountReports.ChartOfAccounts');
-});
 
 
         Route::prefix('supply-order')->group(function () {
