@@ -6,11 +6,11 @@
             <span class="hide-button-text">بحث وتصفية</span>
         </div>
         <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-outline-secondary btn-sm" onclick="toggleSearchFields(this)">
+            <button class="btn btn-outline-primary btn-sm" onclick="toggleSearchFields(this)">
                 <i class="fa fa-times"></i>
                 <span class="hide-button-text">اخفاء</span>
             </button>
-            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse"
+            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse"
                 data-bs-target="#advancedSearchForm" onclick="toggleSearchText(this)">
                 <i class="fa fa-filter"></i>
                 <span class="button-text">متقدم</span>

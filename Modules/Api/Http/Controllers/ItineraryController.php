@@ -206,7 +206,7 @@ public function apiItineraryFull()
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+public function store(Request $request)
 {
     $validated = $request->validate([
         'employee_id' => 'required|exists:users,id',
@@ -263,7 +263,8 @@ public function apiItineraryFull()
             'success' => true,
             'message' => 'تم حفظ خط السير بنجاح',
             'inserted_count' => count($visitData),
-            'overwrite' => $overwrite
+            'overwrite' => $overwrite,
+            'redirect' => route('itinerary.index')
         ]);
     } catch (\Exception $e) {
         DB::rollBack();
@@ -275,7 +276,6 @@ public function apiItineraryFull()
         ], 500);
     }
 }
-
 
     /**
      * Show the specified resource.

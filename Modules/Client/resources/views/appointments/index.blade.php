@@ -250,17 +250,6 @@
             <div class="card-body p-3">
                 <div class="d-flex flex-wrap justify-content-end" style="gap: 10px;">
                     <!-- زر تحميل ملف -->
-                    <label class="bg-white border d-flex align-items-center justify-content-center"
-                        style="width: 44px; height: 44px; cursor: pointer; border-radius: 6px;" title="تحميل ملف">
-                        <i class="fas fa-cloud-upload-alt text-primary"></i>
-                        <input type="file" name="file" class="d-none">
-                    </label>
-
-                    <!-- زر استيراد -->
-                    <button type="submit" class="bg-white border d-flex align-items-center justify-content-center"
-                        style="width: 44px; height: 44px; border-radius: 6px;" title="استيراد ك Excel">
-                        <i class="fas fa-database text-primary"></i>
-                    </button>
 
                     <!-- زر تصدير -->
                     <button id="exportExcelBtn" class="bg-white border d-flex align-items-center justify-content-center"
@@ -330,7 +319,7 @@
                                     ملغي
                                 </option>
                                 <option value="rescheduled" {{ request('appointment_status') == 'rescheduled' ? 'selected' : '' }}>
-                                    معاد جدولته
+                                    معاد جدلته
                                 </option>
                             </select>
                         </div>
@@ -421,9 +410,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-row-reverse">
                     <!-- أزرار عرض القائمة والشبكة والتقويم على اليسار -->
                     <div class="btn-group me-2" role="group" aria-label="View Toggle">
-                        <button type="button" class="btn btn-outline-secondary" id="listViewBtn" title="عرض القائمة">
-                            <i class="fas fa-list"></i>
-                        </button>
+
                         <button type="button" class="btn btn-outline-secondary active" id="tableViewBtn"
                             title="عرض الجدول">
                             <i class="fas fa-table"></i>
@@ -449,7 +436,8 @@
                     <!-- عرض التقويم -->
                     <div class="tab-pane fade" id="calendar-tab" role="tabpanel">
                         <div id="calendar-container" class="p-2">
-                            @include('client::appointments.partials.calender')
+                            <!-- Calendar element for FullCalendar -->
+                            <div id="calendar"></div>
                         </div>
                     </div>
                 </div>
@@ -469,6 +457,34 @@
 <script>
 // Make calendarBookings available globally for the calendar partial
 window.calendarBookings = @json($calendarBookings ?? []);
+// Make fullCalendarEvents available for FullCalendar
+window.fullCalendarEvents = @json($fullCalendarEvents ?? []);
+
+// Debug information
+console.log('Calendar Bookings Data:', window.calendarBookings);
+console.log('Full Calendar Events Data:', window.fullCalendarEvents);
+
+// Test data if no events are available
+if (!window.fullCalendarEvents || window.fullCalendarEvents.length === 0) {
+    console.log('No calendar events found, using test data');
+    window.fullCalendarEvents = [
+        {
+            id: 1,
+            title: 'موعد تجريبي',
+            start: new Date().toISOString().split('T')[0] + 'T10:00:00',
+            extendedProps: {
+                client_name: 'عميل تجريبي',
+                client_phone: '123456789',
+                status_code: 1,
+                status_text: 'قيد الانتظار',
+                status_id: 1,
+                notes: 'ملاحظات تجريبية',
+                employee: 'موظف تجريبي',
+                time: '10:00'
+            }
+        }
+    ];
+}
 </script>
 
 <script>
@@ -831,6 +847,8 @@ function toggleSearchFields(button) {
 }
 
 // ==== كود التقويم ====
+let calendar = null; // Global variable to hold the FullCalendar instance
+
 document.addEventListener('DOMContentLoaded', function() {
     // الحصول على أزرار التبديل
     const calendarViewBtn = document.getElementById('calendarViewBtn');
@@ -908,125 +926,110 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log('Initializing calendar...');
 
-        // تهيئة مرة واحدة فقط
-        if (calendar === null) {
-            // إظهار مؤشر التحميل
-            calendarEl.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">جاري تحميل المواعيد...</p></div>';
-
-            // الحصول على بيانات التقويم من الخادم
-            $.ajax({
-                url: '/appointments/calendar',
-                type: 'GET',
-                dataType: 'json',
-                success: function(events) {
-                    console.log('Calendar data loaded:', events.length, 'events');
-
-                    // تهيئة وتكوين التقويم
-                    calendar = new FullCalendar.Calendar(calendarEl, {
-                        initialView: 'dayGridMonth',
-                        headerToolbar: {
-                            left: 'prev,next today',
-                            center: 'title',
-                            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                        },
-                        locale: 'ar',
-                        direction: 'rtl',
-                        buttonText: {
-                            today: 'اليوم',
-                            month: 'شهر',
-                            week: 'أسبوع',
-                            day: 'يوم'
-                        },
-                        events: events,
-                        eventClick: function(info) {
-                            // إظهار تفاصيل الموعد في النافذة المنبثقة
-                            Swal.fire({
-                                title: info.event.title,
-                                html: `
-                                    <div class="appointment-details text-right" dir="rtl">
-                                        <p><strong>العميل:</strong> ${info.event.extendedProps.client_name || 'غير محدد'}</p>
-                                        <p><strong>رقم الهاتف:</strong> ${info.event.extendedProps.client_phone || 'غير متوفر'}</p>
-                                        <p><strong>التاريخ:</strong> ${moment(info.event.start).format('YYYY-MM-DD')}</p>
-                                        <p><strong>الوقت:</strong> ${info.event.extendedProps.time || 'غير محدد'}</p>
-                                        <p><strong>الحالة:</strong> ${info.event.extendedProps.status || 'غير محدد'}</p>
-                                        <p><strong>الموظف:</strong> ${info.event.extendedProps.employee || 'غير محدد'}</p>
-                                        <p><strong>ملاحظات:</strong> ${info.event.extendedProps.notes || 'لا توجد ملاحظات'}</p>
-                                    </div>
-                                `,
-                                confirmButtonText: 'إغلاق',
-                                customClass: {
-                                    container: 'rtl-swal',
-                                    popup: 'rtl-popup',
-                                    confirmButton: 'btn btn-primary'
-                                }
-                            });
-                        },
-                        eventTimeFormat: {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            meridiem: false,
-                            hour12: false
-                        },
-                        // تخصيص تصميم الأحداث
-                        eventClassNames: function(arg) {
-                            // إضافة فئات CSS بناءً على حالة الموعد
-                            return ['appointment-event', `status-${arg.event.extendedProps.status_id || 1}`];
-                        },
-                        // تكييف العرض مع اللغة العربية والاتجاه من اليمين إلى اليسار
-                        dayMaxEvents: true,
-                        firstDay: 6, // السبت
-                        // تعريف أحداث النقر على اليوم
-                        dateClick: function(info) {
-                            // يمكن إضافة خيار لإنشاء موعد جديد هنا
-                            console.log('Date clicked:', info.dateStr);
-                            Swal.fire({
-                                title: 'إضافة موعد جديد',
-                                text: `هل ترغب في إضافة موعد جديد بتاريخ ${info.dateStr}؟`,
-                                icon: 'question',
-                                showCancelButton: true,
-                                confirmButtonColor: '#3085d6',
-                                cancelButtonColor: '#6c757d',
-                                confirmButtonText: 'نعم، أضف موعد',
-                                cancelButtonText: 'لا'
-                            }).then((result) => {
-                                if (result.isConfirmed) {
-                                    // إعادة توجيه إلى صفحة إنشاء موعد مع تاريخ محدد مسبقًا
-                                    window.location.href = `/appointments/create?date=${info.dateStr}`;
-                                }
-                            });
-                        },
-                        // الإعدادات المتجاوبة
-                        height: 'auto',
-                        // إظهار مؤشر التحميل
-                        loading: function(isLoading) {
-                            if (isLoading) {
-                                calendarEl.classList.add('calendar-loading');
-                            } else {
-                                calendarEl.classList.remove('calendar-loading');
-                            }
-                        }
-                    });
-
-                    // عرض التقويم
-                    calendar.render();
-
-                    console.log('Calendar rendered successfully');
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error loading calendar data:', error);
-                    calendarEl.innerHTML = `
-                        <div class="alert alert-danger text-center" role="alert">
-                            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
-                            <p>حدث خطأ أثناء تحميل بيانات التقويم</p>
-                            <button class="btn btn-sm btn-outline-danger mt-2" onclick="initializeCalendar()">إعادة المحاولة</button>
-                        </div>
-                    `;
-                }
-            });
-        } else {
-            // إذا كان التقويم موجودًا بالفعل، فقط أعد تحميل الأحداث
-            calendar.refetchEvents();
+        // If calendar already exists, just show it
+        if (calendar) {
+            calendar.render();
+            return;
         }
+
+        // إظهار مؤشر التحميل
+        calendarEl.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">جاري تحميل المواعيد...</p></div>';
+
+        // استخدام البيانات المتاحة عالميًا
+        const events = window.fullCalendarEvents || [];
+
+        console.log('Calendar data loaded:', events.length, 'events');
+
+        // تهيئة وتكوين التقويم
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            locale: 'ar',
+            direction: 'rtl',
+            buttonText: {
+                today: 'اليوم',
+                month: 'شهر',
+                week: 'أسبوع',
+                day: 'يوم'
+            },
+            events: events,
+            eventClick: function(info) {
+                // إظهار تفاصيل الموعد في النافذة المنبثقة
+                Swal.fire({
+                    title: info.event.title,
+                    html: `
+                        <div class="appointment-details text-right" dir="rtl">
+                            <p><strong>العميل:</strong> ${info.event.extendedProps.client_name || 'غير محدد'}</p>
+                            <p><strong>رقم الهاتف:</strong> ${info.event.extendedProps.client_phone || 'غير متوفر'}</p>
+                            <p><strong>التاريخ:</strong> ${moment(info.event.start).format('YYYY-MM-DD')}</p>
+                            <p><strong>الوقت:</strong> ${info.event.extendedProps.time || 'غير محدد'}</p>
+                            <p><strong>الحالة:</strong> ${info.event.extendedProps.status_text || 'غير محدد'}</p>
+                            <p><strong>الموظف:</strong> ${info.event.extendedProps.employee || 'غير محدد'}</p>
+                            <p><strong>ملاحظات:</strong> ${info.event.extendedProps.notes || 'لا توجد ملاحظات'}</p>
+                        </div>
+                    `,
+                    confirmButtonText: 'إغلاق',
+                    customClass: {
+                        container: 'rtl-swal',
+                        popup: 'rtl-popup',
+                        confirmButton: 'btn btn-primary'
+                    }
+                });
+            },
+            eventTimeFormat: {
+                hour: '2-digit',
+                minute: '2-digit',
+                meridiem: false,
+                hour12: false
+            },
+            // تخصيص تصميم الأحداث
+            eventClassNames: function(arg) {
+                // إضافة فئات CSS بناءً على حالة الموعد
+                return ['appointment-event', `status-${arg.event.extendedProps.status_id || 1}`];
+            },
+            // تكييف العرض مع اللغة العربية والاتجاه من اليمين إلى اليسار
+            dayMaxEvents: true,
+            firstDay: 6, // السبت
+            // تعريف أحداث النقر على اليوم
+            dateClick: function(info) {
+                // يمكن إضافة خيار لإنشاء موعد جديد هنا
+                console.log('Date clicked:', info.dateStr);
+                Swal.fire({
+                    title: 'إضافة موعد جديد',
+                    text: `هل ترغب في إضافة موعد جديد بتاريخ ${info.dateStr}؟`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'نعم، أضف موعد',
+                    cancelButtonText: 'لا'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // إعادة توجيه إلى صفحة إنشاء موعد مع تاريخ محدد مسبقًا
+                        window.location.href = `/appointments/create?date=${info.dateStr}`;
+                    }
+                });
+            },
+            // الإعدادات المتجاوبة
+            height: 'auto',
+            // إظهار مؤشر التحميل
+            loading: function(isLoading) {
+                if (isLoading) {
+                    calendarEl.classList.add('calendar-loading');
+                } else {
+                    calendarEl.classList.remove('calendar-loading');
+                }
+            }
+        });
+
+        // عرض التقويم
+        calendar.render();
+
+        console.log('Calendar rendered successfully');
     }
 });
 </script>

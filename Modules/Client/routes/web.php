@@ -110,6 +110,7 @@ Route::group(
             Route::get('/export', [AppointmentController::class, 'export'])->name('appointments.export');
             Route::get('/filter', [AppointmentController::class, 'filterAppointments'])->name('appointments.filter');
             Route::get('/appointments/calendar', [AppointmentController::class, 'calendar'])->name('appointments.calendar');
+            Route::get('/appointments/test-calendar', [AppointmentController::class, 'testCalendar'])->name('appointments.test-calendar');
             Route::get('/appointments/{id}/full-details', [AppointmentController::class, 'getFullAppointmentDetails'])->name('appointments.full-details');
         });
 

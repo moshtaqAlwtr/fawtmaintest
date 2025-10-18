@@ -1344,41 +1344,54 @@ public function getHiddenClients(Request $request)
     /**
  * Generate PDF of all clients
  */
-public function generateClientsPdf()
+public function generateClientsPdf(Request $request)
 {
-    // Load all clients with essential relationships
-    $clients = Client::with(['status_client', 'branch', 'neighborhood.region', 'categoriesClient', 'account'])
-        ->orderBy('trade_name')
-        ->get();
+    $type = $request->get('type', 'all'); // الافتراضي: تصدير الكل
 
-    // Create new PDF using TCPDF
-    $pdf = new TCPDF('L', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+    // إنشاء الاستعلام الأساسي
+    $query = Client::with([
+        'status_client',
+        'branch',
+        'neighborhood.region',
+        'categoriesClient',
+        'invoices'
+    ]);
 
-    // Set document information
+    // ✅ تطبيق الفلاتر باستخدام الدالة المساعدة
+    $this->applyFilters($query, $request);
+
+    // ✅ تحديد نوع التصدير
+    if ($type === 'filtered') {
+        $clients = $query->orderBy('trade_name')->get();
+    } elseif ($type === 'page') {
+        $page = $request->get('page', 1);
+        $perPage = 100; // نفس عدد العملاء في الصفحة
+        $clients = $query->paginate($perPage, ['*'], 'page', $page)->items();
+    } else {
+        $clients = $query->orderBy('trade_name')->get();
+    }
+
+    // ✅ إنشاء PDF باستخدام TCPDF
+    $pdf = new \TCPDF('L', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
     $pdf->SetCreator('Fawtra');
     $pdf->SetAuthor('Fawtra System');
     $pdf->SetTitle('قائمة العملاء');
 
-    // Set margins
     $pdf->SetMargins(15, 15, 15);
     $pdf->SetHeaderMargin(0);
     $pdf->SetFooterMargin(0);
-
-    // Disable header and footer
     $pdf->setPrintHeader(false);
     $pdf->setPrintFooter(false);
-
-    // Set right-to-left direction
     $pdf->setRTL(true);
-
-    // Add a new page
     $pdf->AddPage();
-
-    // Set Arabic font
     $pdf->SetFont('aealarabiya', '', 10);
 
-    // Create HTML content with client data
+    // ✅ إنشاء المحتوى HTML
     $html = '<h2 style="text-align:center">قائمة العملاء</h2>';
+    $html .= '<p style="text-align:center; font-size:12px;">
+        نوع التقرير: ' . ($type === 'filtered' ? 'حسب الفلترة' : ($type === 'page' ? 'الصفحة الحالية' : 'الكل')) . '
+    </p>';
+
     $html .= '<table border="1" cellpadding="5" style="width: 100%">
         <thead>
             <tr style="background-color: #f8f9fa; font-weight: bold; text-align: center;">
@@ -1397,33 +1410,38 @@ public function generateClientsPdf()
         <tbody>';
 
     foreach ($clients as $client) {
-        $lastInvoice = $client->invoices()->latest('invoice_date')->first();
-        $balance = $client->account ? $client->account->balance : 0;
+        // ✅ آخر فاتورة
+        $lastInvoice = $client->invoices->sortByDesc('invoice_date')->first();
+
+        // ✅ الرصيد الإجمالي من جدول accounts
+        $due = \App\Models\Account::where('client_id', $client->id)->sum('balance');
 
         $html .= '<tr>
-            <td>' . ($client->code ?? '-') . '</td>
-            <td>' . ($client->trade_name ?? '-') . '</td>
-            <td>' . ($client->phone ?? '-') . '</td>
-            <td>' . ($client->status_client->name ?? '-') . '</td>
-            <td>' . ($client->branch->name ?? '-') . '</td>
-            <td>' . ($client->categoriesClient->name ?? '-') . '</td>
-            <td>' . ($client->account->balance ?? '-') . '</td>
-            <td>' . ($client->credit_limit ?? '-') . '</td>
+            <td>' . e($client->code ?? '-') . '</td>
+            <td>' . e($client->trade_name ?? '-') . '</td>
+            <td>' . e($client->phone ?? '-') . '</td>
+            <td>' . e(optional($client->status_client)->name ?? '-') . '</td>
+            <td>' . e(optional($client->branch)->name ?? '-') . '</td>
+            <td>' . e(optional($client->categoriesClient)->name ?? '-') . '</td>
+            <td>' . number_format($due, 2) . '</td>
+            <td>' . e($client->credit_limit ?? '-') . '</td>
             <td>' . optional($client->created_at)->format('Y-m-d') . '</td>
             <td>' . optional($lastInvoice)->invoice_date . '</td>
         </tr>';
     }
 
     $html .= '</tbody></table>';
-    $html .= '<p style="text-align:center; margin-top:10px;">تم إنشاء التقرير بتاريخ: ' . now()->format('Y-m-d H:i') . '</p>';
+    $html .= '<p style="text-align:center; margin-top:10px;">
+        تم إنشاء التقرير بتاريخ: ' . now()->format('Y-m-d H:i') . '
+    </p>';
 
-    // Add content to PDF
     $pdf->writeHTML($html, true, false, true, false, '');
 
-    // Output the PDF file
     $filename = 'تقرير_العملاء_' . now()->format('Y-m-d') . '.pdf';
-    return $pdf->Output($filename, 'I');
+    return $pdf->Output($filename, 'D'); // D = تحميل مباشر
 }
+
+
 public function store(ClientRequest $request)
 {
     $data_request = $request->except('_token');
@@ -2183,51 +2201,56 @@ public function completeVisit(Request $request, $visitId)
     /**
      * Generate PDF of client notes
      */
-    public function generateNotesPdf($id)
+public function exportPdf(Request $request)
 {
-    // تحميل العميل مع الملاحظات
-    $client = Client::with(['employee'])->findOrFail($id);
-    $ClientRelations = ClientRelation::where('client_id', $id)
-        ->with('employee')
-        ->orderBy('created_at', 'desc')
-        ->get();
+    $type = $request->get('type', 'all'); // الافتراضي تصدير الكل
 
-    // إنشاء PDF جديد باستخدام TCPDF
-    $pdf = new TCPDF('P', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+    // بناء الاستعلام الأساسي
+    $query = Client::with(['status_client', 'branch', 'neighborhood.region', 'categoriesClient', 'account','balance']);
 
-    // تعيين معلومات الوثيقة
+    if ($type === 'filtered') {
+        // تطبيق نفس فلاتر الصفحة (مثلاً حسب الحالة أو الفرع)
+        // هنا افترض أن الفلاتر تأتي من الـ session أو الـ request
+        if ($request->filled('branch_id')) {
+            $query->where('branch_id', $request->branch_id);
+        }
+        if ($request->filled('status_id')) {
+            $query->where('status_id', $request->status_id);
+        }
+
+        $clients = $query->get();
+
+    } elseif ($type === 'page') {
+        // جلب الصفحة الحالية فقط (حسب pagination)
+        $page = $request->get('page', 1);
+        $perPage = 10; // نفس عدد العناصر في pagination
+        $clients = $query->paginate($perPage, ['*'], 'page', $page)->items();
+
+    } else {
+        // تصدير الكل
+        $clients = $query->orderBy('trade_name')->get();
+    }
+
+    // إنشاء PDF
+    $pdf = new \TCPDF('P', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
     $pdf->SetCreator('Fawtra');
     $pdf->SetAuthor('Fawtra System');
-    $pdf->SetTitle('ملاحظات العميل - ' . $client->trade_name);
+    $pdf->SetTitle('تقرير العملاء');
 
-    // تعيين الهوامش
-    $pdf->SetMargins(15, 15, 15);
-    $pdf->SetHeaderMargin(0);
-    $pdf->SetFooterMargin(0);
-
-    // تعطيل رأس وتذييل الصفحة
+    $pdf->SetMargins(10, 10, 10);
     $pdf->setPrintHeader(false);
     $pdf->setPrintFooter(false);
-
-    // تعيين الاتجاه من اليمين إلى اليسار
     $pdf->setRTL(true);
-
-    // إضافة صفحة جديدة
     $pdf->AddPage();
+    $pdf->SetFont('aealarabiya', '', 11);
 
-    // تعيين الخط العربي
-    $pdf->SetFont('aealarabiya', '', 12);
-
-    // إنشاء محتوى HTML
-    $html = view('client::partials.notes_pdf', compact('client', 'ClientRelations'))->render();
-
-    // إضافة المحتوى للـ PDF
+    // إنشاء المحتوى
+    $html = view('client::partials.clients_pdf', compact('clients', 'type'))->render();
     $pdf->writeHTML($html, true, false, true, false, '');
 
-    // إخراج الملف
-    $filename = 'ملاحظات_العميل_' . $client->code . '.pdf';
-    return $pdf->Output($filename, 'I');
+    return $pdf->Output('clients_report.pdf', 'I');
 }
+
 
 
 public function exportAllClients()
