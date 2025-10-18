@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use App\Models\Client; // تأكد من استيراد نموذج Client إذا كنت ستستخدمه
 use App\Models\ClientPermission;
 use App\Models\ClientType;
-use App\Models\Employee;
 use App\Models\GeneralClientSetting;
 use App\Models\Invoice;
 use App\Models\PaymentsProcess;
@@ -30,8 +29,6 @@ class ClientSettingController extends Controller
      */
     public function general()
     {
-
-
         $settings = GeneralClientSetting::all();
         $selectedType = ClientType::value('type'); // جلب أول قيمة من العمود type
 
@@ -41,7 +38,61 @@ class ClientSettingController extends Controller
         return view('client::setting.general', compact('settings', 'selectedType')); // عرض view مع البيانات
     }
 
-   public function test()
+    /**
+     * تخزين أو تحديث إعدادات العميل
+     */
+    public function store(Request $request)
+    {
+        // التحقق من صحة البيانات
+        $request->validate([
+            'settings' => 'array',
+            'settings.*' => 'integer|exists:general_client_settings,id',
+        ]);
+
+        // تحديث حالة is_active في GeneralClientSetting
+        $settings = GeneralClientSetting::all();
+        foreach ($settings as $setting) {
+            $setting->update([
+                'is_active' => in_array($setting->id, $request->settings ?? []),
+            ]);
+        }
+
+        // إضافة رسالة نجاح إلى الجلسة
+        return redirect()->back()->with('success', 'تم حفظ التغييرات بنجاح.');
+    }
+
+    /**
+     * إنشاء إعدادات العميل الافتراضية
+     */
+    public function createDefaultSettings()
+    {
+        $defaultSettings = [
+            ['key' => 'image', 'name' => 'صورة', 'is_active' => 1],
+            ['key' => 'type', 'name' => 'النوع', 'is_active' => 1],
+            ['key' => 'birth_date', 'name' => 'تاريخ الميلاد', 'is_active' => 1],
+            ['key' => 'location', 'name' => 'الموقع على الخريطة', 'is_active' => 1],
+            ['key' => 'opening_balance', 'name' => 'الرصيد الافتتاحي', 'is_active' => 1],
+            ['key' => 'credit_limit', 'name' => 'الحد الائتماني', 'is_active' => 1],
+            ['key' => 'credit_duration', 'name' => 'المدة الائتمانية', 'is_active' => 1],
+            ['key' => 'national_id', 'name' => 'رقم الهوية الوطنية', 'is_active' => 1],
+            ['key' => 'addresses', 'name' => 'عناوين متعددة', 'is_active' => 1],
+            ['key' => 'link', 'name' => 'الرابط', 'is_active' => 1],
+        ];
+
+        foreach ($defaultSettings as $settingData) {
+            // التحقق مما إذا كان الإعداد موجودًا بالفعل
+            $existingSetting = GeneralClientSetting::where('key', $settingData['key'])->first();
+            
+            if (!$existingSetting) {
+                // إنشاء الإعداد إذا لم يكن موجودًا
+                GeneralClientSetting::create($settingData);
+            }
+        }
+
+        return redirect()->back()->with('success', 'تم إنشاء الإعدادات الافتراضية بنجاح.');
+    }
+
+    public function test()
 {
 
     $today = Carbon::today();
@@ -131,35 +182,6 @@ class ClientSettingController extends Controller
 
         $status->delete();
         return redirect()->back()->with('success', 'تم حذف الحالة بنجاح.');
-    }
-
-
-    /**
-     * حفظ الإعدادات الجديدة
-     */
-    public function store(Request $request)
-    {
-        // حفظ نوع العميل المختار
-        $selectedClientType = $request->type;
-
-        // البحث عن السجل بناءً على النوع، إذا وجد يتم تحديثه، وإلا يتم إنشاؤه
-        $clientType = ClientType::updateOrCreate(
-            ['type' => $selectedClientType], // الشروط للبحث
-            ['is_active' => true] // البيانات التي سيتم تحديثها أو إنشاؤها
-        );
-
-        // تحديث حالة is_active في GeneralClientSetting
-        $settings = GeneralClientSetting::all();
-        foreach ($settings as $setting) {
-            $setting->update([
-                'is_active' => in_array($setting->id, $request->settings ?? []),
-            ]);
-        }
-
-
-
-        // إضافة رسالة نجاح إلى الجلسة
-        return redirect()->back()->with('success', 'تم حفظ التغييرات بنجاح.');
     }
 
     // صلاحيات العميل

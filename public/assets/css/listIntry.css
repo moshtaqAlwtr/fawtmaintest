@@ -23,6 +23,7 @@
 body {
     background-color: var(--white);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #000000; /* Black text */
 }
 
 /* Page Header */
@@ -152,12 +153,12 @@ body {
     font-size: 2rem;
     font-weight: 700;
     margin: 0;
-    color: var(--gray-700);
+    color: #000000; /* Black text */
 }
 
 .stats-content p {
     margin: 0;
-    color: var(--gray-600);
+    color: #000000; /* Black text */
     font-weight: 500;
 }
 
@@ -179,12 +180,12 @@ body {
 .card-title {
     font-size: 1.25rem;
     font-weight: 600;
-    color: var(--gray-700);
+    color: #000000; /* Black text */
 }
 
 .card-subtitle {
     font-size: 0.95rem;
-    color: var(--gray-600);
+    color: #000000; /* Black text */
 }
 
 /* Empty State */
@@ -208,12 +209,12 @@ body {
 }
 
 .empty-state h3 {
-    color: var(--gray-700);
+    color: #000000; /* Black text */
     margin-bottom: 0.5rem;
 }
 
 .empty-state p {
-    color: var(--gray-600);
+    color: #000000; /* Black text */
     margin-bottom: 2rem;
 }
 
@@ -232,7 +233,7 @@ body {
     border: none;
     padding: 1.5rem;
     font-weight: 600;
-    color: var(--gray-700);
+    color: #000000; /* Black text */
     box-shadow: none;
     border-radius: 0;
     display: flex;
@@ -287,7 +288,7 @@ body {
     margin: 0 0 0.5rem 0;
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--primary-dark);
+    color: #000000; /* Black text */
 }
 
 .employee-stats {
@@ -348,7 +349,7 @@ body {
     margin: 0;
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--primary-dark);
+    color: #000000; /* Black text */
 }
 
 /* Day Cards */
@@ -380,7 +381,7 @@ body {
 .day-name {
     margin: 0;
     font-weight: 600;
-    color: var(--primary-dark);
+    color: #000000; /* Black text */
 }
 
 .visits-count {
@@ -452,7 +453,7 @@ body {
     margin: 0 0 0.25rem 0;
     font-weight: 600;
     font-size: 0.9rem;
-    color: var(--primary-dark);
+    color: #000000; /* Black text */
 }
 
 .client-code {
@@ -476,7 +477,7 @@ body {
 /* No Visits State */
 .no-visits {
     text-align: center;
-    color: var(--gray-600);
+    color: #000000; /* Black text */
     padding: 2rem 1rem;
 }
 
@@ -498,7 +499,7 @@ body {
     font-weight: 500;
     padding: 0.4rem 0.8rem;
     background: var(--primary-light);
-    color: var(--primary-dark);
+    color: #000000; /* Black text */
     border: 1px solid var(--primary-color);
 }
 
@@ -579,7 +580,7 @@ body {
 .individual-toggle {
     background: none;
     border: 1px solid var(--primary-color);
-    color: var(--primary-color);
+    color: #000000; /* Black text */
     font-size: 0.9rem;
     padding: 0.25rem 0.5rem;
     border-radius: var(--border-radius);
@@ -666,6 +667,11 @@ html {
     scroll-behavior: smooth;
 }
 
+/* Toggle Sections */
+.section-hidden {
+    display: none;
+}
+
 /* Additional primary color enhancements */
 .week-date-range .badge.bg-info {
     background-color: var(--primary-light) !important;
@@ -675,7 +681,7 @@ html {
 
 .week-stats .badge {
     background: var(--white);
-    color: var(--primary-dark);
+    color: #000000; /* Black text */
     border: 1px solid var(--primary-color);
 }
 
@@ -696,7 +702,7 @@ html {
 
 .employee-stats .badge {
     background: var(--white);
-    color: var(--primary-dark);
+    color: #000000; /* Black text */
     border: 1px solid var(--primary-color);
 }
 
