@@ -38,7 +38,7 @@
                     <h2 class="content-header-title float-left mb-0">تصنيفات العملاء</h2>
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="">الرئيسية</a></li>
+                            <li class="breadcrumb-item"><a href="{{route('sales.department.dashboard')}}">الرئيسية</a></li>
                             <li class="breadcrumb-item active">تصنيفات العملاء</li>
                         </ol>
                     </div>
@@ -57,7 +57,7 @@
                         class="btn btn-primary d-flex align-items-center justify-content-center"
                         style="height: 44px; padding: 0 16px; font-weight: bold; border-radius: 6px;">
                         <i class="fas fa-plus ms-2"></i>
-                        أضف موعد جديد
+                        أضف تصنيف جديد
                     </a>
                 </div>
             </div>
@@ -86,7 +86,7 @@
                             <button type="submit" class="btn btn-primary mr-2">
                                 <i class="fa fa-search"></i> بحث
                             </button>
-                            <a href="{{ route('categoriesClient.index') }}" class="btn btn-secondary">
+                            <a href="{{ route('categoriesClient.index') }}" class="btn btn-outline-warning">
                                 <i class="fa fa-times"></i> إلغاء
                             </a>
                         </div>

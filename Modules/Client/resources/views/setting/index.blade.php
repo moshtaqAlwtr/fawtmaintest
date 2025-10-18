@@ -126,7 +126,7 @@
                 <div class="card hover-card equal-height-card">
                     <div class="card-content">
                         <div class="card-body setting">
-                            <a href="">
+                            <a href="{{ route('groups.group_client') }}">
                                 <i class="fas fa-users-cog fa-6x p-3 text-primary"></i>
                                 <h5><strong>اعدادات المجموعات</strong></h5>
                             </a>

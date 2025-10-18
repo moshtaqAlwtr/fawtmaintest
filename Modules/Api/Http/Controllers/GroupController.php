@@ -149,21 +149,26 @@ public function update(Request $request, $id)
     ]);
 }
 
-   
- 
+
+
 
     /**
      * Remove the specified resource from storage.
      */
 public function destroy($id)
 {
-    $group = Region_groub::findOrFail($id);
-    $group->delete();
+    try {
+        $group = Region_groub::findOrFail($id);
+        $group->delete();
 
-    return response()->json([
-        'success' => true,
-        'message' => 'تم حذف المجموعة بنجاح'
-    ]);
+        // إضافة رسالة نجاح في الجلسة
+        session()->flash('success', 'تم حذف المجموعة بنجاح');
+
+        // إعادة التوجيه إلى صفحة المجموعات
+        return redirect()->route('groups.group_client');
+    } catch (\Exception $e) {
+        session()->flash('error', 'حدث خطأ أثناء الحذف: ' . $e->getMessage());
+        return redirect()->route('groups.group_client');
+    }
 }
-
 }

@@ -651,6 +651,7 @@ public function index(Request $request)
 
     $currentDayName = $arabicDays[$adjustedDayOfWeek];
     $currentDayNameEn = $englishDays[$adjustedDayOfWeek];
+      $GeneralClientSettings = GeneralClientSetting::all();
 
     // نحسب الأسبوع يدويًا من بداية السنة مع اعتبار بداية الأسبوع من السبت
     $startOfYear = now()->copy()->startOfYear();
@@ -780,6 +781,7 @@ $userBranch = $user->branch ?? null;
         'clientDueBalances' => $clientDueBalances,
         'clientDistances' => $clientDistances,
         'Neighborhoods' => Neighborhood::all(),
+'GeneralClientSettings' => $GeneralClientSettings,
         'users' => User::all(),
         'categories' => CategoriesClient::all(),
         'employees' => Employee::all(),

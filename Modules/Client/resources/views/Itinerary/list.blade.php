@@ -4,7 +4,7 @@
 
 @section('title', 'عرض جميع خطط السير')
 @section('css')
-
+<link rel="stylesheet" href="{{ asset('assets/css/itinerary.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tippy.js@6.3.7/dist/tippy.css">
 
