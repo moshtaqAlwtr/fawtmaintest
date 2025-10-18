@@ -1112,7 +1112,7 @@ function executeSave(employeeId, visits) {
                 showAlert('success', 'تم الحفظ', response.message);
                 // Redirect to the create route after successful save
                 setTimeout(function() {
-                    window.location.href = response.redirect || '{{ route("itinerary.index") }}';
+                    window.location.href = response.redirect || '{{ route("itinerary.list") }}';
                 }, 2000);
             } else {
                 showAlert('error', 'خطأ', response.message);

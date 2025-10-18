@@ -88,7 +88,8 @@ public function store(Request $request)
         return response()->json([
             'success' => true,
             'message' => 'تم الحفظ بنجاح',
-            'inserted_count' => count($visitData)
+            'inserted_count' => count($visitData),
+            'redirect' => route('itinerary.list')
         ]);
 
     } catch (\Exception $e) {
@@ -141,78 +142,84 @@ public function store(Request $request)
         ]);
     }
 
-    public function update(Request $request, $employeeId)
-    {
-        $request->validate([
-            'visits' => 'required|array',
-            'year' => 'required|integer',
-            'week_number' => 'required|integer',
-            'visits.*' => 'nullable|array',
-            'visits.*.*' => 'nullable|integer|exists:clients,id',
-        ]);
+   public function update(Request $request, $employeeId)
+{
+    $request->validate([
+        'visits' => 'required|array',
+        'year' => 'required|integer',
+        'week_number' => 'required|integer',
+        'visits.*' => 'nullable|array',
+        'visits.*.*' => 'nullable|integer|exists:clients,id',
+    ]);
 
-        $year = $request->input('year');
-        $weekNumber = $request->input('week_number');
-        $visitsByDay = $request->input('visits');
+    $year = $request->input('year');
+    $weekNumber = $request->input('week_number');
+    $visitsByDay = $request->input('visits');
 
-        DB::beginTransaction();
-        try {
-            // جلب جميع الزيارات الحالية لهذا الأسبوع (للموظف والسنة ورقم الأسبوع)
-            $existingVisits = EmployeeClientVisit::where('employee_id', $employeeId)->where('year', $year)->where('week_number', $weekNumber)->get()->groupBy('day_of_week');
+    DB::beginTransaction();
+    try {
+        // جلب جميع الزيارات الحالية لهذا الأسبوع (للموظف والسنة ورقم الأسبوع)
+        $existingVisits = EmployeeClientVisit::where('employee_id', $employeeId)->where('year', $year)->where('week_number', $weekNumber)->get()->groupBy('day_of_week');
 
-            foreach ($visitsByDay as $day => $clientIds) {
-                if (is_array($clientIds)) {
-                    // تحويل المصفوفة إلى أرقام فقط (للتأكد من عدم وجود قيم فارغة)
-                    $clientIds = array_filter($clientIds, 'is_numeric');
-                    $day = strtolower($day);
+        foreach ($visitsByDay as $day => $clientIds) {
+            if (is_array($clientIds)) {
+                // تحويل المصفوفة إلى أرقام فقط (للتأكد من عدم وجود قيم فارغة)
+                $clientIds = array_filter($clientIds, 'is_numeric');
+                $day = strtolower($day);
 
-                    // جلب الزيارات الحالية لهذا اليوم
-                    $currentDayVisits = $existingVisits[$day] ?? collect();
-                    $currentClientIds = $currentDayVisits->pluck('client_id')->toArray();
+                // جلب الزيارات الحالية لهذا اليوم
+                $currentDayVisits = $existingVisits[$day] ?? collect();
+                $currentClientIds = $currentDayVisits->pluck('client_id')->toArray();
 
-                    // تحديد العملاء الجدد الذين يجب إضافتهم لهذا اليوم
-                    $newClientIds = array_diff($clientIds, $currentClientIds);
+                // تحديد العملاء الجدد الذين يجب إضافتهم لهذا اليوم
+                $newClientIds = array_diff($clientIds, $currentClientIds);
 
-                    // إضافة العملاء الجدد لهذا اليوم (دون التحقق من وجودهم في أيام أخرى)
-                    foreach ($newClientIds as $clientId) {
-                        EmployeeClientVisit::create([
-                            'employee_id' => $employeeId,
-                            'client_id' => $clientId,
-                            'day_of_week' => $day,
-                            'year' => $year,
-                            'week_number' => $weekNumber,
+                // إضافة العملاء الجدد لهذا اليوم (دون التحقق من وجودهم في أيام أخرى)
+                foreach ($newClientIds as $clientId) {
+                    EmployeeClientVisit::create([
+                        'employee_id' => $employeeId,
+                        'client_id' => $clientId,
+                        'day_of_week' => $day,
+                        'year' => $year,
+                        'week_number' => $weekNumber,
+                    ]);
+                }
+
+                // تحديد العملاء الذين يجب حذفهم (الذين تم إزالتهم من الواجهة)
+                $removedClientIds = array_diff($currentClientIds, $clientIds);
+                if (!empty($removedClientIds)) {
+                    EmployeeClientVisit::where('employee_id', $employeeId)->where('year', $year)->where('week_number', $weekNumber)->where('day_of_week', $day)->whereIn('client_id', $removedClientIds)->delete();
+                }
+
+                // تحديث العملاء المتبقين (الموجودين في كلا المصفوفتين)
+                $remainingClientIds = array_intersect($clientIds, $currentClientIds);
+                foreach ($remainingClientIds as $clientId) {
+                    EmployeeClientVisit::where('employee_id', $employeeId)
+                        ->where('client_id', $clientId)
+                        ->where('year', $year)
+                        ->where('week_number', $weekNumber)
+                        ->where('day_of_week', $day)
+                        ->update([
+                            'updated_at' => now(),
                         ]);
-                    }
-
-                    // تحديد العملاء الذين يجب حذفهم (الذين تم إزالتهم من الواجهة)
-                    $removedClientIds = array_diff($currentClientIds, $clientIds);
-                    if (!empty($removedClientIds)) {
-                        EmployeeClientVisit::where('employee_id', $employeeId)->where('year', $year)->where('week_number', $weekNumber)->where('day_of_week', $day)->whereIn('client_id', $removedClientIds)->delete();
-                    }
-
-                    // تحديث العملاء المتبقين (الموجودين في كلا المصفوفتين)
-                    $remainingClientIds = array_intersect($clientIds, $currentClientIds);
-                    foreach ($remainingClientIds as $clientId) {
-                        EmployeeClientVisit::where('employee_id', $employeeId)
-                            ->where('client_id', $clientId)
-                            ->where('year', $year)
-                            ->where('week_number', $weekNumber)
-                            ->where('day_of_week', $day)
-                            ->update([
-                                'updated_at' => now(),
-                            ]);
-                    }
                 }
             }
-
-            DB::commit();
-            return response()->json(['success' => true, 'message' => 'تم تحديث خط السير بنجاح.']);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            logger()->error('Itinerary Update Error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء تحديث البيانات.'], 500);
         }
+
+        DB::commit();
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تحديث خط السير بنجاح.',
+            'redirect' => route('itinerary.list')
+        ]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        logger()->error('Itinerary Update Error: ' . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء تحديث البيانات.'], 500);
     }
+}
+
+
     // دالة جديدة لجلب البيانات المحفوظة للأسبوع المحدد
     public function getWeekItinerary($employeeId)
     {

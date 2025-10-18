@@ -161,18 +161,83 @@
         </div>
     </div>
 
-    <!-- View Toggle Buttons -->
-    <div class="view-toggle">
-        <button id="listViewBtn" class="btn btn-outline-primary">عرض القائمة</button>
-        <button id="calendarViewBtn" class="btn btn-outline-primary active">عرض التقويم</button>
+    <!-- Quick Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stats-card">
+                <div class="stats-content">
+                    <div class="stats-icon bg-primary">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <div>
+                        <h3 id="totalVisitsCount">0</h3>
+                        <p>إجمالي الزيارات</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stats-card">
+                <div class="stats-content">
+                    <div class="stats-icon bg-success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div>
+                        <h3 id="completedVisitsCount">0</h3>
+                        <p>الزيارات المكتملة</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stats-card">
+                <div class="stats-content">
+                    <div class="stats-icon bg-info">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div>
+                        <h3 id="newClientsCount">0</h3>
+                        <p>عملاء جدد</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stats-card">
+                <div class="stats-content">
+                    <div class="stats-icon bg-warning">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div>
+                        <h3 id="pendingVisitsCount">0</h3>
+                        <p>زيارات قيد الانتظار</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Calendar View -->
     <div id="calendarView">
-        <div class="calendar-header">
-            <h4><i class="fas fa-calendar-alt me-2"></i> تقويم خط السير</h4>
-        </div>
         <div class="calendar-container">
+            <!-- Calendar Controls -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="mb-0"><i class="fas fa-calendar-alt me-2"></i> تقويم خط السير</h4>
+                </div>
+                <div class="calendar-actions">
+                    <button class="btn btn-primary me-2" onclick="addNewVisit()">
+                        <i class="fas fa-plus"></i> إضافة زيارة
+                    </button>
+                    <button class="btn btn-outline-primary me-2" onclick="filterByEmployee()">
+                        <i class="fas fa-filter"></i> تصفية حسب المندوب
+                    </button>
+                    <button class="btn btn-outline-success" onclick="exportVisits()">
+                        <i class="fas fa-file-export"></i> تصدير
+                    </button>
+                </div>
+            </div>
+
             <div id="itinerary-calendar"></div>
         </div>
 
@@ -885,20 +950,44 @@
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
                 },
                 buttonText: {
                     today: 'اليوم',
                     month: 'شهر',
                     week: 'أسبوع',
-                    day: 'يوم'
+                    day: 'يوم',
+                    listWeek: 'أجندة'
                 },
                 events: events,
+                selectable: true,
+                editable: true,
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                },
+                eventDidMount: function(info) {
+                    // Add tooltip
+                    tippy(info.el, {
+                        content: `
+                            <div class="event-tooltip">
+                                <h6>${info.event.extendedProps.employeeName}</h6>
+                                <div>عدد الزيارات: ${info.event.extendedProps.visitCount}</div>
+                                <div>عملاء جدد: ${info.event.extendedProps.newClientsCount}</div>
+                            </div>
+                        `,
+                        allowHTML: true
+                    });
+                },
                 eventClick: function(info) {
-                    // Show details when an event is clicked
-                    alert(`المندوب: ${info.event.extendedProps.employeeName}\n` +
-                          `عدد الزيارات: ${info.event.extendedProps.visitCount}\n` +
-                          `عملاء جدد: ${info.event.extendedProps.newClientsCount}`);
+                    showEventDetails(info.event);
+                },
+                dateClick: function(info) {
+                    addNewVisit(info.date);
+                },
+                eventDrop: function(info) {
+                    updateVisitDate(info.event);
                 }
             });
 
