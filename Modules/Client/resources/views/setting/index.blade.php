@@ -133,12 +133,26 @@
                                 <a href="">
                                     <img class="p-3" src="{{ asset('app-assets/images/icons8-pager-100.png') }}"
                                         alt="img placeholder">
-                                    <h5><strong>الحقول الاضافية الخاصة بالعميل</strong></h5>
+                                    <h5><strong>اعدادات المجموعات </strong></h5>
                                 </a>
                             </div>
                         </div>
                     </div>
                 </div>
+                  <div class="col-lg-4 col-sm-6 col-12 mb-4">
+                    <div class="card hover-card equal-height-card">
+                        <div class="card-content">
+                            <div class="card-body setting">
+                                <a href="">
+                                    <img class="p-3" src="{{ asset('app-assets/images/icons8-pager-100.png') }}"
+                                        alt="img placeholder">
+                                    <h5><strong>اعدادات  الاحصائيات  </strong></h5>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
 
             </div>
         </section>
