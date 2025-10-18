@@ -6,6 +6,9 @@ use App\Models\Account;
 use App\Models\ChartOfAccount;
 use App\Models\Client;
 use App\Models\Employee;
+use App\Models\Expense;
+use App\Models\Revenue;
+use App\Models\Branch;
 use App\Models\Log as ModelsLog;
 use App\Models\AssetDepreciation;
 use App\Models\JournalEntry;
@@ -57,7 +60,7 @@ class AssetsController extends Controller
 
         $employees = Employee::all();
 
-        return view('Accounts.asol.index', compact('assets', 'employees'));
+        return view('account::asol.index', compact('assets', 'employees'));
     }
 
 
@@ -70,7 +73,7 @@ class AssetsController extends Controller
         $accounts_all = Account::whereNotIn('parent_id', [6])->get();
         $employees = Employee::all();
         $clients = Client::all();
-        return view('Accounts.asol.create', compact('accounts', 'employees', 'accounts_all'));
+        return view('account::asol.create', compact('accounts', 'employees', 'accounts_all'));
     }
 
     /**
@@ -290,7 +293,7 @@ class AssetsController extends Controller
         $operationsPaginator = $this->paginateOperations($allOperations);
 
         // إرسال البيانات إلى الواجهة
-        return view('Accounts.accounts_chart.tree_details', compact('treasury', 'operationsPaginator', 'branches'));
+        return view('account::accounts_chart.tree_details', compact('treasury', 'operationsPaginator', 'branches'));
     }
 
     private function getTreasury($id)
@@ -491,7 +494,7 @@ class AssetsController extends Controller
         $accounts_all = Account::whereNotIn('parent_id', [6])->get();
         $employees = Employee::all();
         $clients = Client::all();
-        return view('Accounts.asol.edit', compact('asset', 'accounts', 'employees', 'clients', 'accounts_all'));
+        return view('account::asol.edit', compact('asset', 'accounts', 'employees', 'clients', 'accounts_all'));
     }
 
     /**
@@ -857,7 +860,7 @@ class AssetsController extends Controller
         $asset = AssetDepreciation::with('depreciation')->findOrFail($id);
         $accounts_all = Account::whereNotIn('parent_id', [6])->get();
 
-        return view('Accounts.asol.sell', compact('asset', 'accounts_all'));
+        return view('account::asol.sell', compact('asset', 'accounts_all'));
     }
 
     /**

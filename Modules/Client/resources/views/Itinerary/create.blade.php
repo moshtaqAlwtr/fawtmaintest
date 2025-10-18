@@ -1090,44 +1090,42 @@
                     }
                 });
             }
+function executeSave(employeeId, visits) {
+    const saveBtn = $('#save-itinerary');
+    const originalText = saveBtn.html();
+    saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...');
 
-            function executeSave(employeeId, visits) {
-                const saveBtn = $('#save-itinerary');
-                const originalText = saveBtn.html();
-                saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...');
-
-                $.ajax({
-                    url: '{{ route('itinerary.store') }}',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        employee_id: employeeId,
-                        year: currentYear,
-                        week_number: currentWeek,
-                        visits: visits,
-                        _token: '{{ csrf_token() }}'
-                    }),
-                    success: function(response) {
-                        saveBtn.prop('disabled', false).html(originalText);
-                        if (response.success) {
-                            showAlert('success', 'تم الحفظ', response.message);
-                            // Redirect to itinerary list after successful save
-                            setTimeout(function() {
-                                window.location.href = '{{ route("itinerary.list") }}';
-                            }, 2000);
-                        } else {
-                            showAlert('error', 'خطأ', response.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        saveBtn.prop('disabled', false).html(originalText);
-                        const errorMsg = xhr.responseJSON?.message || 'فشل في الاتصال بالخادم';
-                        showAlert('error', 'خطأ في الحفظ', errorMsg);
-                        console.error('تفاصيل الخطأ:', xhr.responseJSON);
-                    }
-                });
+    $.ajax({
+        url: '{{ route('itinerary.store') }}',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            employee_id: employeeId,
+            year: currentYear,
+            week_number: currentWeek,
+            visits: visits,
+            _token: '{{ csrf_token() }}'
+        }),
+        success: function(response) {
+            saveBtn.prop('disabled', false).html(originalText);
+            if (response.success) {
+                showAlert('success', 'تم الحفظ', response.message);
+                // Redirect to the create route after successful save
+                setTimeout(function() {
+                    window.location.href = response.redirect || '{{ route("itinerary.list") }}';
+                }, 2000);
+            } else {
+                showAlert('error', 'خطأ', response.message);
             }
-
+        },
+        error: function(xhr) {
+            saveBtn.prop('disabled', false).html(originalText);
+            const errorMsg = xhr.responseJSON?.message || 'فشل في الاتصال بالخادم';
+            showAlert('error', 'خطأ في الحفظ', errorMsg);
+            console.error('تفاصيل الخطأ:', xhr.responseJSON);
+        }
+    });
+}
             function addClientToDay(day, client) {
                 if (!dayAssignments[day].find(c => c.id == client.id)) {
                     dayAssignments[day].push(client);

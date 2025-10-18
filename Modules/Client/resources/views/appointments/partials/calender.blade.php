@@ -1,651 +1,656 @@
-
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<!-- حاوية التقويم -->
+<div class="calendar-container">
+    <!-- أنماط CSS -->
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-
         .calendar-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 30px;
         }
 
-        .calendar-header {
-            background: linear-gradient(135deg, #dbe2e8, #ededed);
-            color: rgb(0, 0, 0);
-            padding: 30px;
-            text-align: center;
-            position: relative;
-        }
-
-        .calendar-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-
-        .calendar-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .nav-button {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 12px 16px;
-            border-radius: 50%;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .nav-button:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-        }
-
-        .month-year {
-            font-size: 1.8rem;
-            font-weight: 600;
-        }
-
-        .view-filters {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .filter-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .filter-btn.active {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.05);
-        }
-
-        .view-toggle {
-            position: absolute;
-            top: 30px;
-            left: 30px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .toggle-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .toggle-btn.active {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .calendar-body {
-            padding: 30px;
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 1px;
-            background: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .day-header {
-            background: linear-gradient(135deg, #3498db, #5dade2);
-            color: white;
-            padding: 20px 10px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        .day-cell {
-            background: white;
-            min-height: 140px;
-            padding: 15px 10px;
-            position: relative;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: 2px solid transparent;
-        }
-
-        .day-cell:hover {
-            background: #f8f9fa;
-            border-color: #3498db;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .day-cell.today {
-            background: linear-gradient(135deg, #e8f5e8, #f0f8f0);
-            border-color: #27ae60;
-        }
-
-        .day-cell.other-month {
-            background: #f8f9fa;
-            color: #bbb;
-        }
-
-        .day-number {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        .day-cell.other-month .day-number {
-            color: #ccc;
-        }
-
-        .bookings-list {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .booking-item {
-            background: linear-gradient(135deg, #3498db, #5dade2);
-            color: white;
-            padding: 8px 10px;
-            border-radius: 15px;
-            font-size: 11px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .booking-item:hover {
-            transform: scale(1.05);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .booking-item.confirmed {
-            background: linear-gradient(135deg, #27ae60, #2ecc71);
-        }
-
-        .booking-item.pending {
-            background: linear-gradient(135deg, #f39c12, #f1c40f);
-        }
-
-        .booking-item.cancelled {
-            background: linear-gradient(135deg, #e74c3c, #e67e22);
-        }
-
-        .booking-item.completed {
-            background: linear-gradient(135deg, #8e44ad, #9b59b6);
-        }
-
-        .booking-icon {
-            font-size: 10px;
-        }
-
-        .booking-time {
-            font-size: 9px;
-            opacity: 0.9;
-            margin-top: 2px;
-        }
-
-        .more-bookings {
-            background: #95a5a6;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 10px;
-            font-size: 10px;
-            text-align: center;
-            margin-top: 5px;
-            cursor: pointer;
-        }
-
-        .booking-details-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #eee;
-        }
-
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #95a5a6;
-        }
-
-        .modal-booking-item {
-            background: #f8f9fa;
+        /* تنسيق رأس التقويم */
+        .fc-header-toolbar {
+            background-color: var(--bs-primary);
             padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border-right: 4px solid #3498db;
+            border-radius: 8px;
+            margin-bottom: 20px !important;
         }
 
-        .modal-booking-item.confirmed {
-            border-right-color: #27ae60;
+        .fc-toolbar-title {
+            color: #fff !important;
+            font-size: 1.5em !important;
         }
 
-        .modal-booking-item.pending {
-            border-right-color: #f39c12;
+        .fc .fc-button {
+            background: #fff;
+            color: var(--bs-primary);
+            border: none;
+            padding: 8px 15px;
+            font-weight: 500;
         }
 
-        .modal-booking-item.cancelled {
-            border-right-color: #e74c3c;
+        .fc .fc-button:hover {
+            background: rgba(255, 255, 255, 0.9);
         }
 
-        .modal-booking-item.completed {
-            border-right-color: #8e44ad;
+        .fc .fc-button-primary:not(:disabled).fc-button-active {
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--bs-primary);
         }
 
-        .legend {
+        /* تنسيق الأحداث */
+        .fc-event {
+            border: none !important;
+            padding: 3px 8px !important;
+            margin: 2px !important;
+            border-radius: 6px !important;
+        }
+
+        /* تنسيق Legend */
+        .calendar-legend {
             display: flex;
             justify-content: center;
             gap: 20px;
             margin-top: 20px;
-            flex-wrap: wrap;
+            padding: 15px;
+            background: rgba(var(--bs-primary-rgb), 0.05);
+            border-radius: 8px;
         }
 
         .legend-item {
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 12px;
         }
 
-        .legend-color {
-            width: 15px;
-            height: 15px;
+        .legend-dot {
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
         }
 
-        .legend-color.confirmed {
-            background: #27ae60;
+        .legend-text {
+            font-size: 0.9em;
+            color: #666;
         }
 
-        .legend-color.pending {
-            background: #f39c12;
-        }
-
-        .legend-color.cancelled {
-            background: #e74c3c;
-        }
-
-        .legend-color.completed {
-            background: #8e44ad;
-        }
-
-        @media (max-width: 768px) {
-            .calendar-container {
-                margin: 10px;
-                border-radius: 15px;
-            }
-
-            .calendar-header {
-                padding: 20px;
-            }
-
-            .calendar-title {
-                font-size: 1.8rem;
-            }
-
-            .calendar-body {
-                padding: 15px;
-            }
-
-            .day-cell {
-                min-height: 100px;
-                padding: 10px 5px;
-            }
-
-            .day-number {
-                font-size: 1rem;
-            }
-
-            .booking-item {
-                font-size: 10px;
-                padding: 6px 8px;
-            }
-
-            .view-toggle {
-                position: static;
-                justify-content: center;
-                margin-top: 15px;
-            }
-
-            .legend {
-                gap: 10px;
-            }
-        }
+        /* ألوان الحالات */
+        .status-1 { background-color: #ffc107; } /* قيد الانتظار */
+        .status-2 { background-color: #28a745; color: #fff; } /* مكتمل */
+        .status-3 { background-color: #dc3545; color: #fff; } /* ملغي */
+        .status-4 { background-color: #17a2b8; color: #fff; } /* معاد جدولته */
     </style>
 
-    <div class="calendar-container">
-        <div class="calendar-header">
-            <div class="view-toggle">
-                <button class="toggle-btn active" onclick="toggleView('calendar')">
-                    <i class="fas fa-calendar-alt"></i>
-                </button>
-                <button class="toggle-btn" onclick="toggleView('list')">
-                    <i class="fas fa-list"></i>
-                </button>
-            </div>
-
-            <h1 class="calendar-title">
-                <i class="fas fa-calendar-check"></i>
-                تقويم الحجوزات
-            </h1>
-
-            <div class="calendar-controls">
-                <button class="nav-button" onclick="previousMonth()">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-                <div class="month-year" id="monthYear"></div>
-                <button class="nav-button" onclick="nextMonth()">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-            </div>
-
-            <div class="view-filters">
-                <button class="filter-btn active" onclick="filterBookings('all')">الكل</button>
-                <button class="filter-btn" onclick="filterBookings('today')">اليوم</button>
-                <button class="filter-btn" onclick="filterBookings('week')">الأسبوع</button>
-                <button class="filter-btn" onclick="filterBookings('month')">الشهر</button>
-            </div>
+    <div class="calendar-header">
+        <div class="view-toggle">
+            <button class="toggle-btn active" onclick="toggleView('calendar')">
+                <i class="fas fa-calendar-alt"></i>
+            </button>
+            <button class="toggle-btn" onclick="toggleView('list')">
+                <i class="fas fa-list"></i>
+            </button>
         </div>
 
-        <div class="calendar-body">
-            <div class="calendar-grid" id="calendarGrid"></div>
+        <h1 class="calendar-title">
+            <i class="fas fa-calendar-check"></i>
+            تقويم المواعيد
+        </h1>
 
-            <div class="legend">
+        <div class="calendar-controls">
+            <button class="nav-button" onclick="previousMonth()">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="month-year" id="monthYear"></div>
+            <button class="nav-button" onclick="nextMonth()">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+
+        <div class="view-filters">
+            <button class="filter-btn" onclick="filterBookings('all', event)">الكل</button>
+            <button class="filter-btn" onclick="filterBookings('today', event)">اليوم</button>
+            <button class="filter-btn" onclick="filterBookings('week', event)">الأسبوع</button>
+            <button class="filter-btn" onclick="filterBookings('month', event)">الشهر</button>
+        </div>
+    </div>
+
+    <div class="calendar-body">
+        <div class="calendar-grid" id="calendarGrid"></div>
+
+        <!-- Legend Section -->
+        <div class="appointments-legend mt-4">
+            <div class="d-flex justify-content-center align-items-center flex-wrap gap-3">
                 <div class="legend-item">
-                    <div class="legend-color confirmed"></div>
-                    <span>مؤكد</span>
+                    <span class="legend-dot pending"></span>
+                    <span class="legend-text">قيد الانتظار</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color pending"></div>
-                    <span>تحت المراجعة</span>
+                    <span class="legend-dot completed"></span>
+                    <span class="legend-text">مكتمل</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color cancelled"></div>
-                    <span>ملغي</span>
+                    <span class="legend-dot cancelled"></span>
+                    <span class="legend-text">ملغي</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color completed"></div>
-                    <span>مكتمل</span>
+                    <span class="legend-dot rescheduled"></span>
+                    <span class="legend-text">معاد جدولته</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal for booking details -->
-    <div class="booking-details-modal" id="bookingModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="modalTitle">تفاصيل الحجوزات</h3>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
-            </div>
-            <div id="modalBookings"></div>
-        </div>
-    </div>
-
-    <script>
-        const bookingsData = @json($calendarBookings);
-
-        let currentDate = new Date();
-
-        document.addEventListener('DOMContentLoaded', () => {
-            generateCalendar();
-            document.getElementById('prevMonth').addEventListener('click', () => changeMonth(-1));
-            document.getElementById('nextMonth').addEventListener('click', () => changeMonth(1));
-            document.querySelector('.close-btn').addEventListener('click', () => {
-                document.getElementById('bookingModal').style.display = 'none';
-            });
-        });
-        let currentFilter = 'all';
-
-        const monthNames = [
-            'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-            'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
-        ];
-
-        const dayNames = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-
-        function generateCalendar() {
-            const calendarGrid = document.getElementById('calendarGrid');
-            const monthYear = document.getElementById('monthYear');
-
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-
-            monthYear.textContent = `${monthNames[month]} ${year}`;
-
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const startDate = new Date(firstDay);
-            startDate.setDate(startDate.getDate() - firstDay.getDay());
-
-            calendarGrid.innerHTML = '';
-
-            // Add day headers
-            dayNames.forEach(day => {
-                const dayHeader = document.createElement('div');
-                dayHeader.className = 'day-header';
-                dayHeader.textContent = day;
-                calendarGrid.appendChild(dayHeader);
-            });
-
-            // Add calendar days
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            for (let i = 0; i < 42; i++) {
-                const cellDate = new Date(startDate);
-                cellDate.setDate(startDate.getDate() + i);
-
-                const dayCell = document.createElement('div');
-                dayCell.className = 'day-cell';
-
-                if (cellDate.getMonth() !== month) {
-                    dayCell.classList.add('other-month');
-                }
-
-                if (cellDate.getTime() === today.getTime()) {
-                    dayCell.classList.add('today');
-                }
-
-                const dayNumber = document.createElement('div');
-                dayNumber.className = 'day-number';
-                dayNumber.textContent = cellDate.getDate();
-                dayCell.appendChild(dayNumber);
-
-                const bookingsList = document.createElement('div');
-                bookingsList.className = 'bookings-list';
-
-                const dateKey = cellDate.toISOString().split('T')[0];
-                const dayBookings = bookingsData[dateKey] || [];
-
-                if (dayBookings.length > 0) {
-                    const displayBookings = dayBookings.slice(0, 3);
-                    displayBookings.forEach(booking => {
-                        const bookingItem = document.createElement('div');
-                        bookingItem.className = `booking-item ${booking.status}`;
-                        bookingItem.innerHTML = `
-                            <i class="fas fa-user booking-icon"></i>
-                            <div>
-                                <div>${booking.client}</div>
-                                <div class="booking-time">${booking.time}</div>
-                            </div>
-                        `;
-                        bookingsList.appendChild(bookingItem);
-                    });
-
-                    if (dayBookings.length > 3) {
-                        const moreBookings = document.createElement('div');
-                        moreBookings.className = 'more-bookings';
-                        moreBookings.textContent = `+${dayBookings.length - 3} أخرى`;
-                        bookingsList.appendChild(moreBookings);
-                    }
-
-                    dayCell.addEventListener('click', () => showBookingDetails(cellDate, dayBookings));
-                }
-
-                dayCell.appendChild(bookingsList);
-                calendarGrid.appendChild(dayCell);
-            }
+    <style>
+        /* Calendar Container */
+        #calendar {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
         }
 
-        function showBookingDetails(date, bookings) {
-            const modal = document.getElementById('bookingModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalBookings = document.getElementById('modalBookings');
+        /* Calendar Header */
+        .fc-toolbar-title {
+            color: var(--bs-primary) !important;
+            font-weight: bold !important;
+        }
 
-            modalTitle.textContent = `حجوزات يوم ${date.toLocaleDateString('ar-SA')}`;
+        .fc-button-primary {
+            background-color: var(--bs-primary) !important;
+            border-color: var(--bs-primary) !important;
+        }
 
-            modalBookings.innerHTML = '';
-            bookings.forEach(booking => {
-                const bookingDiv = document.createElement('div');
-                bookingDiv.className = `modal-booking-item ${booking.status}`;
+        .fc-button-primary:hover {
+            background-color: #0056b3 !important;
+            border-color: #0056b3 !important;
+        }
 
-                const statusText = {
-                    'confirmed': 'مؤكد',
-                    'pending': 'تحت المراجعة',
-                    'cancelled': 'ملغي',
-                    'completed': 'مكتمل'
-                };
+        .fc-day-today {
+            background-color: rgba(0, 123, 255, 0.1) !important;
+        }
 
-                bookingDiv.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <h4 style="margin: 0 0 5px 0; color: #2c3e50;">${booking.client.trade_name}</h4>
-                            <p style="margin: 0; color: #7f8c8d;">
-                                <i class="fas fa-concierge-bell"></i> ${booking.product.name}
-                            </p>
-                        </div>
-                        <div style="text-align: left;">
-                            <div style="font-weight: bold; margin-bottom: 5px;">
-                                <i class="fas fa-clock"></i> ${booking.time}
-                            </div>
-                            <span style="background: #3498db; color: white; padding: 4px 8px; border-radius: 10px; font-size: 11px;">
-                                ${statusText[booking.status]}
-                            </span>
-                        </div>
+        /* Events Styling */
+        .fc-event {
+            border: none !important;
+            border-radius: 4px !important;
+            padding: 4px !important;
+            margin: 2px 0 !important;
+        }
+
+        .fc-event .fc-content {
+            padding: 2px;
+        }
+
+        .fc-event .fc-code {
+            font-weight: bold;
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-bottom: 2px;
+        }
+
+        .fc-event .fc-time {
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-bottom: 2px;
+            display: block;
+        }
+
+        .fc-event .fc-title {
+            font-size: 0.85em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Legend Styling */
+        .appointments-legend {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            margin-top: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 0 10px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 8px;
+            display: inline-block;
+        }
+
+        .legend-text {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        /* Status Colors */
+        .legend-dot.pending { background-color: #ffc107; }
+        .legend-dot.completed { background-color: #28a745; }
+        .legend-dot.cancelled { background-color: #dc3545; }
+        .legend-dot.rescheduled { background-color: #17a2b8; }
+
+        /* Event Status Colors */
+        .status-1 { /* قيد الانتظار */
+            background-color: #ffc107 !important;
+            border-color: #ffc107 !important;
+        }
+
+        .status-2 { /* مكتمل */
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            color: #fff !important;
+        }
+
+        .status-3 { /* ملغي */
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+            color: #fff !important;
+        }
+
+        .status-4 { /* معاد جدولته */
+            background-color: #17a2b8 !important;
+            border-color: #17a2b8 !important;
+            color: #fff !important;
+        }
+    </style>
+</div>
+
+    </div>
+
+    <!-- قسم Legend -->
+    <div class="calendar-legend">
+        <div class="legend-item">
+            <span class="legend-dot status-1"></span>
+            <span class="legend-text">قيد الانتظار</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot status-2"></span>
+            <span class="legend-text">مكتمل</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot status-3"></span>
+            <span class="legend-text">ملغي</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot status-4"></span>
+            <span class="legend-text">معاد جدولته</span>
+        </div>
+    </div>
+</div>
+
+<!-- النافذة المنبثقة لتفاصيل المواعيد -->
+<div class="booking-details-modal" id="bookingModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" id="modalTitle">تفاصيل المواعيد</h3>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <div id="modalBookings"></div>
+    </div>
+</div>
+
+<script>
+// Make calendarBookings available globally for the calendar partial
+window.calendarBookings = @json($calendarBookings ?? []);
+// Make fullCalendarEvents available for FullCalendar
+window.fullCalendarEvents = @json($fullCalendarEvents ?? []);
+
+// Debug information
+console.log('📅 Calendar Bookings Data:', window.calendarBookings);
+console.log('📊 Full Calendar Events Data:', window.fullCalendarEvents);
+console.log('📈 Number of events:', window.fullCalendarEvents ? window.fullCalendarEvents.length : 0);
+
+// التحقق من وجود البيانات
+if (!window.fullCalendarEvents || window.fullCalendarEvents.length === 0) {
+    console.warn('⚠️ لا توجد مواعيد لعرضها في التقويم');
+}
+</script>
+
+<script>
+// ==== كود التقويم ====
+let calendar = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM loaded, initializing calendar system...');
+    
+    // تهيئة التقويم
+    const calendarEl = document.getElementById('calendar');
+    if (!calendarEl) {
+        console.error('❌ Calendar element not found');
+        return;
+    }
+
+    // تنسيق الوقت
+    function formatTime(timeStr) {
+        if (!timeStr) return '';
+        const [hours, minutes] = timeStr.split(':');
+        return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+    }
+
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'ar',
+        direction: 'rtl',
+        headerToolbar: {
+            start: 'prev,next today',
+            center: 'title',
+            end: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        buttonText: {
+            today: 'اليوم',
+            month: 'شهر',
+            week: 'أسبوع',
+            day: 'يوم'
+        },
+        events: (window.fullCalendarEvents || []).map(event => ({
+            title: `#${event.id} - ${event.client_name} - ${formatTime(event.time)}`,
+            start: event.date + 'T' + event.time,
+            className: `event-status-${event.status}`,
+            extendedProps: event,
+            backgroundColor: event.status === 1 ? '#ffc107' :
+                           event.status === 2 ? '#28a745' :
+                           event.status === 3 ? '#dc3545' :
+                           event.status === 4 ? '#17a2b8' : '#6c757d',
+            borderColor: 'transparent',
+            textColor: event.status === 1 ? '#000' : '#fff'
+        })),
+        eventContent: function(arg) {
+            return {
+                html: `
+                    <div class="fc-content">
+                        <div class="fc-code">#${arg.event.extendedProps.id || ''}</div>
+                        <div class="fc-time">${formatTime(arg.event.extendedProps.time)}</div>
+                        <div class="fc-title">${arg.event.extendedProps.client_name || ''}</div>
                     </div>
-                `;
-
-                modalBookings.appendChild(bookingDiv);
+                `
+            };
+        },
+        eventDidMount: function(info) {
+            // Add tooltip
+            const tooltip = new Tooltip(info.el, {
+                title: `
+                    ${info.event.extendedProps.client_name}
+                    <br>
+                    الوقت: ${info.event.extendedProps.time}
+                    <br>
+                    الحالة: ${info.event.extendedProps.status_text}
+                `,
+                placement: 'top',
+                trigger: 'hover',
+                container: 'body',
+                html: true
             });
-
-            modal.style.display = 'flex';
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('bookingModal');
-            modal.style.display = 'none';
-        }
-
-        function previousMonth() {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            generateCalendar();
-        }
-
-        function nextMonth() {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            generateCalendar();
-        }
-
-        function filterBookings(filter) {
-            currentFilter = filter;
-
-            // Update active filter button
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
+        },
+        dateClick: function(info) {
+            // Handle date click - Add new appointment
+            Swal.fire({
+                title: 'إضافة موعد جديد',
+                text: `هل تريد إضافة موعد جديد في ${info.dateStr}؟`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'نعم',
+                cancelButtonText: 'لا',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = `{{ route('appointments.create') }}?date=${info.dateStr}`;
+                }
             });
-            event.target.classList.add('active');
+        },
+        eventClick: function(info) {
+            // Format the time
+            let formattedTime = '';
+            if (info.event.extendedProps.time) {
+                const timeParts = info.event.extendedProps.time.split(':');
+                if (timeParts.length >= 2) {
+                    formattedTime = `${timeParts[0]}:${timeParts[1]}`;
+                }
+            }
 
-            // Here you would implement the actual filtering logic
-            // For now, just regenerate the calendar
-            generateCalendar();
-        }
-
-        function toggleView(view) {
-            document.querySelectorAll('.toggle-btn').forEach(btn => {
-                btn.classList.remove('active');
+            // Get status color class
+            const statusClass = info.event.classNames[0] || '';
+            
+            // Show appointment details
+            Swal.fire({
+                title: info.event.extendedProps.client_name,
+                html: `
+                    <div class="text-right" dir="rtl">
+                        <p><strong>التاريخ:</strong> ${moment(info.event.start).format('YYYY/MM/DD')}</p>
+                        <p><strong>الوقت:</strong> ${formattedTime}</p>
+                        <p><strong>رقم الهاتف:</strong> ${info.event.extendedProps.client_phone}</p>
+                        <p><strong>الحالة:</strong> <span class="badge ${statusClass}">${info.event.extendedProps.status_text}</span></p>
+                        <p><strong>الموظف:</strong> ${info.event.extendedProps.employee}</p>
+                        <p><strong>ملاحظات:</strong> ${info.event.extendedProps.notes}</p>
+                    </div>
+                `,
+                confirmButtonText: 'إغلاق',
+                customClass: {
+                    popup: 'swal-rtl'
+                }
             });
-            event.target.classList.add('active');
+        }
+    });
 
-            if (view === 'list') {
-                // Switch to list view (implement as needed)
-                alert('عرض القائمة قيد التطوير');
+    calendar.render();
+
+    // إضافة مستمعي الأحداث للأزرار
+    if (calendarViewBtn) {
+        calendarViewBtn.addEventListener('click', function() {
+            switchView('calendar');
+        });
+    }
+
+    if (tableViewBtn) {
+        tableViewBtn.addEventListener('click', function() {
+            switchView('table');
+        });
+    }
+
+    if (listViewBtn) {
+        listViewBtn.addEventListener('click', function() {
+            switchView('list');
+        });
+    }
+
+    // وظيفة تبديل العرض
+    function switchView(view) {
+        console.log('🔄 Switching to view:', view);
+
+        // إزالة فئة "active" من جميع الأزرار
+        [listViewBtn, tableViewBtn, calendarViewBtn].forEach(btn => {
+            if (btn) btn.classList.remove('active');
+        });
+
+        if (view === 'calendar') {
+            if (calendarViewBtn) calendarViewBtn.classList.add('active');
+            if (appointmentsTab) appointmentsTab.classList.remove('show', 'active');
+            if (calendarTab) {
+                calendarTab.classList.add('show', 'active');
+                calendarTab.style.display = 'block';
+            }
+
+            // تهيئة وعرض التقويم
+            setTimeout(() => {
+                initializeCalendar();
+            }, 100);
+        } else {
+            if (view === 'list' && listViewBtn) {
+                listViewBtn.classList.add('active');
+            } else if (tableViewBtn) {
+                tableViewBtn.classList.add('active');
+            }
+
+            if (appointmentsTab) appointmentsTab.classList.add('show', 'active');
+            if (calendarTab) {
+                calendarTab.classList.remove('show', 'active');
+                calendarTab.style.display = 'none';
             }
         }
+    }
 
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('bookingModal');
-            if (event.target === modal) {
-                closeModal();
-            }
+    // وظيفة تهيئة التقويم
+    function initializeCalendar() {
+        const calendarEl = document.getElementById('calendar');
+
+        if (!calendarEl) {
+            console.error('❌ Calendar element not found!');
+            return;
         }
 
-        // Initialize calendar
-        generateCalendar();
-    </script>
+        console.log('📅 Initializing FullCalendar...');
 
+        // If calendar already exists, destroy it first
+        if (calendar) {
+            console.log('🔄 Destroying existing calendar instance...');
+            calendar.destroy();
+            calendar = null;
+        }
+
+        // إظهار مؤشر التحميل
+        calendarEl.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">جاري تحميل المواعيد...</p></div>';
+
+        // استخدام البيانات المتاحة عالميًا
+        const events = window.fullCalendarEvents || [];
+
+        console.log('📊 Loading events into calendar:', events.length, 'events found');
+
+        // Debug: عرض أول موعد للتحقق من البيانات
+        if (events.length > 0) {
+            console.log('📋 Sample event data:', events[0]);
+        } else {
+            console.warn('⚠️ No events to display in calendar');
+        }
+
+        // تهيئة وتكوين التقويم
+        try {
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                locale: 'ar',
+                direction: 'rtl',
+                buttonText: {
+                    today: 'اليوم',
+                    month: 'شهر',
+                    week: 'أسبوع',
+                    day: 'يوم'
+                },
+                events: events,
+                eventDidMount: function(info) {
+                    // إضافة tooltip عند التمرير
+                    const tooltip = `
+                        <strong>${info.event.title}</strong><br>
+                        الوقت: ${info.event.extendedProps.time}<br>
+                        الحالة: ${info.event.extendedProps.status_text}
+                    `;
+                    info.el.setAttribute('title', tooltip);
+                    info.el.setAttribute('data-toggle', 'tooltip');
+
+                    console.log('✅ Event mounted:', info.event.title, 'on', info.event.startStr);
+                },
+                eventClick: function(info) {
+                    console.log('🖱️ Event clicked:', info.event);
+
+                    Swal.fire({
+                        title: info.event.title,
+                        html: `
+                            <div class="appointment-details text-right" dir="rtl" style="text-align: right;">
+                                <p><strong>العميل:</strong> ${info.event.extendedProps.client_name || 'غير محدد'}</p>
+                                <p><strong>رقم الهاتف:</strong> ${info.event.extendedProps.client_phone || 'غير متوفر'}</p>
+                                <p><strong>التاريخ:</strong> ${moment(info.event.start).format('YYYY-MM-DD')}</p>
+                                <p><strong>الوقت:</strong> ${info.event.extendedProps.time || 'غير محدد'}</p>
+                                <p><strong>الحالة:</strong> <span style="background: ${info.event.backgroundColor}; color: white; padding: 4px 8px; border-radius: 4px;">${info.event.extendedProps.status_text || 'غير محدد'}</span></p>
+                                <p><strong>الموظف:</strong> ${info.event.extendedProps.employee || 'غير محدد'}</p>
+                                <p><strong>ملاحظات:</strong> ${info.event.extendedProps.notes || 'لا توجد ملاحظات'}</p>
+                            </div>
+                        `,
+                        confirmButtonText: 'إغلاق',
+                        width: '600px',
+                        customClass: {
+                            container: 'rtl-swal',
+                            popup: 'rtl-popup',
+                            confirmButton: 'btn btn-primary'
+                        }
+                    });
+                },
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    meridiem: false,
+                    hour12: false
+                },
+                dayMaxEvents: 3,
+                firstDay: 6, // السبت
+                dateClick: function(info) {
+                    console.log('📅 Date clicked:', info.dateStr);
+
+                    Swal.fire({
+                        title: 'إضافة موعد جديد',
+                        text: `هل ترغب في إضافة موعد جديد بتاريخ ${info.dateStr}؟`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'نعم، أضف موعد',
+                        cancelButtonText: 'لا'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = `{{ route('appointments.create') }}?date=${info.dateStr}`;
+                        }
+                    });
+                },
+                height: 'auto',
+                loading: function(isLoading) {
+                    if (isLoading) {
+                        calendarEl.classList.add('calendar-loading');
+                        console.log('⏳ Calendar loading...');
+                    } else {
+                        calendarEl.classList.remove('calendar-loading');
+                        console.log('✅ Calendar loaded');
+                    }
+                },
+                eventContent: function(arg) {
+                    // تخصيص عرض الحدث
+                    let timeText = arg.event.extendedProps.time || '';
+                    let italicEl = document.createElement('div');
+                    italicEl.innerHTML = `
+                        <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85em;">
+                            <strong>${timeText}</strong> ${arg.event.title}
+                        </div>
+                    `;
+                    return { domNodes: [italicEl] };
+                }
+            });
+
+            // عرض التقويم
+            calendar.render();
+
+            console.log('✅ Calendar rendered successfully with', events.length, 'events');
+
+            // عرض معلومات إضافية
+            const eventsInfo = calendar.getEvents();
+            console.log('📊 Total events in calendar:', eventsInfo.length);
+
+        } catch (error) {
+            console.error('❌ Error initializing calendar:', error);
+            calendarEl.innerHTML = `
+                <div class="alert alert-danger text-center" dir="rtl">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <strong>حدث خطأ في تحميل التقويم</strong>
+                    <p class="mb-0 mt-2">يرجى تحديث الصفحة أو الاتصال بالدعم الفني</p>
+                </div>
+            `;
+        }
+    }
+});
+</script>

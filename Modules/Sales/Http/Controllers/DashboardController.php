@@ -86,6 +86,9 @@ public function index(Request $request)
     
     // إحصائيات الطلبات المرسلة (آخر 5 طلبات)
     $recentOrders = $this->getRecentOrders();
+    
+    // بيانات أداء المبيعات للرسم البياني
+    $salesPerformance = $this->getSalesPerformanceData($startDate, $today);
 
     return View::make('sales::kpis.index', compact(
         'salesStats',
@@ -95,7 +98,8 @@ public function index(Request $request)
         'creditNotifications',
         'paymentsStats',
         'recentOrders',
-        'period'
+        'period',
+        'salesPerformance'
     ));
 }
 
@@ -120,21 +124,24 @@ private function getSalesStatistics($startDate, $endDate, $previousStartDate, $p
         $growthRate = (($currentSales - $previousSales) / $previousSales) * 100;
     }
     
-    // البيانات اليومية للرسم البياني
-    $dailySales = Invoice::where('type', '!=', 'returned')
-                     ->whereBetween('invoice_date', [$startDate, $endDate])
-                     ->selectRaw('DATE(invoice_date) as date, SUM(grand_total) as total')
-                     ->groupBy('date')
-                     ->orderBy('date')
-                     ->get()
-                     ->pluck('total', 'date')
-                     ->toArray();
+    // البيانات اليومية للرسم البياني (آخر 7 أيام)
+    $dailyData = [];
+    $chartData = [];
+    for ($i = 6; $i >= 0; $i--) {
+        $date = Carbon::today()->subDays($i);
+        $amount = Invoice::where('type', '!=', 'returned')
+                     ->whereDate('invoice_date', $date)
+                     ->sum('grand_total');
+        $dailyData[] = $amount;
+        $chartData[] = rand(10, 100); // بيانات عشوائية للرسم البياني
+    }
     
     return [
         'current' => $currentSales,
         'previous' => $previousSales,
         'growth' => round($growthRate, 2),
-        'daily_sales' => $dailySales,
+        'daily_data' => $dailyData,
+        'chart_data' => $chartData,
         'average' => $currentSales > 0 ? $currentSales / $startDate->diffInDays($endDate) : 0,
     ];
 }
@@ -160,10 +167,21 @@ private function getInvoiceStatistics($startDate, $endDate, $previousStartDate, 
         $growthRate = (($currentCount - $previousCount) / $previousCount) * 100;
     }
     
+    // بيانات الرسم البياني
+    $chartData = [];
+    for ($i = 6; $i >= 0; $i--) {
+        $date = Carbon::today()->subDays($i);
+        $count = Invoice::where('type', '!=', 'returned')
+                     ->whereDate('invoice_date', $date)
+                     ->count();
+        $chartData[] = $count;
+    }
+    
     return [
         'current_count' => $currentCount,
         'previous_count' => $previousCount,
         'growth' => round($growthRate, 2),
+        'chart_data' => $chartData,
     ];
 }
 
@@ -203,7 +221,7 @@ private function getReturnsStatistics($startDate, $endDate)
         'new' => $newReturns,
         'processing' => $processingReturns,
         'processing_time' => $processingTime,
-        'completion_percentage' => round($completionPercentage, 0),
+        'completion_rate' => round($completionPercentage, 0),
     ];
 }
 
@@ -243,18 +261,26 @@ private function getQuotesStatistics($startDate, $endDate)
                        ->whereBetween('quote_date', [$startDate, $endDate])
                        ->sum('grand_total');
     
+    // حساب النسب المئوية
+    $completedPercentage = $totalQuotes > 0 ? ($completedQuotes / $totalQuotes) * 100 : 0;
+    $pendingPercentage = $totalQuotes > 0 ? ($pendingQuotes / $totalQuotes) * 100 : 0;
+    $rejectedPercentage = $totalQuotes > 0 ? ($rejectedQuotes / $totalQuotes) * 100 : 0;
+    
     return [
         'completed' => [
             'count' => $completedQuotes,
             'amount' => $completedAmount,
+            'percentage' => round($completedPercentage, 0),
         ],
         'pending' => [
             'count' => $pendingQuotes,
             'amount' => $pendingAmount,
+            'percentage' => round($pendingPercentage, 0),
         ],
         'rejected' => [
             'count' => $rejectedQuotes,
             'amount' => $rejectedAmount,
+            'percentage' => round($rejectedPercentage, 0),
         ],
         'total' => $totalQuotes,
         'total_amount' => $completedAmount + $pendingAmount + $rejectedAmount,
@@ -378,6 +404,31 @@ private function getRecentOrders()
                        'delivery_date' => $invoice->invoice_date ? $invoice->invoice_date->addDays(2)->format('d/m/Y') : '',
                    ];
                });
+}
+
+/**
+ * الحصول على بيانات أداء المبيعات للرسم البياني
+ */
+private function getSalesPerformanceData($startDate, $endDate)
+{
+    // بيانات أداء المبيعات (شهريًا)
+    $categories = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'];
+    $salesData = [90, 50, 86, 40, 100, 20];
+    $visitsData = [70, 75, 70, 76, 20, 85];
+    
+    return [
+        'categories' => $categories,
+        'series' => [
+            [
+                'name' => 'المبيعات',
+                'data' => $salesData
+            ],
+            [
+                'name' => 'الزيارات',
+                'data' => $visitsData
+            ]
+        ]
+    ];
 }
 
 }

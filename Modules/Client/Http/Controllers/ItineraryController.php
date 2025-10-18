@@ -9,6 +9,7 @@ use App\Models\Client;
 use App\Models\EmployeeClientVisit;
 use App\Models\Log;
 use App\Models\Neighborhood;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class ItineraryController extends Controller
@@ -31,9 +32,9 @@ class ItineraryController extends Controller
             $employees = User::where('role', 'employee')->get();
         }
 
-        // Get current week and year for default selection
-        $currentWeek = now()->weekOfYear;
-        $currentYear = now()->year;
+        // Get current week and year for default selection or use requested values
+        $currentWeek = request('week', now()->weekOfYear);
+        $currentYear = request('year', now()->year);
 
         return view('client::Itinerary.create', compact('employees', 'groups', 'currentWeek', 'currentYear'));
     }
@@ -41,65 +42,67 @@ class ItineraryController extends Controller
     /**
      * Store the weekly itinerary for an employee.
      */
-public function store(Request $request)
-{
-    $validated = $request->validate([
-        'employee_id' => 'required|exists:users,id',
-        'visits' => 'required|array',
-        'year' => 'required|integer|min:2020|max:2030',
-        'week_number' => 'required|integer|min:1|max:53',
-        'visits.*' => 'nullable|array',
-        'visits.*.*' => 'nullable|integer|exists:clients,id',
-    ]);
-
-    DB::beginTransaction();
-    try {
-        $employeeId = $validated['employee_id'];
-        $year = $validated['year'];
-        $weekNumber = $validated['week_number'];
-
-        // تحويل البيانات المتداخلة إلى مصفوفة مسطحة
-        $visitData = [];
-        foreach ($validated['visits'] as $day => $clientIds) {
-            if (!is_array($clientIds)) continue;
-
-            foreach (array_filter($clientIds, 'is_numeric') as $clientId) {
-                $visitData[] = [
-                    'employee_id' => $employeeId,
-                    'client_id' => $clientId,
-                    'day_of_week' => strtolower($day),
-                    'year' => $year,
-                    'week_number' => $weekNumber,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-            }
-        }
-
-        if (empty($visitData)) {
-            throw new \Exception('لا توجد زيارات صالحة للحفظ');
-        }
-
-        // إدراج البيانات دون حذف القديمة
-        EmployeeClientVisit::insert($visitData);
-
-        DB::commit();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'تم الحفظ بنجاح',
-            'inserted_count' => count($visitData)
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'employee_id' => 'required|exists:users,id',
+            'visits' => 'required|array',
+            'year' => 'required|integer|min:2020|max:2030',
+            'week_number' => 'required|integer|min:1|max:53',
+            'visits.*' => 'nullable|array',
+            'visits.*.*' => 'nullable|integer|exists:clients,id',
         ]);
 
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            'success' => false,
-            'message' => 'حدث خطأ أثناء الحفظ: ' . $e->getMessage(),
-            'error_details' => config('app.debug') ? $e->getTraceAsString() : null
-        ], 500);
+        DB::beginTransaction();
+        try {
+            $employeeId = $validated['employee_id'];
+            $year = $validated['year'];
+            $weekNumber = $validated['week_number'];
+
+            // تحويل البيانات المتداخلة إلى مصفوفة مسطحة
+            $visitData = [];
+            foreach ($validated['visits'] as $day => $clientIds) {
+                if (!is_array($clientIds)) continue;
+
+                foreach (array_filter($clientIds, 'is_numeric') as $clientId) {
+                    $visitData[] = [
+                        'employee_id' => $employeeId,
+                        'client_id' => $clientId,
+                        'day_of_week' => strtolower($day),
+                        'year' => $year,
+                        'week_number' => $weekNumber,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+            }
+
+            if (empty($visitData)) {
+                throw new \Exception('لا توجد زيارات صالحة للحفظ');
+            }
+
+            // إدراج البيانات دون حذف القديمة
+            EmployeeClientVisit::insert($visitData);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم الحفظ بنجاح',
+                'inserted_count' => count($visitData),
+                'redirect' => route('itinerary.list')
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء الحفظ: ' . $e->getMessage(),
+                'error_details' => config('app.debug') ? $e->getTraceAsString() : null
+            ], 500);
+        }
     }
-}
+
     public function edit($employeeId)
     {
         $employee = User::findOrFail($employeeId);
@@ -206,13 +209,18 @@ public function store(Request $request)
             }
 
             DB::commit();
-            return response()->json(['success' => true, 'message' => 'تم تحديث خط السير بنجاح.']);
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تحديث خط السير بنجاح.',
+                'redirect' => route('itinerary.list')
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             logger()->error('Itinerary Update Error: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء تحديث البيانات.'], 500);
         }
     }
+
     // دالة جديدة لجلب البيانات المحفوظة للأسبوع المحدد
     public function getWeekItinerary($employeeId)
     {
@@ -322,13 +330,16 @@ public function store(Request $request)
             },
         ])
             ->whereHas('neighborhood', function ($query) use ($id) {
-                $query->where('region_id', $id); // ✅ هذا هو التعديل الصحيح
+                $query->where('region_id', $id);
             })
             ->get(['id', 'trade_name', 'code', 'city']);
 
         return response()->json($clients);
     }
 
+    /**
+     * List all itineraries (calendar view)
+     */
     public function listAll()
     {
         $itineraries = EmployeeClientVisit::with(['employee', 'client'])
@@ -338,15 +349,15 @@ public function store(Request $request)
             ->get()
             ->groupBy('employee_id')
             ->map(function ($employeeVisits) {
-                // الحصول على أحدث ثلاثة أسابيع (بعد ترتيبهم مسبقًا)
+                // الحصول على أحدث خمسة أسابيع (بعد ترتيبهم مسبقًا)
                 $latestWeeks = $employeeVisits
                     ->map(function ($visit) {
                         return $visit->year . '-W' . str_pad($visit->week_number, 2, '0', STR_PAD_LEFT);
                     })
                     ->unique()
-                    ->take(4); // أحدث ثلاثة أسابيع فقط
+                    ->take(5);
 
-                // تصفية الزيارات التي تنتمي لهذه الأسابيع الثلاثة
+                // تصفية الزيارات التي تنتمي لهذه الأسابيع الخمسة
                 $latestWeekVisits = $employeeVisits->filter(function ($visit) use ($latestWeeks) {
                     $visitKey = $visit->year . '-W' . str_pad($visit->week_number, 2, '0', STR_PAD_LEFT);
                     return $latestWeeks->contains($visitKey);
@@ -369,7 +380,235 @@ public function store(Request $request)
 
         $newClientsTodayCount = Client::whereDate('created_at', today())->count();
 
-        return view('client::Itinerary.list', compact('itineraries', 'newClientsTodayCount'));
+        // تحضير بيانات التقويم
+        $calendarData = $this->prepareCalendarData($itineraries);
+
+        // Use our new calendar view
+        return view('client::Itinerary.list', compact('itineraries', 'newClientsTodayCount', 'calendarData'));
+    }
+
+    /**
+     * API endpoint to get calendar data for AJAX requests
+     */
+    public function getCalendarData(Request $request)
+    {
+        // Validate request parameters if needed
+        $employeeId = $request->input('employee_id');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        // Fetch itineraries based on filters
+        $query = EmployeeClientVisit::with(['employee', 'client']);
+
+        if ($employeeId) {
+            $query->where('employee_id', $employeeId);
+        }
+
+        // Add date range filtering if provided
+        if ($startDate && $endDate) {
+            // Convert week-based data to actual dates for filtering
+            $startDateObj = Carbon::parse($startDate);
+            $endDateObj = Carbon::parse($endDate);
+
+            // Get the year and week numbers that fall within this range
+            $weeks = [];
+            $currentDate = $startDateObj->copy();
+
+            while ($currentDate <= $endDateObj) {
+                $weeks[] = [
+                    'year' => $currentDate->year,
+                    'week' => $currentDate->weekOfYear
+                ];
+                $currentDate->addWeek();
+            }
+
+            // Build a query to match these weeks
+            $query->where(function($q) use ($weeks) {
+                foreach ($weeks as $week) {
+                    $q->orWhere(function($inner) use ($week) {
+                        $inner->where('year', $week['year'])
+                              ->where('week_number', $week['week']);
+                    });
+                }
+            });
+        }
+
+        $itineraries = $query->get()
+            ->groupBy('employee_id')
+            ->map(function ($employeeVisits) {
+                // Group visits by week
+                $weeksGrouped = $employeeVisits
+                    ->groupBy(function ($visit) {
+                        return $visit->year . '-W' . str_pad($visit->week_number, 2, '0', STR_PAD_LEFT);
+                    })
+                    ->map(function ($visits) {
+                        return $this->groupVisitsByDay($visits);
+                    });
+
+                return [
+                    'employee' => $employeeVisits->first()->employee,
+                    'weeks' => $weeksGrouped,
+                ];
+            });
+
+        // Prepare calendar data
+        $calendarData = $this->prepareCalendarData($itineraries);
+
+        return response()->json($calendarData);
+    }
+
+    /**
+     * Get visits for a specific day
+     */
+    public function getDayVisits(Request $request)
+    {
+        $date = $request->input('date');
+        $employeeId = $request->input('employee_id');
+
+        if (!$date) {
+            return response()->json(['error' => 'Date is required'], 400);
+        }
+
+        // Convert date to year and week number
+        $dateObj = Carbon::parse($date);
+        $year = $dateObj->year;
+        $weekNumber = $dateObj->weekOfYear;
+        $dayOfWeek = strtolower($dateObj->englishDayOfWeek);
+
+        // Query for visits on this specific day
+        $query = EmployeeClientVisit::with([
+            'employee:id,name',
+            'client' => function ($query) {
+                $query->select('id', 'trade_name', 'code', 'city')->with([
+                    'visits' => function ($q) {
+                        $q->latest()->limit(1);
+                    },
+                    'invoices' => function ($q) {
+                        $q->latest()->limit(1);
+                    },
+                    'appointmentNotes' => function ($q) {
+                        $q->latest()->limit(1);
+                    },
+                ]);
+            },
+        ])
+        ->where('year', $year)
+        ->where('week_number', $weekNumber)
+        ->where('day_of_week', $dayOfWeek);
+
+        if ($employeeId) {
+            $query->where('employee_id', $employeeId);
+        }
+
+        $visits = $query->get();
+
+        // Mark new clients for this date
+        $visits->each(function($visit) use ($date) {
+            if ($visit->client) {
+                $visit->client->is_new_for_visit_date = $visit->client->created_at->isSameDay(Carbon::parse($date));
+            }
+        });
+
+        // Group visits by employee
+        $groupedVisits = $visits->groupBy('employee_id')->map(function($employeeVisits) {
+            return [
+                'employee' => $employeeVisits->first()->employee,
+                'visits' => $employeeVisits,
+                'visit_count' => $employeeVisits->count(),
+                'new_clients_count' => $employeeVisits->filter(function($visit) {
+                    return $visit->client && $visit->client->is_new_for_visit_date;
+                })->count()
+            ];
+        });
+
+        return response()->json($groupedVisits);
+    }
+
+    /**
+     * تحضير بيانات التقويم من معلومات خط السير
+     * Enhanced to better support the calendar view
+     */
+    private function prepareCalendarData($itineraries)
+    {
+        $calendarData = [];
+
+        foreach ($itineraries as $employeeId => $employeeData) {
+            $employee = $employeeData['employee'];
+            $employeeName = $employee->name ?? 'غير معروف';
+
+            // لكل أسبوع في بيانات الموظف
+            foreach ($employeeData['weeks'] as $weekIdentifier => $dayData) {
+                // استخراج السنة ورقم الأسبوع من معرف الأسبوع
+                $yearWeek = explode('-W', $weekIdentifier);
+                $year = $yearWeek[0] ?? date('Y');
+                $weekNum = $yearWeek[1] ?? '00';
+
+                // إنشاء تاريخ بداية الأسبوع
+                $weekStartDate = new \DateTime();
+                $weekStartDate->setISODate($year, $weekNum);
+
+                // لكل يوم في الأسبوع
+                foreach ($dayData as $dayName => $dayInfo) {
+                    // حساب التاريخ الفعلي لهذا اليوم
+                    $dayOffset = $this->getDayOffset($dayName);
+                    $dayDate = clone $weekStartDate;
+                    if ($dayOffset > 0) {
+                        $dayDate->modify('+' . $dayOffset . ' days');
+                    }
+                    $formattedDate = $dayDate->format('Y-m-d');
+
+                    // إعداد بيانات الزيارات لهذا اليوم
+                    $visits = $dayInfo['visits'] ?? [];
+                    $visitCount = count($visits);
+                    $newClientsCount = $dayInfo['new_clients_count'] ?? 0;
+                    $completedVisitsCount = 0;
+
+                    // Count completed visits
+                    foreach ($visits as $visit) {
+                        if ($visit->status === 'active') {
+                            $completedVisitsCount++;
+                        }
+                    }
+
+                    if ($visitCount > 0) {
+                        // تجميع المعلومات حسب التاريخ والموظف
+                        if (!isset($calendarData[$formattedDate])) {
+                            $calendarData[$formattedDate] = [];
+                        }
+
+                        $calendarData[$formattedDate][$employeeId] = [
+                            'employee_name' => $employeeName,
+                            'visit_count' => $visitCount,
+                            'completed_visits_count' => $completedVisitsCount,
+                            'pending_visits_count' => $visitCount - $completedVisitsCount,
+                            'new_clients_count' => $newClientsCount,
+                            'visits' => $visits,
+                            'employee_id' => $employeeId
+                        ];
+                    }
+                }
+            }
+        }
+
+        return $calendarData;
+    }
+
+    /**
+     * الحصول على ترتيب اليوم في الأسبوع (السبت = 0)
+     */
+    private function getDayOffset($dayName)
+    {
+        $daysMap = [
+            'saturday' => 0,
+            'sunday' => 1,
+            'monday' => 2,
+            'tuesday' => 3,
+            'wednesday' => 4,
+            'thursday' => 5,
+            'friday' => 6
+        ];
+
+        return $daysMap[strtolower($dayName)] ?? 0;
     }
 
     // دالة مساعدة لتجميع الزيارات حسب اليوم
@@ -436,5 +675,15 @@ public function store(Request $request)
         }
 
         return $days;
+    }
+
+    /**
+     * Export calendar data to Excel/CSV
+     */
+    public function exportCalendarData(Request $request)
+    {
+        // This method would handle exporting calendar data to Excel or CSV
+        // For now we'll return a simple response as this can be implemented later
+        return response()->json(['message' => 'Export feature coming soon']);
     }
 }

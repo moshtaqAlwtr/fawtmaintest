@@ -1,5 +1,6 @@
 
-{{-- resources/views/client/partials/credit_limit_modal.blade.php --}}
+  @foreach ($GeneralClientSettings as $GeneralClientSetting)
+                                            @if ($GeneralClientSetting->is_active && $GeneralClientSetting->key == 'credit_limit')
 <div class="modal fade" id="creditLimitModal" tabindex="-1" aria-labelledby="creditLimitModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -27,3 +28,6 @@
         </div>
     </div>
 </div>
+
+                                            @endif
+                                        @endforeach

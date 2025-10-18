@@ -103,10 +103,14 @@ Route::group(
         Route::prefix('appointments')->group(function () {
             Route::resource('appointments', AppointmentController::class)->except(['show']);
             Route::get('/show/{id}', [AppointmentController::class, 'show'])->name('appointments.show');
-            Route::patch('/appointments/{id}/update-status', [AppointmentController::class, 'updateStatus'])
-    ->name('appointments.update-status');
+            Route::get('/{id}/status/{status}', [AppointmentController::class, 'updateStatus'])
+                ->name('update-status');
+
+            // تصدير Excel
+            Route::get('/export', [AppointmentController::class, 'export'])->name('appointments.export');
             Route::get('/filter', [AppointmentController::class, 'filterAppointments'])->name('appointments.filter');
             Route::get('/appointments/calendar', [AppointmentController::class, 'calendar'])->name('appointments.calendar');
+            Route::get('/appointments/test-calendar', [AppointmentController::class, 'testCalendar'])->name('appointments.test-calendar');
             Route::get('/appointments/{id}/full-details', [AppointmentController::class, 'getFullAppointmentDetails'])->name('appointments.full-details');
         });
 
@@ -161,7 +165,7 @@ Route::get('/clients/export/all', [ClientController::class, 'exportAllClients'])
                 Route::get('/clients/select', [ClientController::class, 'getClientsForSelect'])->name('clients.getForSelect');
                 Route::get('/clients/ajax', [ClientController::class, 'ajaxIndex'])->name('clients.ajax');
                 Route::post('/clients/update-credit-limit', [ClientController::class, 'updateCreditLimit'])->name('clients.update_credit_limit');
-
+Route::get('clients/export-pdf', [ClientController::class, 'generateClientsPdf'])->name('clients.export-pdf');
                 Route::get('/{id}/invoices', [ClientController::class, 'clientInvoices'])->name('clients.invoices');
                 Route::get('/{id}/notes', [ClientController::class, 'clientNotes'])->name('clients.notes');
                 Route::post('/{id}/notes', [ClientController::class, 'storeNote'])->name('clients.notes.store');

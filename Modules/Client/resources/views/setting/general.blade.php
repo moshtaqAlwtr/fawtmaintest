@@ -1,7 +1,7 @@
-@extends('master')
+@extends('sales::master')
 
 @section('title')
-   إعدادات العميل
+    إعدادات العميل
 @stop
 
 @section('content')
@@ -27,8 +27,8 @@
         }
 
         .card-header-custom {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
+
+            color: rgb(3, 3, 3);
             padding: 20px;
             border: none;
         }
@@ -66,7 +66,8 @@
 
         /* تخصيص الأزرار */
         .btn-save {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
             border: none;
             border-radius: 25px;
             padding: 12px 30px;
@@ -83,31 +84,32 @@
         }
 
         .btn-cancel {
-            background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%);
+
             border: none;
             border-radius: 25px;
             padding: 12px 30px;
-            color: white;
+            color: rgb(0, 0, 0);
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(253, 121, 168, 0.4);
+         box-shadow: 0 4px 15px rgba(255, 170, 13, 0.4);
+
             text-decoration: none;
             margin-left: 10px;
         }
 
         .btn-cancel:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(253, 121, 168, 0.6);
-            color: white;
+
+            color: rgb(0, 0, 0);
             text-decoration: none;
         }
 
         /* تخصيص رسائل النجاح */
         .alert-success-custom {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+
             border: none;
             border-radius: 10px;
-            color: white;
+            color: rgb(0, 0, 0);
             padding: 15px 20px;
             margin: 20px 0;
             box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
@@ -130,7 +132,7 @@
 
         /* تخصيص منطقة الإعدادات */
         .client-settings-container {
-            background: #fff5f5;
+
             border-radius: 15px;
             padding: 25px;
             margin-top: 20px;
@@ -335,15 +337,15 @@
             <div class="content-header-left col-md-9 col-12 mb-2">
                 <div class="row breadcrumbs-top">
                     <div class="col-12">
-                        <h2 class="main-title">⚙️ إعدادات العميل</h2>
+                        <h2 class="main-title"> إعدادات العميل</h2>
                         <div class="breadcrumb-wrapper col-12">
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb breadcrumb-custom">
                                     <li class="breadcrumb-item">
-                                        <a href="">🏠 الرئيسية</a>
+                                        <a href=""> الرئيسية</a>
                                     </li>
                                     <li class="breadcrumb-item active" aria-current="page">
-                                        ➕ إعدادات العميل
+                                        إعدادات العميل
                                     </li>
                                 </ol>
                             </nav>
@@ -370,9 +372,7 @@
 
             <!-- بطاقة معلومات الحفظ -->
             <div class="custom-card">
-                <div class="card-header-custom">
-                    <h5 class="mb-0">💾 إعدادات الحفظ</h5>
-                </div>
+
                 <div class="card-body-custom">
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div class="required-text">
@@ -396,7 +396,7 @@
                 <div class="col-lg-8 col-md-12">
                     <div class="custom-card">
                         <div class="card-header-custom">
-                            <h5 class="mb-0">📋 الحقول الإضافية للعميل</h5>
+                            <h5 class="mb-0"> الحقول الإضافية للعميل</h5>
                         </div>
                         <div class="card-body-custom">
                             <div class="additional-fields-container">
@@ -405,22 +405,25 @@
                                     اختر الحقول الإضافية المطلوبة:
                                 </h6>
 
+                                <!-- مثال على الحقول الإضافية -->
                                 <div class="fields-grid">
                                     @foreach ($settings as $index => $setting)
-                                        <div class="field-item {{ $setting->is_active ? 'checked' : '' }}"
-                                            onclick="toggleCheckbox('setting_{{ $setting->id }}')">
-                                            <input type="checkbox" class="custom-checkbox" id="setting_{{ $setting->id }}"
-                                                name="settings[]" value="{{ $setting->id }}"
-                                                {{ $setting->is_active ? 'checked' : '' }}
+                                        <div class="vs-checkbox-con vs-checkbox-primary mb-2">
+                                            <input type="checkbox" id="setting_{{ $setting->id }}" name="settings[]"
+                                                value="{{ $setting->id }}" {{ $setting->is_active ? 'checked' : '' }}
                                                 onchange="updateItemStyle(this)">
-                                            <span class="checkmark"></span>
-                                            <label class="field-label" for="setting_{{ $setting->id }}">
-                                                <i class="fas fa-cog me-2" style="color: #667eea;"></i>
-                                                {{ $setting->name }}
+                                            <span class="vs-checkbox">
+                                                <span class="vs-checkbox--check">
+                                                    <i class="vs-icon feather icon-check"></i>
+                                                </span>
+                                            </span>
+                                            <label for="setting_{{ $setting->id }}">
+                                                <i class="fas fa-cog me-1"></i> {{ $setting->name }}
                                             </label>
                                         </div>
                                     @endforeach
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -430,7 +433,7 @@
                 <div class="col-lg-4 col-md-12">
                     <div class="custom-card">
                         <div class="card-header-custom">
-                            <h5 class="mb-0">👤 إعدادات العميل</h5>
+                            <h5 class="mb-0"> إعدادات العميل</h5>
                         </div>
                         <div class="card-body-custom">
                             <div class="client-settings-container">
@@ -446,13 +449,13 @@
                                     </label>
                                     <select name="type" id="type" class="form-control-custom" required>
                                         <option value="Both" {{ $selectedType === 'Both' ? 'selected' : '' }}>
-                                            🔄 كلاهما
+                                            كلاهما
                                         </option>
                                         <option value="individual" {{ $selectedType === 'individual' ? 'selected' : '' }}>
-                                            👤 فردي
+                                            فردي
                                         </option>
                                         <option value="commercial" {{ $selectedType === 'commercial' ? 'selected' : '' }}>
-                                            🏢 تجاري
+                                            تجاري
                                         </option>
                                     </select>
                                 </div>
@@ -460,14 +463,18 @@
                                 <!-- إحصائيات سريعة -->
                                 <div class="row mt-4">
                                     <div class="col-6">
-                                        <div style="background: white; padding: 15px; border-radius: 10px; text-align: center; border: 2px solid #f0f0f0;">
-                                            <div style="font-size: 24px; font-weight: bold; color: #667eea;">{{ count($settings) }}</div>
+                                        <div
+                                            style="background: white; padding: 15px; border-radius: 10px; text-align: center; border: 2px solid #f0f0f0;">
+                                            <div style="font-size: 24px; font-weight: bold; color: #667eea;">
+                                                {{ count($settings) }}</div>
                                             <div style="font-size: 12px; color: #666;">إجمالي الحقول</div>
                                         </div>
                                     </div>
                                     <div class="col-6">
-                                        <div style="background: white; padding: 15px; border-radius: 10px; text-align: center; border: 2px solid #f0f0f0;">
-                                            <div style="font-size: 24px; font-weight: bold; color: #11998e;">{{ $settings->where('is_active', true)->count() }}</div>
+                                        <div
+                                            style="background: white; padding: 15px; border-radius: 10px; text-align: center; border: 2px solid #f0f0f0;">
+                                            <div style="font-size: 24px; font-weight: bold; color: #11998e;">
+                                                {{ $settings->where('is_active', true)->count() }}</div>
                                             <div style="font-size: 12px; color: #666;">حقول نشطة</div>
                                         </div>
                                     </div>

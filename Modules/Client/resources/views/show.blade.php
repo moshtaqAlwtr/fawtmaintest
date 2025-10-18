@@ -604,25 +604,52 @@
                                                 @endphp
                                                 <span class="badge {{ $statusClass }}">{{ $statusText }}</span>
                                             </td>
-                                            <td>
-                                                <div class="dropdown">
-                                                    <button class="btn btn-sm btn-unified" data-bs-toggle="dropdown">
-                                                        <i class="fa fa-ellipsis-v"></i>
-                                                    </button>
-                                                    <div class="dropdown-menu">
-                                                        <form
-                                                            action="{{ route('appointments.update-status', $appointment->id) }}"
-                                                            method="POST">
-                                                            @csrf
-                                                            @method('PATCH')
-                                                            <input type="hidden" name="status" value="2">
-                                                            <button type="submit" class="dropdown-item">
-                                                                <i class="fa fa-check me-2 text-success"></i>تم
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </td>
+                                              <td style="width: 120px">
+                                    <div class="dropdown">
+                                        <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                            type="button" id="dropdownMenu{{ $appointment->id }}"
+                                            data-bs-toggle="dropdown">
+                                        </button>
+
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-lg"
+                                            aria-labelledby="dropdownMenu{{ $appointment->id }}">
+                                            <li>
+                                                <a class="dropdown-item"
+                                                    href="{{ route('appointments.edit', $appointment->id) }}">
+                                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                </a>
+                                            </li>
+
+                                            <li>
+                                                <a class="dropdown-item status-action"
+                                                    href="{{ route('update-status', ['id' => $appointment->id, 'status' => 1]) }}">
+                                                    <i class="fa fa-clock me-2 text-warning"></i>قيد الانتظار
+                                                </a>
+                                            </li>
+
+                                            <li>
+                                                <a class="dropdown-item status-action"
+                                                    href="{{ route('update-status', ['id' => $appointment->id, 'status' => 2]) }}">
+                                                    <i class="fa fa-check me-2 text-success"></i>مكتمل
+                                                </a>
+                                            </li>
+
+                                            <li>
+                                                <a class="dropdown-item status-action"
+                                                    href="{{ route('update-status', ['id' => $appointment->id, 'status' => 3]) }}">
+                                                    <i class="fa fa-times me-2 text-danger"></i>ملغي
+                                                </a>
+                                            </li>
+
+                                            <li>
+                                                <a class="dropdown-item status-action"
+                                                    href="{{ route('update-status', ['id' => $appointment->id, 'status' => 4]) }}">
+                                                    <i class="fa fa-redo me-2 text-info"></i>معاد جدولته
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
                                         </tr>
                                     @endforeach
                                 </tbody>

@@ -1,4 +1,4 @@
-@extends('master')
+@extends('sales::master')
 
 @section('title')
     تعديل موعد
@@ -280,7 +280,7 @@
                 staffFields.style.display = 'none';
             }
         }
-        
+
         // تهيئة Select2 للقوائم المنسدلة
         $(document).ready(function() {
             $('.select2').select2({
