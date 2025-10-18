@@ -76,7 +76,7 @@
                         </a>
                         <ul class="menu-content">
 
-                             <li><a href="{{ route('dashboard.kpis') }}"><i
+                            <li><a href="{{ route('dashboard.kpis') }}"><i
                                         class="feather icon-circle {{ request()->is("$getLocal/sales/invoices/index") ? 'active' : '' }}"></i><span
                                         class="menu-item"
                                         data-i18n="Analytics">مؤشرات الاداء</span></a>
@@ -202,11 +202,11 @@
                                 </li>
                             @endcan
 
-                            <li><a href="{{ route('clients.contacts') }}"><i class="feather icon-circle"></i><span
-                                        class="menu-item"
-                                        data-i18n="eCommerce">{{ trans('main_trans.Contact_list') }}</span>
-                                </a>
-                            </li>
+                            <!--<li><a href="{{ route('clients.contacts') }}"><i class="feather icon-circle"></i><span-->
+                            <!--            class="menu-item"-->
+                            <!--            data-i18n="eCommerce">{{ trans('main_trans.Contact_list') }}</span>-->
+                            <!--    </a>-->
+                            <!--</li>-->
 
                             <li><a href="{{ route('clients.mang_client') }}"><i class="feather icon-circle"></i><span
                                         class="menu-item"
@@ -248,9 +248,14 @@
                                             class="menu-item" data-i18n="eCommerce">اعدادات المجموعات</span>
                                     </a>
                                 </li>
+                                
                             @endcan
                     @endif
-
+ <li><a href=" {{ route('ClientReport.index') }}"><i class="feather icon-circle"></i><span
+                                            class="menu-item" data-i18n="eCommerce">تقرير العملاء</span>
+                                    </a>
+                                </li>
+                               
                     @can('clients_edit_client_settings')
                         <li><a href="{{ route('clients.setting') }}"><i class="feather icon-circle"></i><span
                                     class="menu-item" data-i18n="eCommerce">{{ trans('main_trans.Client_settings') }}</span>
