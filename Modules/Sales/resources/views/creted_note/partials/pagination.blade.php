@@ -4,6 +4,7 @@
         <div class="pagination-info text-muted">
             عرض {{ $credits->firstItem() }} إلى {{ $credits->lastItem() }} من {{ $credits->total() }} نتيجة
         </div>
+        
         <nav aria-label="صفحات النتائج">
             <ul class="pagination pagination-sm mb-0">
                 {{-- الصفحة الأولى --}}

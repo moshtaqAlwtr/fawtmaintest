@@ -1,5 +1,6 @@
 {{-- ملف: resources/views/sales/invoices/partials/pagination.blade.php --}}
 @if ($invoices->hasPages())
+
 <style>
     /* منع التمرير التلقائي عند تغيير الصفحات */
     .pagination-link,
@@ -12,6 +13,25 @@
     /* التأكد من أن الروابط لا تسبب scroll */
     a[href="#"] {
         cursor: pointer;
+    }
+    
+    /* إخفاء شريط التمرير مع الحفاظ على وظيفة التمرير */
+    .table-responsive, 
+    .invoice-container,
+    .content-wrapper,
+    body {
+        -ms-overflow-style: none;  /* لـ Internet Explorer و Edge */
+        scrollbar-width: none;     /* لـ Firefox */
+        overflow-y: auto;
+    }
+    
+    /* لمتصفحات WebKit (كروم، سفاري، إلخ) */
+    .table-responsive::-webkit-scrollbar, 
+    .invoice-container::-webkit-scrollbar,
+    .content-wrapper::-webkit-scrollbar,
+    body::-webkit-scrollbar {
+        display: none;
+        width: 0;
     }
 </style>
     <div class="d-flex justify-content-between align-items-center mt-3 w-100">

@@ -125,7 +125,8 @@ if ($request->filled('client_id')) {
 }
 
     // تنفيذ الاستعلام مع Pagination
-    $payments = $query->orderBy('created_at', 'DESC')->paginate(25);
+    $perPage = $request->input('per_page', 10); // استخدام القيمة من الطلب أو 10 كقيمة افتراضية
+    $payments = $query->orderBy('created_at', 'DESC')->paginate($perPage);
 
     // جلب البيانات المطلوبة للـ dropdowns
     $employees = User::where('role', 'employee')->get();

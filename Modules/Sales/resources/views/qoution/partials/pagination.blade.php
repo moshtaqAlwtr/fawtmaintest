@@ -1,5 +1,6 @@
 {{-- ملف: resources/views/sales/qoution/partials/pagination.blade.php --}}
 @if ($quotes->hasPages())
+
     <div class="d-flex justify-content-between align-items-center mt-3 w-100">
         <div class="pagination-info text-muted">
             عرض {{ $quotes->firstItem() }} إلى {{ $quotes->lastItem() }} من {{ $quotes->total() }} نتيجة

@@ -74,6 +74,7 @@
     </style>
 @endsection
 
+
 @section('content')
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">

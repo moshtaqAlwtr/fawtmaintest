@@ -74,6 +74,7 @@
 @endsection
 
 @section('content')
+
 <div class="content-header row">
     <div class="content-header-left col-md-9 col-12 mb-2">
         <div class="row breadcrumbs-top">
@@ -278,14 +279,20 @@ $(document).ready(function() {
         }
     });
 
-    // دالة تحميل البيانات
-    function loadData(page = 1) {
+    // دالة تحميل البيانات - محدثة
+    function loadData(page = 1, perPage = null) {
+        console.log('تحميل البيانات - الصفحة:', page, 'عدد العناصر:', perPage);
         showLoading();
 
-        let formData = $('#searchForm').serialize();
-        if (page > 1) {
-            formData += '&page=' + page;
+        // إذا لم يتم تحديد perPage، استخدم القيمة الحالية من الـ select
+        if (!perPage) {
+            perPage = $('select[name="DataTables_Table_0_length"]').val() || 10;
         }
+
+        let formData = $('#searchForm').serialize();
+        formData += '&page=' + page;
+        formData += '&per_page=' + perPage;
+        formData += '&is_ajax=1';
 
         $.ajax({
             url: '{{ route("CreditNotes.index") }}',
@@ -295,14 +302,28 @@ $(document).ready(function() {
                 'X-Requested-With': 'XMLHttpRequest'
             },
             success: function(response) {
+                console.log('استجابة الخادم:', response);
+                
                 if (response.success) {
                     $('#results-container').html(response.data);
                     updatePaginationInfo(response);
                     initializeEvents();
+                    
+                    // تحديث قيمة per_page في الـ select
+                    if (response.per_page) {
+                        $('select[name="DataTables_Table_0_length"]').val(response.per_page);
+                    }
+                } else {
+                    console.error('استجابة غير متوقعة:', response);
+                    $('#results-container').html(
+                        '<div class="alert alert-danger text-center">حدث خطأ في تحميل البيانات</div>'
+                    );
                 }
             },
             error: function(xhr, status, error) {
                 console.error('خطأ في تحميل البيانات:', error);
+                console.error('حالة الخطأ:', status);
+                console.error('استجابة الخادم:', xhr.responseText);
                 $('#results-container').html(
                     '<div class="alert alert-danger text-center">' +
                     '<p class="mb-0">حدث خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى.</p>' +
@@ -332,7 +353,10 @@ $(document).ready(function() {
     }
 
     function updatePaginationInfo(response) {
-        $('.pagination-info').text(`صفحة ${response.current_page} من ${response.last_page}`);
+        if (response.current_page && response.last_page) {
+            $('.pagination-info').text(`صفحة ${response.current_page} من ${response.last_page}`);
+        }
+        
         if (response.total > 0) {
             $('.results-info').text(`${response.from}-${response.to} من ${response.total}`);
         } else {
@@ -341,6 +365,19 @@ $(document).ready(function() {
     }
 
     function initializeEvents() {
+        // إعداد أحداث الترقيم
+        $('.pagination-link').off('click').on('click', function(e) {
+            e.preventDefault();
+            const page = $(this).data('page');
+            const perPage = $('select[name="DataTables_Table_0_length"]').val();
+            
+            console.log('نقر على الترقيم - الصفحة:', page, 'عدد العناصر:', perPage);
+            
+            if (page && window.loadData) {
+                loadData(page, perPage);
+            }
+        });
+
         // أحداث الحذف
         $('.delete-credit').off('click').on('click', function(e) {
             e.preventDefault();
@@ -360,6 +397,13 @@ $(document).ready(function() {
             let totalCheckboxes = $('.credit-checkbox').length;
             let checkedCheckboxes = $('.credit-checkbox:checked').length;
             $('#selectAll').prop('checked', totalCheckboxes === checkedCheckboxes);
+        });
+        
+        // Show entries dropdown change handler
+        $('select[name="DataTables_Table_0_length"]').off('change').on('change', function() {
+            const perPage = $(this).val();
+            console.log('تغيير عدد العناصر:', perPage);
+            loadData(1, perPage);
         });
     }
 
@@ -386,6 +430,38 @@ $(document).ready(function() {
 
     initializeEvents();
 });
+
+// دوال التحكم في البحث المتقدم
+function toggleSearchText(button) {
+    const buttonText = button.querySelector('.button-text');
+    const advancedFields = document.querySelectorAll('.advanced-field');
+
+    if (buttonText.textContent.trim() === 'متقدم') {
+        buttonText.textContent = 'بحث بسيط';
+        advancedFields.forEach(field => field.style.display = 'block');
+    } else {
+        buttonText.textContent = 'متقدم';
+        advancedFields.forEach(field => field.style.display = 'none');
+    }
+}
+
+function toggleSearchFields(button) {
+    const searchForm = document.getElementById('searchForm');
+    const buttonText = button.querySelector('.hide-button-text');
+    const icon = button.querySelector('i');
+
+    if (buttonText.textContent === 'إخفاء') {
+        searchForm.style.display = 'none';
+        buttonText.textContent = 'إظهار';
+        icon.classList.remove('fa-times');
+        icon.classList.add('fa-eye');
+    } else {
+        searchForm.style.display = 'block';
+        buttonText.textContent = 'إخفاء';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-times');
+    }
+}
 
 // دوال التحكم في البحث المتقدم
 function toggleSearchText(button) {

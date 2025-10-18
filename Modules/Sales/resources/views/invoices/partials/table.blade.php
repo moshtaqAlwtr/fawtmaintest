@@ -1,6 +1,7 @@
 {{-- ملف: resources/views/sales/invoices/partials/table.blade.php --}}
 
 @if ($invoices->count() > 0)
+
     <div class="table-responsive">
         <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap4">
             <div class="row align-items-center">

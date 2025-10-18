@@ -1,5 +1,6 @@
 {{-- ملف: resources/views/sales/retend_invoice/partials/pagination.blade.php --}}
 @if ($return->hasPages())
+
     <div class="d-flex justify-content-between align-items-center mt-3 w-100">
         <div class="pagination-info text-muted">
             عرض {{ $return->firstItem() }} إلى {{ $return->lastItem() }} من {{ $return->total() }} نتيجة

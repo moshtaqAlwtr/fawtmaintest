@@ -117,7 +117,8 @@ public function index(Request $request)
     }
 
     // Paginate the results
-    $credits = $query->orderBy('created_at', 'desc')->paginate(15);
+    $perPage = $request->input('per_page', 10); // استخدام القيمة من الطلب أو 10 كقيمة افتراضية
+    $credits = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
     $Credits_number = $this->generateInvoiceNumber();
     $clients = Client::all();

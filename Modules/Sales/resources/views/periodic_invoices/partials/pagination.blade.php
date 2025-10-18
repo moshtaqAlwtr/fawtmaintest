@@ -1,6 +1,7 @@
 {{-- ملف: resources/views/sales/periodic_invoices/partials/pagination.blade.php - نسخة مبسطة --}}
 
 @if ($periodicInvoices->hasPages())
+
     <div class="d-flex justify-content-between align-items-center mt-3 w-100">
         {{-- معلومات النتائج --}}
         <div class="pagination-info text-muted">

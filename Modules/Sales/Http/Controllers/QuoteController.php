@@ -44,7 +44,8 @@ class QuoteController extends Controller
 
     // التحقق من كون الطلب AJAX
     if ($request->ajax()) {
-        $quotes = $query->orderBy('created_at', 'desc')->paginate(15);
+        $perPage = $request->input('per_page', 10);
+        $quotes = $query->orderBy('created_at', 'desc')->paginate($perPage);
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
         return response()->json([

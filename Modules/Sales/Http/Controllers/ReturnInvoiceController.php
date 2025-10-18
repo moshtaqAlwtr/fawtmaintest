@@ -77,8 +77,9 @@ public function index(Request $request)
         $query->where('created_by', $request->added_by_employee);
     }
 
-    // جلب النتائج مع التقسيم (Pagination)
-    $return = $query->paginate(15);
+    // جلب النتائج مع التقسيم (Pagination) - استخدام per_page من الطلب مع تعيين القيمة الافتراضية إلى 10
+    $perPage = $request->input('per_page', 10);
+    $return = $query->paginate($perPage);
 
     // البيانات الأخرى المطلوبة للواجهة
     $clients = Client::all();

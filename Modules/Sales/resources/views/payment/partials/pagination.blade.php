@@ -3,6 +3,7 @@
         <div class="pagination-info text-muted">
             عرض {{ $payments->firstItem() }} إلى {{ $payments->lastItem() }} من {{ $payments->total() }} نتيجة
         </div>
+        
         <nav aria-label="صفحات النتائج">
             <ul class="pagination pagination-sm mb-0">
                 {{-- الصفحة الأولى --}}

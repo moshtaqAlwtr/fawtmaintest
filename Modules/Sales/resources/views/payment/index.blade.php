@@ -75,6 +75,7 @@
 @endsection
 
 @section('content')
+
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
@@ -374,261 +375,309 @@
     <script src="{{ asset('assets/js/search.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <script>
-        $(document).ready(function() {
-            // تحميل البيانات الأولية
+   <script>
+    $(document).ready(function() {
+        // تحميل البيانات الأولية
+        loadData();
+
+        // البحث عند إرسال النموذج
+        $('#searchForm').on('submit', function(e) {
+            e.preventDefault();
             loadData();
-
-            // البحث عند إرسال النموذج
-            $('#searchForm').on('submit', function(e) {
-                e.preventDefault();
-                loadData();
-            });
-
-            // البحث الفوري عند تغيير قيم المدخلات
-            $('#searchForm input, #searchForm select').on('change input', function() {
-                clearTimeout(window.searchTimeout);
-                window.searchTimeout = setTimeout(function() {
-                    loadData();
-                }, 500);
-            });
-
-            // إعادة تعيين الفلاتر
-            $('#resetSearch, button[type="reset"]').on('click', function() {
-                $('#searchForm')[0].reset();
-                loadData();
-            });
-
-            // التعامل مع الترقيم
-            $(document).on('click', '.pagination a', function(e) {
-                e.preventDefault();
-                let url = $(this).attr('href');
-                if (url) {
-                    let page = new URL(url).searchParams.get('page');
-                    loadData(page);
-                }
-            });
-
-            // دالة تحميل البيانات
-            function loadData(page = 1) {
-                showLoading();
-
-                let formData = $('#searchForm').serialize();
-                if (page > 1) {
-                    formData += '&page=' + page;
-                }
-
-                $.ajax({
-                    url: '{{ route('paymentsClient.index') }}',
-                    method: 'GET',
-                    data: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            $('#results-container').html(response.data);
-                            updatePaginationInfo(response);
-                            initializeEvents();
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('خطأ في تحميل البيانات:', error);
-                        $('#results-container').html(
-                            '<div class="alert alert-danger text-center">' +
-                            '<p class="mb-0">حدث خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى.</p>' +
-                            '</div>'
-                        );
-                    },
-                    complete: function() {
-                        hideLoading();
-                    }
-                });
-            }
-
-            function showLoading() {
-                $('#results-container').css('opacity', '0.6');
-                if ($('#loading-indicator').length === 0) {
-                    $('#results-container').prepend(`
-                <div id="loading-indicator" class="text-center p-3">
-                    <div class="spinner-border text-primary" role="status"></div>
-                </div>
-            `);
-                }
-            }
-
-            function hideLoading() {
-                $('#loading-indicator').remove();
-                $('#results-container').css('opacity', '1');
-            }
-
-            function updatePaginationInfo(response) {
-                $('.pagination-info').text(`صفحة ${response.current_page} من ${response.last_page}`);
-                if (response.total > 0) {
-                    $('.results-info').text(`${response.from}-${response.to} من ${response.total}`);
-                } else {
-                    $('.results-info').text('لا توجد نتائج');
-                }
-            }
-
-            function initializeEvents() {
-                // تحديد الكل
-                $('#selectAll').off('change').on('change', function() {
-                    $('.payment-checkbox').prop('checked', $(this).prop('checked'));
-                });
-
-                $('.payment-checkbox').off('change').on('change', function() {
-                    let totalCheckboxes = $('.payment-checkbox').length;
-                    let checkedCheckboxes = $('.payment-checkbox:checked').length;
-                    $('#selectAll').prop('checked', totalCheckboxes === checkedCheckboxes);
-                });
-
-                // أحداث الحذف
-                $('.delete-payment').off('click').on('click', function(e) {
-                    e.preventDefault();
-                    const paymentId = $(this).data('id');
-
-                    if (confirm('هل أنت متأكد من حذف هذه العملية؟')) {
-                        deletePayment(paymentId);
-                    }
-                });
-            }
-
-            function deletePayment(paymentId) {
-                const row = $(`.delete-payment[data-id="${paymentId}"]`).closest('tr');
-                row.css('opacity', '0.5');
-
-                $.ajax({
-                    url: `/payments-client/${paymentId}`,
-                    type: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(response) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'تم الحذف',
-                            text: 'تم حذف العملية بنجاح',
-                            confirmButtonText: 'حسناً'
-                        });
-                        loadData();
-                    },
-                    error: function() {
-                        row.css('opacity', '1');
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'خطأ',
-                            text: 'حدث خطأ أثناء حذف العملية',
-                            confirmButtonText: 'حسناً'
-                        });
-                    }
-                });
-            }
-
-            initializeEvents();
         });
 
-        // تعريف المتغيرات العامة
-        window.routes = {
-            payments: {
-                cancel: '{{ route('paymentsClient.cancel', ':id') }}'
-            }
-        };
-        window.csrfToken = '{{ csrf_token() }}';
+        // البحث الفوري عند تغيير قيم المدخلات
+        $('#searchForm input, #searchForm select').on('change input', function() {
+            clearTimeout(window.searchTimeout);
+            window.searchTimeout = setTimeout(function() {
+                loadData();
+            }, 500);
+        });
 
-        function showPermissionError() {
-            Swal.fire({
-                icon: 'error',
-                title: 'غير مصرح',
-                text: 'ليس لديك صلاحية لإلغاء الدفع',
-                confirmButtonText: 'حسناً'
+        // إعادة تعيين الفلاتر
+        $('#resetSearch, button[type="reset"]').on('click', function() {
+            $('#searchForm')[0].reset();
+            loadData();
+        });
+
+        // التعامل مع الترقيم
+        $(document).on('click', '.pagination a', function(e) {
+            e.preventDefault();
+            let url = $(this).attr('href');
+            if (url) {
+                let page = new URL(url).searchParams.get('page');
+                loadData(page);
+            }
+        });
+
+        // دالة تحميل البيانات - محدثة
+        function loadData(page = 1, perPage = null) {
+            console.log('تحميل بيانات المدفوعات - الصفحة:', page, 'عدد العناصر:', perPage);
+            showLoading();
+
+            // إذا لم يتم تحديد perPage، استخدم القيمة الحالية من الـ select
+            if (!perPage) {
+                perPage = $('select[name="DataTables_Table_0_length"]').val() || 10;
+            }
+
+            let formData = $('#searchForm').serialize();
+            formData += '&page=' + page;
+            formData += '&per_page=' + perPage;
+            formData += '&is_ajax=1';
+
+            $.ajax({
+                url: '{{ route('paymentsClient.index') }}',
+                method: 'GET',
+                data: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    console.log('استجابة الخادم:', response);
+                    
+                    if (response.success) {
+                        $('#results-container').html(response.data);
+                        updatePaginationInfo(response);
+                        initializeEvents();
+                        
+                        // تحديث قيمة per_page في الـ select
+                        if (response.per_page) {
+                            $('select[name="DataTables_Table_0_length"]').val(response.per_page);
+                        }
+                    } else {
+                        console.error('استجابة غير متوقعة:', response);
+                        $('#results-container').html(
+                            '<div class="alert alert-danger text-center">حدث خطأ في تحميل البيانات</div>'
+                        );
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('خطأ في تحميل البيانات:', error);
+                    console.error('حالة الخطأ:', status);
+                    console.error('استجابة الخادم:', xhr.responseText);
+                    $('#results-container').html(
+                        '<div class="alert alert-danger text-center">' +
+                        '<p class="mb-0">حدث خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى.</p>' +
+                        '</div>'
+                    );
+                },
+                complete: function() {
+                    hideLoading();
+                }
             });
         }
 
-        function confirmCancelPayment(id) {
-            Swal.fire({
-                title: 'هل أنت متأكد من إلغاء عملية الدفع؟',
-                text: 'سيتم استعادة جميع الأرصدة كما كانت قبل عملية الدفع',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'نعم، إلغاء العملية',
-                cancelButtonText: 'لا، تراجع',
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                showLoaderOnConfirm: true,
-                preConfirm: () => {
-                    return new Promise((resolve) => {
-                        const cancelUrl = window.routes.payments.cancel.replace(':id', id);
+        function showLoading() {
+            $('#results-container').css('opacity', '0.6');
+            if ($('#loading-indicator').length === 0) {
+                $('#results-container').prepend(`
+                    <div id="loading-indicator" class="text-center p-3">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
+                `);
+            }
+        }
 
-                        $.ajax({
-                            url: cancelUrl,
-                            method: 'POST',
-                            data: {
-                                _token: window.csrfToken
-                            },
-                            success: function(response) {
-                                resolve(response);
-                            },
-                            error: function(xhr) {
-                                let errorMsg = 'حدث خطأ أثناء الإلغاء';
+        function hideLoading() {
+            $('#loading-indicator').remove();
+            $('#results-container').css('opacity', '1');
+        }
 
-                                if (xhr.responseJSON && xhr.responseJSON.message) {
-                                    errorMsg = xhr.responseJSON.message;
-                                } else if (xhr.status === 404) {
-                                    errorMsg = 'عملية الدفع غير موجودة';
-                                } else if (xhr.status === 403) {
-                                    errorMsg = 'ليس لديك صلاحية لهذا الإجراء';
-                                } else if (xhr.status === 419) {
-                                    errorMsg = 'انتهت صلاحية الجلسة - يرجى تحديث الصفحة';
-                                }
+        function updatePaginationInfo(response) {
+            if (response.current_page && response.last_page) {
+                $('.pagination-info').text(`صفحة ${response.current_page} من ${response.last_page}`);
+            }
+            
+            if (response.total > 0) {
+                $('.results-info').text(`${response.from}-${response.to} من ${response.total}`);
+            } else {
+                $('.results-info').text('لا توجد نتائج');
+            }
+        }
 
-                                Swal.showValidationMessage(errorMsg);
-                                resolve(false);
-                            }
-                        });
-                    });
+        function initializeEvents() {
+            // إعداد أحداث الترقيم
+            $('.pagination-link').off('click').on('click', function(e) {
+                e.preventDefault();
+                const page = $(this).data('page');
+                const perPage = $('select[name="DataTables_Table_0_length"]').val();
+                
+                console.log('نقر على الترقيم - الصفحة:', page, 'عدد العناصر:', perPage);
+                
+                if (page && window.loadData) {
+                    loadData(page, perPage);
+                }
+            });
+
+            // تحديد الكل
+            $('#selectAll').off('change').on('change', function() {
+                $('.payment-checkbox').prop('checked', $(this).prop('checked'));
+            });
+
+            $('.payment-checkbox').off('change').on('change', function() {
+                let totalCheckboxes = $('.payment-checkbox').length;
+                let checkedCheckboxes = $('.payment-checkbox:checked').length;
+                $('#selectAll').prop('checked', totalCheckboxes === checkedCheckboxes);
+            });
+
+            // أحداث الحذف
+            $('.delete-payment').off('click').on('click', function(e) {
+                e.preventDefault();
+                const paymentId = $(this).data('id');
+
+                if (confirm('هل أنت متأكد من حذف هذه العملية؟')) {
+                    deletePayment(paymentId);
+                }
+            });
+            
+            // Show entries dropdown change handler
+            $('select[name="DataTables_Table_0_length"]').off('change').on('change', function() {
+                const perPage = $(this).val();
+                console.log('تغيير عدد العناصر:', perPage);
+                loadData(1, perPage);
+            });
+        }
+
+        function deletePayment(paymentId) {
+            const row = $(`.delete-payment[data-id="${paymentId}"]`).closest('tr');
+            row.css('opacity', '0.5');
+
+            $.ajax({
+                url: `/payments-client/${paymentId}`,
+                type: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                allowOutsideClick: () => !Swal.isLoading()
-            }).then((result) => {
-                if (result.isConfirmed && result.value) {
+                success: function(response) {
                     Swal.fire({
-                        title: 'تم الإلغاء بنجاح',
-                        text: 'تم إلغاء عملية الدفع واستعادة الأرصدة',
                         icon: 'success',
+                        title: 'تم الحذف',
+                        text: 'تم حذف العملية بنجاح',
                         confirmButtonText: 'حسناً'
-                    }).then(() => {
-                        loadData();
+                    });
+                    loadData();
+                },
+                error: function() {
+                    row.css('opacity', '1');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'خطأ',
+                        text: 'حدث خطأ أثناء حذف العملية',
+                        confirmButtonText: 'حسناً'
                     });
                 }
             });
         }
 
-        // دوال التحكم في البحث المتقدم
-        function toggleSearchText(button) {
-            const buttonText = button.querySelector('.button-text');
-            if (buttonText.textContent.trim() === 'متقدم') {
-                buttonText.textContent = 'بحث بسيط';
-            } else {
-                buttonText.textContent = 'متقدم';
-            }
-        }
+        initializeEvents();
+    });
 
-        function toggleSearchFields(button) {
-            const searchForm = document.getElementById('searchForm');
-            const buttonText = button.querySelector('.hide-button-text');
-            const icon = button.querySelector('i');
-
-            if (buttonText.textContent === 'اخفاء') {
-                searchForm.style.display = 'none';
-                buttonText.textContent = 'إظهار';
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-eye');
-            } else {
-                searchForm.style.display = 'block';
-                buttonText.textContent = 'اخفاء';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-times');
-            }
+    // تعريف المتغيرات العامة
+    window.routes = {
+        payments: {
+            cancel: '{{ route('paymentsClient.cancel', ':id') }}'
         }
-    </script>
+    };
+    window.csrfToken = '{{ csrf_token() }}';
+
+    function showPermissionError() {
+        Swal.fire({
+            icon: 'error',
+            title: 'غير مصرح',
+            text: 'ليس لديك صلاحية لإلغاء الدفع',
+            confirmButtonText: 'حسناً'
+        });
+    }
+
+    function confirmCancelPayment(id) {
+        Swal.fire({
+            title: 'هل أنت متأكد من إلغاء عملية الدفع؟',
+            text: 'سيتم استعادة جميع الأرصدة كما كانت قبل عملية الدفع',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'نعم، إلغاء العملية',
+            cancelButtonText: 'لا، تراجع',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            showLoaderOnConfirm: true,
+            preConfirm: () => {
+                return new Promise((resolve) => {
+                    const cancelUrl = window.routes.payments.cancel.replace(':id', id);
+
+                    $.ajax({
+                        url: cancelUrl,
+                        method: 'POST',
+                        data: {
+                            _token: window.csrfToken
+                        },
+                        success: function(response) {
+                            resolve(response);
+                        },
+                        error: function(xhr) {
+                            let errorMsg = 'حدث خطأ أثناء الإلغاء';
+
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            } else if (xhr.status === 404) {
+                                errorMsg = 'عملية الدفع غير موجودة';
+                            } else if (xhr.status === 403) {
+                                errorMsg = 'ليس لديك صلاحية لهذا الإجراء';
+                            } else if (xhr.status === 419) {
+                                errorMsg = 'انتهت صلاحية الجلسة - يرجى تحديث الصفحة';
+                            }
+
+                            Swal.showValidationMessage(errorMsg);
+                            resolve(false);
+                        }
+                    });
+                });
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                Swal.fire({
+                    title: 'تم الإلغاء بنجاح',
+                    text: 'تم إلغاء عملية الدفع واستعادة الأرصدة',
+                    icon: 'success',
+                    confirmButtonText: 'حسناً'
+                }).then(() => {
+                    // استخدم loadData الحالية بدلاً من إعادة التحميل
+                    if (typeof loadData === 'function') {
+                        loadData();
+                    } else {
+                        window.location.reload();
+                    }
+                });
+            }
+        });
+    }
+
+    // دوال التحكم في البحث المتقدم
+    function toggleSearchText(button) {
+        const buttonText = button.querySelector('.button-text');
+        if (buttonText.textContent.trim() === 'متقدم') {
+            buttonText.textContent = 'بحث بسيط';
+        } else {
+            buttonText.textContent = 'متقدم';
+        }
+    }
+
+    function toggleSearchFields(button) {
+        const searchForm = document.getElementById('searchForm');
+        const buttonText = button.querySelector('.hide-button-text');
+        const icon = button.querySelector('i');
+
+        if (buttonText.textContent === 'اخفاء') {
+            searchForm.style.display = 'none';
+            buttonText.textContent = 'إظهار';
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-eye');
+        } else {
+            searchForm.style.display = 'block';
+            buttonText.textContent = 'اخفاء';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-times');
+        }
+    }
+</script>
 @endsection

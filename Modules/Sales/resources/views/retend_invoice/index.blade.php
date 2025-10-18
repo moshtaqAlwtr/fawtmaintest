@@ -242,8 +242,12 @@
 
 <script>
 $(document).ready(function() {
-    // تحميل البيانات الأولية
-    loadData();
+    // تأكد من إظهار مؤشر التحميل قبل تحميل البيانات الأولية
+    showLoading();
+    // ثم قم بتحميل البيانات الأولية بعد لحظة قصيرة لضمان ظهور مؤشر التحميل
+    setTimeout(function() {
+        loadData();
+    }, 100);
 
     // البحث عند إرسال النموذج
     $('#searchForm').on('submit', function(e) {
@@ -276,13 +280,17 @@ $(document).ready(function() {
     });
 
     // دالة تحميل البيانات
-    function loadData(page = 1) {
+    window.loadData = function(page = 1, perPage = 10) {
+        console.log('loadData called: page=' + page + ', perPage=' + perPage); // Debug log
         showLoading();
+        
+        // تحديث قيمة عدد العناصر في القائمة المنسدلة
+        $('select[name="DataTables_Table_0_length"]').val(perPage);
 
         let formData = $('#searchForm').serialize();
-        if (page > 1) {
-            formData += '&page=' + page;
-        }
+        formData += '&page=' + page;
+        formData += '&per_page=' + perPage;
+        formData += '&is_ajax=1'; // إضافة معلمة واضحة للطلب AJAX
 
         $.ajax({
             url: '{{ route("ReturnIInvoices.index") }}',
@@ -291,11 +299,13 @@ $(document).ready(function() {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
             },
+            cache: false,
             success: function(response) {
                 if (response.success) {
                     $('#results-container').html(response.data);
                     updatePaginationInfo(response);
                     initializeEvents();
+                    initializeDataTableFeatures();
                 }
             },
             error: function(xhr, status, error) {
@@ -337,8 +347,22 @@ $(document).ready(function() {
             $('.results-info').text('لا توجد نتائج');
         }
     }
+    
+    // في قسم scripts في ملف index الرئيسي
+    function setupPaginationEvents() {
+        $('.pagination-link').off('click').on('click', function(e) {
+            e.preventDefault();
+            const page = $(this).data('page');
+            const perPage = $('select[name="DataTables_Table_0_length"]').val();
+            
+            if (page && window.loadData) {
+                window.loadData(page, perPage);
+            }
+        });
+    }
 
     function initializeEvents() {
+        setupPaginationEvents();
         // أحداث الحذف
         $('.delete-invoice').off('click').on('click', function(e) {
             e.preventDefault();
@@ -358,6 +382,37 @@ $(document).ready(function() {
             let totalCheckboxes = $('.invoice-checkbox').length;
             let checkedCheckboxes = $('.invoice-checkbox:checked').length;
             $('#selectAll').prop('checked', totalCheckboxes === checkedCheckboxes);
+        });
+        
+        // Pagination Click Events
+        $(document).on('click', '.paginate_button:not(.disabled) a', function(e) {
+            e.preventDefault();
+            let url = $(this).attr('href');
+            if (url) {
+                let page = new URL(url).searchParams.get('page') || 1;
+                let perPage = $('select[name="DataTables_Table_0_length"]').val() || 10;
+                loadData(page, perPage);
+            }
+        });
+    }
+    
+    function initializeDataTableFeatures() {
+        // Show entries dropdown change handler
+        $('select[name="DataTables_Table_0_length"]').off('change').on('change', function() {
+            const perPage = $(this).val();
+            loadData(1, perPage);
+        });
+        
+        // Search input handler
+        $('#DataTables_Table_0_filter input').off('keyup').on('keyup', function() {
+            const searchTerm = $(this).val();
+            if (searchTerm.length > 2 || searchTerm.length === 0) {
+                clearTimeout(window.searchTimeout);
+                window.searchTimeout = setTimeout(function() {
+                    $('input[name="invoice_number"]').val(searchTerm);
+                    loadData(1);
+                }, 500);
+            }
         });
     }
 
